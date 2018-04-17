@@ -51,4 +51,8 @@ Rails.application.configure do
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+
+  # API url
+  ENV['api_url'] = "https://integracion-2018-dev.herokuapp.com/" 
+  ENV['api_psswd'] = "TGVaa:#Dtih:kx4"
 end

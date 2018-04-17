@@ -88,4 +88,8 @@ Rails.application.configure do
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
+
+  # API url
+  ENV['api_url'] = "https://integracion-2018-prod.herokuapp.com/"
+  ENV['api_psswd'] = "TGVaa:#Dtih:kx4"
 end

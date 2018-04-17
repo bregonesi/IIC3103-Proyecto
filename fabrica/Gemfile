@@ -38,6 +38,12 @@ gem 'spree', '~> 3.4.4'
 gem 'spree_auth_devise', '~> 3.3'
 gem 'spree_gateway', '~> 3.3'
 
+# Rest client
+gem 'rest-client'
+
+# HMAC-SHA1 codification
+gem 'ruby-hmac'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]

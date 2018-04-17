@@ -107,3 +107,23 @@ masters = {
 masters.each do |product, variant_attrs|
   product.master.update_attributes!(variant_attrs)
 end
+
+# Stocks location #
+url = ENV['api_url'] + "bodega/almacenes"
+
+base = 'GET'
+key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+
+r = RestClient::Request.execute(method: :get, url: url,
+	headers: {'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+i = 0
+JSON.parse(r).each do |almacen|
+	i += 1
+  new_almacen = Spree::StockLocation.where(name: 'Almacen ' + i.to_s).first_or_create! do |a_new|
+    a_new.admin_name = almacen['_id']
+  end
+
+  if new_almacen
+    new_almacen.save
+  end
+end
