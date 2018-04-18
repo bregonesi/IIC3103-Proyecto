@@ -20,13 +20,13 @@ test:
   <<: *default
   database: db/test.sqlite3
 
-production:
-  adapter: postgresql
+production:  ## Heroku es production
+  adapter: postgresql  ## Le decimos a heroku que use postgress
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
-  database: fabrica_development
+  database: fabrica_development  ## Da lo mismo que ponemos aqui por que heroku reemplaza esto con la bdd que el nos crea
 
-  username: fabrica_username
+  username: fabrica_username  ## Heroku sabe que username nos asigna
 
-  password: fabrica_password
+  password: fabrica_password  ## Heroku sabe que password nos asigna

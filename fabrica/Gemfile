@@ -42,7 +42,7 @@ gem 'rest-client'
 # HMAC-SHA1 codification
 gem 'ruby-hmac'
 
-group :production do
+group :production do  ## Heroku trabaja con production, por lo tanto usara postgres
   # Use postgres as the database for Active Record for production
   gem 'pg'
 end
