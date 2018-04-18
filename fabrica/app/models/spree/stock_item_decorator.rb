@@ -13,8 +13,8 @@ Spree::StockItem.class_eval do
 
 		total = 0
 		JSON.parse(r).each do |prod|
-			if prod['_id']['sku'] == self.product.sku.to_i  # no estoy seguro si es to_i
-				total += prod['total']
+			if prod['_id'] == self.product.sku.to_s
+				total += prod['total'].to_i
 			end
 		end
 
