@@ -90,6 +90,7 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   # API url
-  ENV['api_url'] = "https://integracion-2018-prod.herokuapp.com/"
+  # ENV['api_url'] = "https://integracion-2018-prod.herokuapp.com/"
+  ENV['api_url'] = "https://integracion-2018-dev.herokuapp.com/"
   ENV['api_psswd'] = "TGVaa:#Dtih:kx4"
 end
