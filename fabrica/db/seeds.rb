@@ -11,6 +11,39 @@ Spree::Auth::Engine.load_seed if defined?(Spree::Auth)
 
 # Products #
 Spree::Sample.load_sample("shipping_categories")
+require 'csv'
+
+csv_text = File.read(Rails.root.join('lib', 'seeds', 'Grupos.csv'))
+csv = CSV.parse(csv_text, :headers => true, :encoding => 'ISO-8859-1')
+default_shipping_category = Spree::ShippingCategory.find_by!(name: "Default")
+csv.each do |product_attrs|
+  Spree::Config[:currency] = "CLP"
+
+  new_product = Spree::Product.where(name: product_attrs['Producto'],
+                                   tax_category: product_attrs[:tax_category]).first_or_create! do |product|
+    product.price = 1000
+    #product.description = FFaker::Lorem.paragraph
+    product.description = product_attrs['Ingrediente 1']
+    product.available_on = Time.zone.now
+    product.shipping_category = default_shipping_category
+  end
+  if new_product
+    new_product.save
+  end
+end
+  #t = Spree::Product.new
+  #t.sku = row['SKU']
+  #t.name = row['Producto']
+  #t.description = row['Ingrediente 1']
+  #t.ingrediente2 = row['Ingrediente 2']
+  #t.ingrediente3 = row['Ingrediente 3']
+  #t.ingrediente4 = row['Ingrediente 4']
+  #t.ingrediente5 = row['Ingrediente 5']
+  #t.ingrediente6 = row['Ingrediente 6']
+  #t.save
+  #puts "#{t.name}, #{t.description} saved"
+
+puts csv_text
 
 products = [
   {
@@ -28,9 +61,8 @@ products = [
     description: "Esta es un jugo manzana naranja",
     price: 1200
   }
-]
 
-default_shipping_category = Spree::ShippingCategory.find_by!(name: "Default")
+]
 
 products.each do |product_attrs|
 	Spree::Config[:currency] = "CLP"
