@@ -252,15 +252,13 @@ Spree::StockLocation.all.each do |stock_location|
     if variant
       print "Variant sku: " + prod_api['_id'] + " encontrada.\n"
 
-      stock_item = Spree::StockItem.find_by(stock_location: stock_location, variant: variant)
-      if stock_item
-        stock_item.count_on_hand = prod_api['total'].to_i
+      stock_movement = stock_location.stock_movements.build(quantity: prod_api['total'].to_i)
+      stock_movement.stock_item = stock_location.set_up_stock_item(variant)
+
+      if stock_movement.save
         print "Cargando stock para item sku: " + prod_api['_id'] + ", stock: " + prod_api['total'].to_s + ".\n"
       end
 
-      if stock_item
-        stock_item.save
-      end
     else
       print "Variant sku: " + prod_api['_id'] + " no encontrada.\n"
     end
