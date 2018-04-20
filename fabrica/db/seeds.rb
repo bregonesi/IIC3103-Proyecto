@@ -208,12 +208,11 @@ url = ENV['api_url'] + "bodega/almacenes"
 base = 'GET'
 key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
 
-r = RestClient::Request.execute(method: :get, url: url,
-	headers: {'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+r = HTTParty.get(url, headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
 
 i = 0
 
-JSON.parse(r).each do |almacen|
+JSON.parse(r.body).each do |almacen|
   print "Almacen " + almacen['_id'].to_s + " detectado.\n"
 
 	i += 1
@@ -241,13 +240,11 @@ Spree::StockLocation.all.each do |stock_location|
   base = 'GET' + stock_location.admin_name
   key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
 
-  r = RestClient::Request.execute(method: :get, url: url,
-    headers: {
-      params: {almacenId: stock_location.admin_name.to_s},
-      'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key}
-      )
+  r = HTTParty.get(url,
+                   query: {almacenId: stock_location.admin_name.to_s},
+                   headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
 
-  JSON.parse(r).each do |prod_api|
+  JSON.parse(r.body).each do |prod_api|
     variant = Spree::Variant.find_by(sku: prod_api['_id'].to_s)
     if variant
       print "Variant sku: " + prod_api['_id'] + " encontrada.\n"
