@@ -7,12 +7,43 @@
 #   Character.create(name: 'Luke', movie: movies.first)
 
 Spree::Core::Engine.load_seed if defined?(Spree::Core)
+#Spree::Sample.load_sample("country")
 Spree::Auth::Engine.load_seed if defined?(Spree::Auth)
 
 Spree::StockLocation.destroy_all
 
-# Products #
+# Zones #
+print "Cargando zones.\n"
+
+zone = Spree::Zone.where(name: "Chile").create! do |z_new|
+  z_new.description = "Solo Chile. Uso de IVA"
+  z_new.default_tax = true
+  z_new.kind = "country"
+
+  z_new.zone_members.build(zoneable: Spree::Country.find_by!(iso: "CL")).save!
+end
+
+# Tax's #
+print "Cargando taxs.\n"
+
+tax_category = Spree::TaxCategory.where(name: 'IVA Chile').first_or_create!
+Spree::TaxRate.where(
+  name: "IVA Chile",
+  zone: zone,
+  amount: 0.19,
+  tax_category: tax_category,
+  included_in_price: true,
+  show_rate_in_label: true).first_or_create! do |tax_rate|
+  tax_rate.calculator = Spree::Calculator::DefaultTax.create!
+end
+
+# Shipping categories #
+print "Cargando shipping categories.\n"
+
 Spree::Sample.load_sample("shipping_categories")
+
+# Products #
+print "Cargando productos.\n"
 
 products = [
   {
@@ -52,6 +83,8 @@ products.each do |product_attrs|
 end
 
 # Object types #
+print "Cargando object types.\n"
+
 option_types_attributes = [
   {
     name: "category",
@@ -65,6 +98,8 @@ option_types_attributes.each do |attrs|
 end
 
 # Object value #
+print "Cargando object values.\n"
+
 category = Spree::OptionType.find_by!(presentation: "Categoria")
 
 option_values_attributes = [
@@ -87,6 +122,8 @@ option_values_attributes.each do |attrs|
 end
 
 # Skus #
+print "Cargando skus.\n"
+
 manzana = Spree::Product.find_by!(name: "Manzana")
 jugo_manzana = Spree::Product.find_by!(name: "Jugo Manzana")
 jugo_manana_naranja = Spree::Product.find_by!(name: "Jugo Manzana-Naranja")
@@ -111,6 +148,8 @@ masters.each do |product, variant_attrs|
 end
 
 # Stocks location #
+print "Cargando stock locations.\n"
+
 url = ENV['api_url'] + "bodega/almacenes"
 
 base = 'GET'
@@ -118,14 +157,59 @@ key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
 
 r = RestClient::Request.execute(method: :get, url: url,
 	headers: {'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+
 i = 0
+
 JSON.parse(r).each do |almacen|
+  print "Almacen " + almacen['_id'].to_s + " detectado.\n"
+
 	i += 1
-  new_almacen = Spree::StockLocation.where(name: 'Almacen ' + i.to_s).first_or_create! do |a_new|
+  new_almacen = Spree::StockLocation.where(name: 'Almacen ' + i.to_s,
+                                           address1: 'Av. Vicuña Mackenna 4860',
+                                           city: 'Santiago',
+                                           zipcode: '7820436',
+                                           country: Spree::Country.find_by(iso: 'CL'),
+                                           state: Spree::Country.find_by(iso: 'CL').states.find_by(abbr: 'RM')
+                                          ).first_or_create! do |a_new|
     a_new.admin_name = almacen['_id']
   end
 
   if new_almacen
     new_almacen.save
+  end
+end
+
+# Stocks iniciales productos #
+print "Cargando stock iniciales de productos.\n"
+
+url = ENV['api_url'] + "bodega/skusWithStock"
+
+Spree::StockLocation.all.each do |stock_location|
+  base = 'GET' + stock_location.admin_name
+  key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+
+  r = RestClient::Request.execute(method: :get, url: url,
+    headers: {
+      params: {almacenId: stock_location.admin_name.to_s},
+      'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key}
+      )
+
+  JSON.parse(r).each do |prod_api|
+    variant = Spree::Variant.find_by(sku: prod_api['_id'].to_s)
+    if variant
+      print "Variant sku: " + prod_api['_id'] + " encontrada.\n"
+
+      stock_item = Spree::StockItem.find_by(stock_location: stock_location, variant: variant)
+      if stock_item
+        stock_item.count_on_hand = prod_api['total'].to_i
+        print "Cargando stock para item sku: " + prod_api['_id'] + ", stock: " + prod_api['total'].to_s + ".\n"
+      end
+
+      if stock_item
+        stock_item.save
+      end
+    else
+      print "Variant sku: " + prod_api['_id'] + " no encontrada.\n"
+    end
   end
 end

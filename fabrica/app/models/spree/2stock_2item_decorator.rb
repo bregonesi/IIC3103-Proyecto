@@ -1,5 +1,5 @@
 Spree::StockItem.class_eval do
-  def count_on_hand
+  def count_on_hand2
   	url = ENV['api_url'] + "bodega/skusWithStock"
 
 		base = 'GET' + self.stock_location.admin_name

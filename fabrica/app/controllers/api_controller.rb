@@ -4,7 +4,7 @@ class ApiController < ApplicationController
 
 		json_p = []
 		productos.each do |product|
-			json_p << {:sku => product.sku.to_s, :available => product.stock.to_i}
+			json_p << {:sku => product.sku.to_s, :available => product.total_on_hand.to_i}
 		end
 
 		render json: json_p, :status => 200
@@ -22,7 +22,7 @@ class ApiController < ApplicationController
 			productos = Spree::Product.all
 
 			productos.each do |product|
-				json_p << {:sku => product.sku.to_s, :available => product.stock.to_i}
+				json_p << {:sku => product.sku.to_s, :available => product.total_on_hand.to_i}
 			end
 
 			render json: json_p, :status => 200
