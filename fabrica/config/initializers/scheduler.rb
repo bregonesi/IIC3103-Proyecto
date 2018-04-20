@@ -128,6 +128,10 @@ job.every '5m' do
 	                   query: {almacenId: stock_location.admin_name.to_s},
 	                   headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
 
+		if r.code != 200
+			raise "Error en get stock"
+		end
+
 	  JSON.parse(r.body).each do |prod_api|
 	    variant = Spree::Variant.find_by(sku: prod_api['_id'].to_s)
 	    if variant
