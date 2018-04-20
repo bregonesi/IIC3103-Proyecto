@@ -20,10 +20,12 @@ csv.each do |product_attrs|
   Spree::Config[:currency] = "CLP"
 
   new_product = Spree::Product.where(name: product_attrs['Producto'],
-                                   tax_category: product_attrs[:tax_category]).first_or_create! do |product|
+    tax_category: product_attrs[:tax_category]).first_or_create! do |product|
+
     product.price = 1000
     #product.description = FFaker::Lorem.paragraph
-    product.description = product_attrs['Ingrediente 1']
+    product.sku = product_attrs['SKU'.to_i]
+    #product.description = product_attrs['Ingrediente 1']
     product.available_on = Time.zone.now
     product.shipping_category = default_shipping_category
   end
