@@ -41,13 +41,15 @@ job.every '5m' do
       j = 0
 			JSON.parse(r.body).each do |prod|  ## hay que eliminar producto por producto (si, ineficiente)
 			  # ahora hay que eliminar el prod_id encontrado
-  			base = 'DELETE' + prod['_id'].to_s + inventario_para_despachar.shipment.address.address1 + inventario_para_despachar.line_item.price.to_i.to_s + inventario_para_despachar.order.number.to_s
+  			#base = 'DELETE' + prod['_id'].to_s + inventario_para_despachar.shipment.address.address1 + inventario_para_despachar.line_item.price.to_i.to_s + inventario_para_despachar.order.number.to_s
+  			base = 'DELETE' + prod['_id'].to_s + inventario_para_despachar.shipment.address.address1 + inventario_para_despachar.line_item.price.to_i.to_s
   			key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
   			r = HTTParty.delete(url,
   													body: {productoId: prod['_id'].to_s,
   																 direccion: inventario_para_despachar.shipment.address.address1,
   																 precio: inventario_para_despachar.line_item.price.to_i,
-  																 oc: inventario_para_despachar.order.number.to_s}.to_json,
+  																 #oc: inventario_para_despachar.order.number.to_s}.to_json,
+  																 oc: ""}.to_json,
   													headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
 
   			if r.code == 200
