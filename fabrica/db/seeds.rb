@@ -102,40 +102,39 @@ end
 
 puts csv_text
 
-
-products = [
-  {
-    name: "Manzana",
-    description: "Esta es una manzana",
-    price: 100
-  },
-  {
-    name: "Jugo Manzana",
-    description: "Esta es un jugo manzana",
-    price: 1000
-  },
-  {
-    name: "Jugo Manzana-Naranja",
-    description: "Esta es un jugo manzana naranja",
-    price: 1200
-  }
-
-products.each do |product_attrs|
-	Spree::Config[:currency] = "CLP"
-
-  new_product = Spree::Product.where(name: product_attrs[:name],
-                                     tax_category: product_attrs[:tax_category]).first_or_create! do |product|
-    product.price = product_attrs[:price]
-    #product.description = FFaker::Lorem.paragraph
-    product.description = product_attrs[:description]
-    product.available_on = Time.zone.now
-    product.shipping_category = default_shipping_category
-  end
-
-  if new_product
-    new_product.save
-  end
-end
+# products = [
+#   {
+#     name: "Manzana",
+#     description: "Esta es una manzana",
+#     price: 100
+#   },
+#   {
+#     name: "Jugo Manzana",
+#     description: "Esta es un jugo manzana",
+#     price: 1000
+#   },
+#   {
+#     name: "Jugo Manzana-Naranja",
+#     description: "Esta es un jugo manzana naranja",
+#     price: 1200
+#   }
+#
+# products.each do |product_attrs|
+# 	Spree::Config[:currency] = "CLP"
+#
+#   new_product = Spree::Product.where(name: product_attrs[:name],
+#                                      tax_category: product_attrs[:tax_category]).first_or_create! do |product|
+#     product.price = product_attrs[:price]
+#     #product.description = FFaker::Lorem.paragraph
+#     product.description = product_attrs[:description]
+#     product.available_on = Time.zone.now
+#     product.shipping_category = default_shipping_category
+#   end
+#
+#   if new_product
+#     new_product.save
+#   end
+# end
 
 # Object types #
 print "Cargando object types.\n"
