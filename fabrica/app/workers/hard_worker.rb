@@ -5,6 +5,8 @@ class HardWorker
 
   def perform(*args)
 
+    print "Ejecutando worker.\n"
+
   	# Aca pagamos las ordenes #
   	Spree::Order.where(payment_state: "balance_due").each do |orden_inpaga|
   		#if orden_inpaga.payments.first.number == "algo"  # aqui se chequea que coincide el pago
@@ -12,9 +14,8 @@ class HardWorker
   			orden_inpaga.payments.each do |orden_inpaga_pagos|
   				orden_inpaga_pagos.send("capture!")  ## con esto se marca como pagado y se registra
   			end
-  			# probablemente tengamos que llamar a la api
+  			# probablemente tengamos que llamar a la api del profe
   			puts "Orden cambia a estado pagada"
-  			#orden_inpaga.save
   		# end
   	end
 
@@ -33,31 +34,35 @@ class HardWorker
   											 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
 				# lo ideal seria que el request anterior lo ordene por fecha de vencimiento de producto
 
-  			#inventario_para_despachar.quantity.times do |i|  ## hay que eliminar producto por producto (si, ineficiente)
-  			puts "antes del json"
-  			JSON.parse(r.body).each do |prod|
-  				puts "despues del json"
-  				puts prod
+        if r.code != 200
+          raise "Error"
+        end
+
+  			JSON.parse(r.body).each do |prod|  ## hay que eliminar producto por producto (si, ineficiente)
 				  # ahora hay que eliminar el prod_id encontrado
 	  			base = 'DELETE' + prod['_id'].to_s + inventario_para_despachar.shipment.address.address1 + inventario_para_despachar.line_item.price.to_i.to_s + inventario_para_despachar.order.number.to_s
+          puts base
 	  			key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+          puts key
 	  			r = HTTParty.delete(url,
 	  													body: {productoId: prod['_id'].to_s,
 	  																 direccion: inventario_para_despachar.shipment.address.address1,
 	  																 precio: inventario_para_despachar.line_item.price.to_i,
 	  																 oc: inventario_para_despachar.order.number.to_s}.to_json,
 	  													headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
-	  			
+
 	  			if r.code == 200
 	  				puts "exito"
-	  			end
+	  			else
+            puts "erorr"
+          end
 
 				end
 
-				# if todos salieron con exito
-				puts inventario_para_despachar.shipment.ship!
-				puts "Orden despachada"
-				# end del if
+				if inventario_para_despachar.shipped_quantity == inventario_para_despachar.quantity
+				  #inventario_para_despachar.shipment.ship!
+				  puts "Orden despachada"
+				end
 
   		end
   	end

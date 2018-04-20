@@ -7,7 +7,6 @@
 #   Character.create(name: 'Luke', movie: movies.first)
 
 Spree::Core::Engine.load_seed if defined?(Spree::Core)
-#Spree::Sample.load_sample("country")
 Spree::Auth::Engine.load_seed if defined?(Spree::Auth)
 
 Spree::StockLocation.destroy_all

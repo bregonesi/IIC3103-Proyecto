@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180416170413) do
+ActiveRecord::Schema.define(version: 20180420203456) do
 
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string "slug", null: false
@@ -166,6 +166,7 @@ ActiveRecord::Schema.define(version: 20180416170413) do
     t.integer "line_item_id"
     t.integer "quantity", default: 1
     t.integer "original_return_item_id"
+    t.integer "shipped_quantity", default: 0, null: false
     t.index ["line_item_id"], name: "index_spree_inventory_units_on_line_item_id"
     t.index ["order_id"], name: "index_inventory_units_on_order_id"
     t.index ["original_return_item_id"], name: "index_spree_inventory_units_on_original_return_item_id"

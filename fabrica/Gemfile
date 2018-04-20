@@ -46,6 +46,9 @@ gem 'ruby-hmac'
 # Worker
 gem 'sidekiq'
 
+# Scheduler
+gem 'rufus-scheduler'
+
 group :production do  ## Heroku trabaja con production, por lo tanto usara postgres
   # Use postgres as the database for Active Record for production
   gem 'pg'
