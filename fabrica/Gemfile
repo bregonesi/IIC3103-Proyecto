@@ -38,9 +38,13 @@ gem 'spree_gateway', '~> 3.3'
 
 # Rest client
 gem 'rest-client'
+gem 'httparty'
 
 # HMAC-SHA1 codification
 gem 'ruby-hmac'
+
+# Worker
+gem 'sidekiq'
 
 group :production do  ## Heroku trabaja con production, por lo tanto usara postgres
   # Use postgres as the database for Active Record for production
