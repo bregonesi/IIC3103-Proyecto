@@ -37,10 +37,43 @@ Spree::TaxRate.where(
   tax_rate.calculator = Spree::Calculator::DefaultTax.create!
 end
 
-# Shipping categories #
-print "Cargando shipping categories.\n"
+# Shipping categories y methods #
+print "Cargando shipping categories y methods.\n"
 
-Spree::Sample.load_sample("shipping_categories")
+shipping_category = Spree::ShippingCategory.find_or_create_by!(name: 'Default')
+
+shipping_methods = [
+  {
+    name: "Despacho por API",
+    zones: [zone],
+    display_on: 'both',
+    shipping_categories: [shipping_category]
+  }
+]
+
+shipping_methods.each do |attributes|
+  Spree::ShippingMethod.where(name: attributes[:name]).first_or_create! do |shipping_method|
+    shipping_method.calculator = Spree::Calculator::Shipping::FlatRate.create!
+    shipping_method.calculator.preferences = {
+      amount: 0,
+      currency: "CLP"
+    }
+    shipping_method.calculator.save!
+
+    shipping_method.zones = attributes[:zones]
+    shipping_method.display_on = attributes[:display_on]
+    shipping_method.shipping_categories = attributes[:shipping_categories]
+  end
+end
+
+# Payment methods #
+print "Cargando payment methods.\n"
+
+Spree::PaymentMethod::Check.where(
+  name: "Gratis",
+  description: "Pago por api.",
+  active: true
+).first_or_create!
 
 # Products #
 print "Cargando productos.\n"
