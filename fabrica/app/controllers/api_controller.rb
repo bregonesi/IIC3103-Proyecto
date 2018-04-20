@@ -1,5 +1,7 @@
 class ApiController < ApplicationController
 	def stock_publico
+		#HardWorker.perform_async()
+
 		productos = Spree::Product.all
 
 		json_p = []
