@@ -32,7 +32,7 @@ class ApiController < ApplicationController
 	end
 
 	def show
-		HardWorker.perform_in(1.minute)
+		HardWorker.perform_in(1.minutes, 'bob', 5)
 		render json: {}
 
 	end
