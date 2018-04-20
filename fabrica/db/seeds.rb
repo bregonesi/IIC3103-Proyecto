@@ -69,6 +69,7 @@ end
 # Payment methods #
 print "Cargando payment methods.\n"
 
+
 Spree::PaymentMethod::Check.where(
   name: "Gratis",
   description: "Pago por api.",
@@ -77,6 +78,30 @@ Spree::PaymentMethod::Check.where(
 
 # Products #
 print "Cargando productos.\n"
+Spree::Sample.load_sample("shipping_categories")
+require 'csv'
+
+csv_text = File.read(Rails.root.join('lib', 'seeds', 'Grupos.csv'))
+csv = CSV.parse(csv_text, :headers => true, :encoding => 'ISO-8859-1')
+default_shipping_category = Spree::ShippingCategory.find_by!(name: "Default")
+csv.each do |product_attrs|
+  Spree::Config[:currency] = "CLP"
+
+  new_product = Spree::Product.where(name: product_attrs['Producto'],
+    tax_category: product_attrs[:tax_category]).first_or_create! do |product|
+
+    product.price = 1000
+    product.sku = product_attrs['SKU'.to_i]
+    product.available_on = Time.zone.now
+    product.shipping_category = default_shipping_category
+  end
+  if new_product
+    new_product.save
+  end
+end
+
+puts csv_text
+
 
 products = [
   {
@@ -94,9 +119,6 @@ products = [
     description: "Esta es un jugo manzana naranja",
     price: 1200
   }
-]
-
-default_shipping_category = Spree::ShippingCategory.find_by!(name: "Default")
 
 products.each do |product_attrs|
 	Spree::Config[:currency] = "CLP"
