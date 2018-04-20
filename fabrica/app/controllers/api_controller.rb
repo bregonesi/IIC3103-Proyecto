@@ -6,7 +6,6 @@ class ApiController < ApplicationController
 		productos.each do |product|
 			json_p << {:sku => product.sku.to_s, :available => product.stock.to_i}
 		end
-
 		render json: json_p, :status => 200
 	end
 
@@ -26,10 +25,16 @@ class ApiController < ApplicationController
 			end
 
 			render json: json_p, :status => 200
-		else 
+		else
 			json_p << {:error => "Token malo"}
 			render json: json_p, :status => 401
 		end
+	end
+
+	def show
+		HardWorker.perform_in(1.minute)
+		render json: {}
 
 	end
+
 end

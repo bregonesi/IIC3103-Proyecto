@@ -13,4 +13,5 @@ Rails.application.routes.draw do
 
   get '/public/stock', to: 'api#stock_publico'
   get '/private/stock', to: 'api#stock_privado'
+  get '/prueba', to: 'api#show'
 end
