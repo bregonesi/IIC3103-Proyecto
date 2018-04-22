@@ -2,10 +2,14 @@
 <div id="product_<%= product.id %>" class="col-md-3 col-sm-6 col-xs-6 product-list-item" data-hook="products_list_item" itemscope itemtype="https://schema.org/Product">
   <div class="panel panel-default">
     <% cache(taxon.present? ? [I18n.locale, current_currency, taxon, product] : cache_key_for_product(product)) do %>
-      <div class="panel-body text-center product-body">
+      <div class="panel-body text-center product-body" style="height: 190px;">
         <%= link_to url, itemprop: "url" do %>
           <%= small_image(product, itemprop: "image") %><br/>
           <%= content_tag(:span, truncate(product.name, length: 50), class: 'info', itemprop: "name", title: product.name) %>
+          <br>
+          <%= content_tag(:span, truncate("Sku: " + product.sku, length: 50), class: 'info', itemprop: "sku", title: product.sku) %>
+          <br>
+          <%= content_tag(:span, truncate("Stock: " + product.total_on_hand.to_s, length: 50), class: 'info', itemprop: "stock", title: product.total_on_hand.to_s) %>
         <% end %>
         <br/>
       </div>
