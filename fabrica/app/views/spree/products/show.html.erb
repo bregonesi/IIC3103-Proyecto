@@ -38,6 +38,24 @@
             <%= product_description(@product) %>
           </div>
 
+          <div id="product-sku" itemprop="sku" data-hook="sku">
+            <h6 class="product-section-title"><%= Spree.t("Sku") %></h6>
+            <div>
+              <span class="lead">
+                <%= @product.sku %>
+              </span>
+            </div>
+          </div>
+
+          <div id="product-stock" itemprop="stock" data-hook="stock">
+            <h6 class="product-section-title"><%= Spree.t("Stock") %></h6>
+            <div>
+              <span class="lead">
+                <%= @product.total_on_hand %>
+              </span>
+            </div>
+          </div>
+
           <div id="cart-form" data-hook="cart_form">
             <%= render partial: 'cart_form' %>
           </div>
