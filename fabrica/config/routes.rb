@@ -13,5 +13,7 @@ Rails.application.routes.draw do
 
   get '/public/stock', to: 'api#stock_publico'
   get '/private/stock', to: 'api#stock_privado'
+
   post '/hook', to: 'hook#materias_primas'
+  get '/hook_list', to: 'hook#list_requests'
 end
