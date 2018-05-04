@@ -6,11 +6,11 @@ class HookController < ApplicationController
   def materias_primas
     productos = Spree::Product.all
     sku_producto = params[:sku]
-    @producto = Spree::Variant.find_by(sku: sku_producto)
-    if @producto
-      @stock = @producto.total_on_hand
-      #if @stock < 10
-        render json: @stock, :status => 200  ## voy a dejar que siempre retorne 200 para aceptar todo por mientras
+    producto = Spree::Variant.find_by(sku: sku_producto)
+    if producto
+      stock = @producto.total_on_hand
+      #if stock < 10
+        render json: stock, :status => 200  ## voy a dejar que siempre retorne 200 para aceptar todo por mientras
         HookRequest.create!(sku: sku_producto, cantidad: params[:cantidad], disponible: params[:disponible],
           ip: ip2long(request.remote_ip), aceptado: true, razon: "Estoy aceptando todo")
       #else

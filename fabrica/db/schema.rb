@@ -26,17 +26,6 @@ ActiveRecord::Schema.define(version: 20180504183944) do
     t.index ["sluggable_type"], name: "index_friendly_id_slugs_on_sluggable_type"
   end
 
-  create_table "hook", force: :cascade do |t|
-    t.string "sku"
-    t.integer "cantidad"
-    t.datetime "disponible"
-    t.integer "ip"
-    t.boolean "aceptado"
-    t.text "razon"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "hook_requests", force: :cascade do |t|
     t.string "sku"
     t.integer "cantidad"
@@ -46,9 +35,6 @@ ActiveRecord::Schema.define(version: 20180504183944) do
     t.text "razon"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "hooks", force: :cascade do |t|
   end
 
   create_table "spree_addresses", force: :cascade do |t|
