@@ -81,6 +81,8 @@ Spree::Sample.load_sample("shipping_categories")
 require 'csv'
 
 csv_text = File.read(Rails.root.join('lib', 'seeds', 'Grupos.csv'))
+puts csv_text
+
 csv = CSV.parse(csv_text, :headers => true, :encoding => 'ISO-8859-1')
 default_shipping_category = Spree::ShippingCategory.find_by!(name: "Default")
 csv.each do |product_attrs|
@@ -98,8 +100,6 @@ csv.each do |product_attrs|
     new_product.save
   end
 end
-
-puts csv_text
 
 # products = [
 #   {

@@ -25,8 +25,11 @@ production:  ## Heroku es production
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
-  database: fabrica_development  ## Da lo mismo que ponemos aqui por que heroku reemplaza esto con la bdd que el nos crea
+#  database: fabrica_development  ## Da lo mismo que ponemos aqui por que heroku reemplaza esto con la bdd que el nos crea
+  database: rails
 
-  username: fabrica_username  ## Heroku sabe que username nos asigna
+#  username: fabrica_username  ## Heroku sabe que username nos asigna
+  username: administrator
 
-  password: fabrica_password  ## Heroku sabe que password nos asigna
+#  password: fabrica_password  ## Heroku sabe que password nos asigna
+  password: spree123
