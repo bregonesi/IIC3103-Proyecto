@@ -6,13 +6,13 @@ class HookController < ApplicationController
     @producto = Spree::Variant.find_by(sku: @sku_producto)
     if @producto
       @stock = @producto.total_on_hand
-      if @stock < 10
-        render json: @stock, :status => 200
-      else
-        render json: @stock, :status => 401
-      end
+      #if @stock < 10
+        render json: @stock, :status => 200  ## voy a dejar que siempre retorne 200 para aceptar todo por mientras
+      #else
+      #  render json: @stock, :status => 401
+      #end
     else
-    render json: @producto, :status => 400
+      render json: @producto, :status => 400
     end
   end
 
