@@ -1,5 +1,6 @@
 class HookController < ApplicationController
   skip_before_action :verify_authenticity_token
+
   def materias_primas
     productos = Spree::Product.all
     @sku_producto = params[:sku]
@@ -12,7 +13,7 @@ class HookController < ApplicationController
       #  render json: @stock, :status => 401
       #end
     else
-      render json: @producto, :status => 400
+      render json: [{:error => "Producto sku " + @sku_producto + " no existe."}], :status => 400
     end
   end
 

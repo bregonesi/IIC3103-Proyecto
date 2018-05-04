@@ -261,3 +261,20 @@ Spree::StockLocation.all.each do |stock_location|
     end
   end
 end
+
+# Set hook #
+print "Seteando hook.\n"
+
+url = ENV['api_url'] + "bodega/hook"
+hook_url = 'http://integra4.ing.puc.cl/hook'
+
+base = 'DELETE'
+key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+HTTParty.get(url, headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})  # primero eliminamos hook
+
+base = 'PUT' + hook_url
+key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+HTTParty.get(url,
+             query: {url: hook_url},
+             headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})  # primero eliminamos hook
+
