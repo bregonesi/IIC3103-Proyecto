@@ -274,7 +274,7 @@ HTTParty.get(url, headers: { 'Content-type': 'application/json', 'Authorization'
 
 base = 'PUT' + hook_url
 key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-HTTParty.get(url,
+HTTParty.put(url,
              query: {url: hook_url},
              headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})  # primero eliminamos hook
 
