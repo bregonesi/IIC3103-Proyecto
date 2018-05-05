@@ -29,7 +29,7 @@ ActiveRecord::Schema.define(version: 20180504183944) do
   create_table "hook_requests", force: :cascade do |t|
     t.string "sku"
     t.integer "cantidad"
-    t.date "disponible"
+    t.text "disponible"
     t.integer "ip"
     t.boolean "aceptado"
     t.text "razon"

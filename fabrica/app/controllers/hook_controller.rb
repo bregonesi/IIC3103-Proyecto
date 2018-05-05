@@ -11,7 +11,7 @@ class HookController < ApplicationController
       stock = producto.total_on_hand
       #if stock < 10
         render json: stock, :status => 200  ## voy a dejar que siempre retorne 200 para aceptar todo por mientras
-        HookRequest.create!(sku: sku_producto, cantidad: params[:cantidad], disponible: params[:disponible],
+        save_request = HookRequest.create!(sku: sku_producto, cantidad: params[:cantidad], disponible: params[:disponible],
           ip: ip2long(request.remote_ip), aceptado: true, razon: "Estoy aceptando todo")
       #else
       #  render json: @stock, :status => 401
