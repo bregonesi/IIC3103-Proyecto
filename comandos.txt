@@ -1,0 +1,21 @@
+# Drop en servidor
+bundle exec rake db:drop RAILS_ENV=production DISABLE_DATABASE_ENVIRONMENT_CHECK=1
+
+# Setup en servidor
+bundle exec rake db:setup RAILS_ENV=production
+
+# Migrate en servidor
+bundle exec rake db:migrate RAILS_ENV=production
+
+# Stop webserver
+sudo service nginx stop
+
+# Partir webserver
+sudo service nginx start
+
+# Reiniciar webserver
+sudo service nginx restart
+
+
+# Varios en uno
+sudo service nginx stop  &&  bundle exec rake db:drop RAILS_ENV=production DISABLE_DATABASE_ENVIRONMENT_CHECK=1  &&  bundle exec rake db:setup RAILS_ENV=production  && sudo service nginx start
