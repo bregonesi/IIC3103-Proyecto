@@ -18,7 +18,7 @@ sftp2 = Net::SFTP.start(CONTENT_SERVER_DOMAIN_NAME, CONTENT_SERVER_FTP_LOGIN,
  #   end
  #  end
 
-job.every '5s' do
+# job.every '5s' do
   puts 'before'
 
   sftp = Net::SFTP.start(CONTENT_SERVER_DOMAIN_NAME, CONTENT_SERVER_FTP_LOGIN,
@@ -30,14 +30,21 @@ job.every '5s' do
             puts entry.name
               sftp2.file.open("/pedidos" + "/" + entry.name, "r") do |f|
               while !f.eof?
-                puts f.gets
+                # puts f.gets
+                content = f.gets
+                # obtengo los ids
+                if content.include?("id")
+                  content = content.split('>')[1]
+                  content = content.split('<')[0]
+                  puts content
+                end
               end
             end
           end
 
       end
   end
-end
+
 
 # job.every '5m' do
 #   print "Ejecutando update.\n"
