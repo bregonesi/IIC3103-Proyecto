@@ -165,6 +165,9 @@ GEM
       i18n (>= 0.6.4, < 1.1)
     multi_json (1.13.1)
     multi_xml (0.6.0)
+    net-sftp (2.1.2)
+      net-ssh (>= 2.6.5)
+    net-ssh (4.2.0)
     nio4r (2.3.0)
     nokogiri (1.8.2)
       mini_portile2 (~> 2.3.0)
@@ -385,6 +388,7 @@ DEPENDENCIES
   httparty
   jbuilder (~> 2.5)
   listen (>= 3.0.5, < 3.2)
+  net-sftp
   pg
   puma (~> 3.7)
   rails (~> 5.1.6)
