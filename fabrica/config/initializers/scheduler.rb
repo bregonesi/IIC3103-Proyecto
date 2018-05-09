@@ -4,7 +4,7 @@ require 'rufus-scheduler'
 if defined?(::Rails::Server) || File.basename($0) =='rake'
 	puts "Partiendo scheduler"
 
-	job = Rufus::Scheduler.new
+	job = Rufus::Scheduler.new(:max_work_threads => 1)
 
 	job.every '35s' do
 	  print "Ejecutando update.\n"
@@ -55,8 +55,8 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 	  													headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
 
 	  			if r.code == 200
-	  				puts "Despacho de un producto exitoso."
 	  				j += 1
+	  				puts "Despacho de un producto exitoso. Van " + j.to_s + " productos despachados."
 	  			else
 	          puts "Error despachando orden. Error en response code de api. Responde code " + r.code.to_s + "."
 	        end
@@ -68,6 +68,8 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 				if inventario_para_despachar.shipped_quantity >= inventario_para_despachar.quantity
 				  inventario_para_despachar.shipment.ship!
 				  puts "Orden despachada"
+				else
+					raise "Botamos aproposito para que no siga ejecutanto"
 				end
 			end
 		end
@@ -120,6 +122,62 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 	  		end
 	  	end
 	  end
+
+		# Aca movemos los items de almacen #
+		Spree::StockMovement.where("(originator_type = ? OR originator_type = ?) AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)", "Spree::StockTransfer", "Scheduler").each do |movement|
+			movement.with_lock do
+				# buscaremos los productos (id) que moveremos
+				almacen_id = movement.stock_item.stock_location.admin_name
+				sku_movement = movement.stock_item.variant.sku
+				url = ENV['api_url'] + "bodega/stock"
+				base = 'GET' + almacen_id.to_s + sku_movement.to_s
+				key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+				r = HTTParty.get(url,
+												 query: {almacenId: almacen_id.to_s,
+												 				 sku: sku_movement.to_s,
+												 				 limit: -movement.quantity.to_i - movement.moved_quantity.to_i},
+												 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+				# lo ideal seria que el request anterior lo ordene por fecha de vencimiento de producto
+
+	      if r.code != 200
+	        raise "Error obteniendo productos en almacen " + almacen_id.to_s + "."
+	      end
+
+	      almacen_id_dest = nil
+			  Spree::StockMovement.where("originator_type = ? AND originator_id = ? AND quantity > 0", movement.originator_type, movement.originator_id).each do |movement_dest|
+			  	almacen_id_dest = movement_dest.stock_item.stock_location.admin_name
+			  end
+
+	      j = 0
+				JSON.parse(r.body).each do |prod|  ## hay que mover producto por producto (si, ineficiente)
+				  # ahora hay que mover el prod_id encontrado
+					url = ENV['api_url'] + "bodega/moveStock"
+	  			base = 'POST' + prod['_id'].to_s + almacen_id_dest.to_s
+	  			key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+	  			r = HTTParty.post(url,
+	  													body: {productoId: prod['_id'].to_s,
+	  																 almacenId: almacen_id_dest.to_s}.to_json,
+	  													headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+	  			
+	  			if r.code == 200
+	  				j += 1
+	  				puts "Movimiento de un producto exitoso. Van " + j.to_s + " productos movidos."
+	  			else
+	          puts "Error movimiento orden. Error en response code de api. Responde code " + r.code.to_s + "."
+	        end
+				end
+
+				if movement.moved_quantity == nil
+					movement.moved_quantity = 0
+				end
+				movement.moved_quantity += j
+				movement.save!  ## actualizamos lo movido
+
+				if movement.moved_quantity < -movement.quantity
+					raise "Botamos aproposito para que no siga ejecutanto"
+				end
+			end
+		end
 
 	  # Cargamos nuevos stocks y stock de almacenes nuevos #
 		url = ENV['api_url'] + "bodega/skusWithStock"

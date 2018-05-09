@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180504183944) do
+ActiveRecord::Schema.define(version: 20180509041741) do
 
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string "slug", null: false
@@ -803,6 +803,7 @@ ActiveRecord::Schema.define(version: 20180504183944) do
     t.datetime "updated_at", null: false
     t.string "originator_type"
     t.integer "originator_id"
+    t.integer "moved_quantity"
     t.index ["originator_id", "originator_type"], name: "index_stock_movements_on_originator_id_and_originator_type"
     t.index ["stock_item_id"], name: "index_spree_stock_movements_on_stock_item_id"
   end
