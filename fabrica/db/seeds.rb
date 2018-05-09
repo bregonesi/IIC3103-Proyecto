@@ -83,7 +83,7 @@ require 'productos_csv'
 productos_csv_text = File.read(Rails.root.join('lib', 'seeds', 'productos.csv'))
 puts productos_csv_text
 
-productos_csv = CSV.parse(csv_text, :headers => true, :encoding => 'ISO-8859-1')
+productos_csv = CSV.parse(productos_csv_text, :headers => true, :encoding => 'ISO-8859-1')
 default_shipping_category = Spree::ShippingCategory.find_by!(name: "Default")
 productos_csv.each do |product_attrs|
   Spree::Config[:currency] = "CLP"
@@ -105,7 +105,7 @@ require 'formulas_csv'
 formulas_csv_text = File.read(Rails.root.join('lib', 'seeds', 'formulas.csv'))
 puts formulas_csv_text
 
-formulas_csv = CSV.parse(csv_text, :headers => true, :encoding => 'ISO-8859-1')
+formulas_csv = CSV.parse(formulas_csv_text, :headers => true, :encoding => 'ISO-8859-1')
 
 formulas_csv.each do |formula_attrs|
   sku = formula_attrs['SKU'].to_i
