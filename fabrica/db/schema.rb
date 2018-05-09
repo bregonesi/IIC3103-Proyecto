@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180509041741) do
+ActiveRecord::Schema.define(version: 20180509211145) do
 
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string "slug", null: false
@@ -788,10 +788,13 @@ ActiveRecord::Schema.define(version: 20180509041741) do
     t.boolean "backorderable_default", default: false
     t.boolean "propagate_all_variants", default: true
     t.string "admin_name"
+    t.string "proposito"
+    t.integer "capacidad_maxima"
     t.index ["active"], name: "index_spree_stock_locations_on_active"
     t.index ["backorderable_default"], name: "index_spree_stock_locations_on_backorderable_default"
     t.index ["country_id"], name: "index_spree_stock_locations_on_country_id"
     t.index ["propagate_all_variants"], name: "index_spree_stock_locations_on_propagate_all_variants"
+    t.index ["proposito"], name: "index_spree_stock_locations_on_proposito"
     t.index ["state_id"], name: "index_spree_stock_locations_on_state_id"
   end
 

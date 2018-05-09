@@ -224,6 +224,17 @@ JSON.parse(r.body).each do |almacen|
                                            state: Spree::Country.find_by(iso: 'CL').states.find_by(abbr: 'RM')
                                           ).first_or_create! do |a_new|
     a_new.admin_name = almacen['_id']
+    
+    proposito = "General"
+    if almacen['recepcion']
+      proposito = "Recepcion"
+    elsif almacen['despacho']
+      proposito = "Despacho"
+    elsif almacen['pulmon']
+      proposito = "Pulmon"
+    end
+    a_new.proposito = proposito
+    a_new.capacidad_maxima = almacen['totalSpace']
   end
 
   if new_almacen
