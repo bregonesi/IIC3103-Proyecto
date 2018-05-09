@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180504183944) do
+ActiveRecord::Schema.define(version: 20180416170413) do
 
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string "slug", null: false
@@ -24,17 +24,6 @@ ActiveRecord::Schema.define(version: 20180504183944) do
     t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
     t.index ["sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_id"
     t.index ["sluggable_type"], name: "index_friendly_id_slugs_on_sluggable_type"
-  end
-
-  create_table "hook_requests", force: :cascade do |t|
-    t.string "sku"
-    t.integer "cantidad"
-    t.text "disponible"
-    t.integer "ip"
-    t.boolean "aceptado"
-    t.text "razon"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   create_table "spree_addresses", force: :cascade do |t|
@@ -177,7 +166,6 @@ ActiveRecord::Schema.define(version: 20180504183944) do
     t.integer "line_item_id"
     t.integer "quantity", default: 1
     t.integer "original_return_item_id"
-    t.integer "shipped_quantity", default: 0, null: false
     t.index ["line_item_id"], name: "index_spree_inventory_units_on_line_item_id"
     t.index ["order_id"], name: "index_inventory_units_on_order_id"
     t.index ["original_return_item_id"], name: "index_spree_inventory_units_on_original_return_item_id"

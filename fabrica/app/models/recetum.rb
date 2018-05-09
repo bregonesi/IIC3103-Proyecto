@@ -1,0 +1,2 @@
+class Recetum < ApplicationRecord
+end

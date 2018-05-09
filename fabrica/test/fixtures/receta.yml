@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  sku: 1
+  variant_id_ingrediente: 1
+  cantidad: 1
+
+two:
+  sku: 1
+  variant_id_ingrediente: 1
+  cantidad: 1

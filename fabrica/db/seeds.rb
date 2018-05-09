@@ -78,21 +78,21 @@ Spree::PaymentMethod::Check.where(
 # Products #
 print "Cargando productos.\n"
 Spree::Sample.load_sample("shipping_categories")
-require 'csv'
 
-csv_text = File.read(Rails.root.join('lib', 'seeds', 'Grupos.csv'))
-puts csv_text
+require 'productos_csv'
+productos_csv_text = File.read(Rails.root.join('lib', 'seeds', 'productos.csv'))
+puts productos_csv_text
 
-csv = CSV.parse(csv_text, :headers => true, :encoding => 'ISO-8859-1')
+productos_csv = CSV.parse(csv_text, :headers => true, :encoding => 'ISO-8859-1')
 default_shipping_category = Spree::ShippingCategory.find_by!(name: "Default")
-csv.each do |product_attrs|
+productos_csv.each do |product_attrs|
   Spree::Config[:currency] = "CLP"
 
   new_product = Spree::Product.where(name: product_attrs['Producto'],
     tax_category: product_attrs[:tax_category]).first_or_create! do |product|
 
     product.price = 1000
-    product.sku = product_attrs['SKU'.to_i]
+    product.sku = product_attrs['SKU']
     product.available_on = Time.zone.now
     product.shipping_category = default_shipping_category
   end
@@ -100,6 +100,55 @@ csv.each do |product_attrs|
     new_product.save
   end
 end
+#####################################CSV2######################
+require 'formulas_csv'
+formulas_csv_text = File.read(Rails.root.join('lib', 'seeds', 'formulas.csv'))
+puts formulas_csv_text
+
+formulas_csv = CSV.parse(csv_text, :headers => true, :encoding => 'ISO-8859-1')
+
+formulas_csv.each do |formula_attrs|
+  sku = formula_attrs['SKU'].to_i
+  if formula_attrs['Manzana'].to_i > 0
+    receta = Receta.create(sku: sku, variant_id_ingrediente: 20, cantidad: formula_attrs['Manzana'].to_i)
+    receta.save
+  end
+  if formula_attrs['Naranja'].to_i > 0
+    receta = Receta.create(sku: sku, variant_id_ingrediente: 30, cantidad: formula_attrs['Naranja'].to_i)
+    receta.save
+  end
+  if formula_attrs['Frutilla'].to_i > 0
+    receta = Receta.create(sku: sku, variant_id_ingrediente: 40, cantidad: formula_attrs['Frutilla'].to_i)
+    receta.save
+  end
+  if formula_attrs['Frambuesa'].to_i > 0
+    receta = Receta.create(sku: sku, variant_id_ingrediente: 50, cantidad: formula_attrs['Frambuesa'].to_i)
+    receta.save
+  end
+  if formula_attrs['Durazno'].to_i > 0
+    receta = Receta.create(sku: sku, variant_id_ingrediente: 60, cantidad: formula_attrs['Durazno'].to_i)
+    receta.save
+  end
+  if formula_attrs['Arándano'].to_i > 0
+    receta = Receta.create(sku: sku, variant_id_ingrediente: 70, cantidad: formula_attrs['Arándano'].to_i)
+    receta.save
+  end
+
+
+  # nueva_receta = Receta.create(
+  #   sku: formula_attrs['SKU'], lote: formula_attrs['Lote'],
+  #   numero_ingredientes: formula_attrs['Número Ingredientes'],
+  #   manzana: formula_attrs['Manzana'], naranja: formula_attrs['Naranja'],
+  #   frutilla: formula_attrs['Frutilla'], frambuesa: formula_attrs['Frambuesa'],
+  #   durazno: formula_attrs['Durazno'], arandano: formula_attrs['Arándano'])
+  # end
+  #
+  #
+  # if nueva_receta
+  #   nueva_receta.save
+  # end
+end
+################################CSV2
 
 # products = [
 #   {

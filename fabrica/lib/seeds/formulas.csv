@@ -1,0 +1,70 @@
+SKU,Producto,Lote,Número Ingredientes,Manzana,Naranja,Frutilla,Frambuesa,Durazno,Arándano
+20,Manzana,260,1,0,0,0,0,0,0
+30,Naranja,290,1,0,0,0,0,0,0
+40,Frutilla,200,1,0,0,0,0,0,0
+50,Frambuesa,250,1,0,0,0,0,0,0
+60,Durazno,200,1,0,0,0,0,0,0
+70,Arándano,290,1,0,0,0,0,0,0
+200000000,Jugo Manzana,170,1,175,0,0,0,0,0
+230000000,Jugo Manzana-Naranja,290,2,157,122,0,0,0,0
+234000000,Jugo Manzana-Naranja-Frutilla,250,3,71,108,86,0,0,0
+234500000,Jugo Manzana-Naranja-Frutilla-Frambuesa,300,4,45,66,78,63,0,0
+234560000,Jugo Manzana-Naranja-Frutilla-Frambuesa-Durazno,290,5,67,38,84,49,73,0
+234567000,Jugo Fruit Super Punch,250,6,27,52,49,62,19,57
+234570000,Jugo Manzana-Naranja-Frutilla-Frambuesa-Arándano,150,4,51,38,35,29,0,35
+234600000,Jugo Manzana-Naranja-Frutilla-Durazno,270,3,79,106,112,0,104,0
+234670000,Jugo Manzana-Naranja-Frutilla-Durazno-Arándano,140,5,42,17,24,0,17,18
+234700000,Jugo Manzana-Naranja-Frutilla-Arándano,240,4,48,67,60,0,0,60
+235000000,Jugo Manzana-Naranja-Frambuesa,270,3,114,106,0,104,0,0
+235600000,Jugo Manzana-Naranja-Frambuesa-Durazno,220,4,59,55,0,51,51,0
+235670000,Jugo Manzana-Naranja-Frambuesa-Durazno-Arándano,100,5,16,30,0,14,26,19
+235700000,Jugo Manzana-Naranja-Frambuesa-Arándano,130,4,40,31,0,23,0,29
+236000000,Jugo Manzana-Naranja-Durazno,140,3,61,61,0,0,58,0
+236700000,Jugo Manzana-Naranja-Durazno-Arándano,190,4,34,63,0,0,29,55
+237000000,Jugo Manzana-Naranja-Arándano,270,3,109,82,0,0,0,74
+240000000,Jugo Manzana-Frutilla,120,2,61,0,49,0,0,0
+245000000,Jugo Manzana-Frutilla-Frambuesa,230,3,100,0,84,72,0,0
+245600000,Jugo Manzana-Frutilla-Frambuesa-Durazno,270,3,117,0,93,87,101,0
+245670000,Jugo Manzana-Frutilla-Frambuesa-Durazno-Arándano,180,5,20,0,41,36,23,25
+245700000,Jugo Manzana-Frutilla-Frambuesa-Arándano,140,4,45,0,39,42,0,24
+246000000,Jugo Manzana-Frutilla-Durazno,210,3,72,0,55,0,76,0
+246700000,Jugo Manzana-Frutilla-Durazno-Arándano,120,4,41,0,28,0,19,23
+247000000,Jugo Manzana-Frutilla-Arándano,220,3,62,0,54,0,0,56
+250000000,Jugo Manzana-Frambuesa,240,1,233,0,0,262,0,0
+256000000,Jugo Manzana-Frambuesa-Durazno,190,3,61,0,0,58,79,0
+256700000,Jugo Manzana-Frambuesa-Durazno-Arándano,270,4,41,0,0,49,46,92
+257000000,Jugo Manzana-Frambuesa-Arándano,170,2,77,0,0,94,0,88
+260000000,Jugo Manzana-Durazno,160,2,93,0,0,0,77,0
+267000000,Jugo Manzana-Durazno-Arándano,240,3,102,0,0,0,82,61
+270000000,Jugo Manzana-Arándano,280,2,126,0,0,0,0,140
+300000000,Jugo Vitamina Naranja,150,1,0,137,0,0,0,0
+340000000,Jugo Naranja-Frutilla,170,2,0,82,71,0,0,0
+345000000,Jugo Naranja-Frutilla-Frambuesa,200,3,0,55,67,55,0,0
+345600000,Jugo Naranja-Frutilla-Frambuesa-Durazno,150,4,0,30,45,30,26,0
+345670000,Jugo Naranja-Frutilla-Frambuesa-Durazno-Arándano,170,5,0,26,48,49,51,31
+345700000,Jugo Mix Tropical,270,4,0,54,84,81,0,92
+346000000,Jugo Naranja-Frutilla-Durazno,210,3,0,64,72,0,89,0
+346700000,Jugo Naranja-Frutilla-Durazno-Arándano,240,4,0,70,36,0,77,84
+347000000,Jugo Naranja-Frutilla-Arándano,170,3,0,41,46,0,0,52
+350000000,Jugo Naranja-Frambuesa,210,2,0,122,0,86,0,0
+356000000,Jugo Naranja-Frambuesa-Durazno,170,3,0,55,0,43,48,0
+356700000,Jugo Naranja-Frambuesa-Durazno-Arándano,100,4,0,33,0,25,16,33
+357000000,Jugo Naranja-Frambuesa-Arándano,190,3,0,54,0,71,0,71
+360000000,Jugo Naranja-Durazno,140,2,0,63,0,0,60,0
+367000000,Jugo Naranja-Durazno-Arándano,250,3,0,71,0,0,58,66
+370000000,Jugo Naranja-Arándano,110,2,0,50,0,0,0,46
+400000000,Jugo Frutilla,240,1,0,0,254,0,0,0
+450000000,Jugo Frutilla-Frambuesa,210,2,0,0,88,86,0,0
+456000000,Jugo Frutilla-Frambuesa-Durazno,120,3,0,0,51,47,38,0
+456700000,Jugo Frutilla-Frambuesa-Durazno-Arándano,140,4,0,0,43,49,45,31
+457000000,Jugo Berries,290,3,0,0,126,73,0,71
+460000000,Jugo Frutilla-Durazno,170,2,0,0,90,0,68,0
+467000000,Jugo Frutilla-Durazno-Arándano,300,3,0,0,112,0,118,127
+470000000,Jugo Frutilla-Arándano,180,2,0,0,88,0,0,101
+500000000,Jugo Frambuesa,250,1,0,0,0,265,0,0
+560000000,Jugo Frambuesa-Durazno,240,2,0,0,0,118,144,0
+567000000,Jugo Frambuesa-Durazno-Arándano,240,3,0,0,0,73,99,87
+570000000,Jugo Frambuesa-Arándano,280,2,0,0,0,137,0,154
+600000000,Jugo Durazno,250,1,0,0,0,0,225,0
+670000000,Jugo Durazno-Arándano,130,2,0,0,0,0,56,78
+700000000,Jugo Arándano,260,1,0,0,0,0,0,255
