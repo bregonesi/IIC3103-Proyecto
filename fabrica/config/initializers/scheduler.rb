@@ -8,6 +8,7 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 
 	job.every '35s' do
 	  print "Ejecutando update.\n"
+	  stop_scheduler = false
 
 		# Aca pagamos las ordenes #
 		Spree::Order.where(payment_state: "balance_due").each do |orden_inpaga|
@@ -69,6 +70,10 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 				  inventario_para_despachar.shipment.ship!
 				  puts "Orden despachada"
 				else
+					stop_scheduler = true
+				end
+
+				if stop_scheduler
 					raise "Botamos aproposito para que no siga ejecutanto"
 				end
 			end
@@ -124,7 +129,7 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 	  end
 
 		# Aca movemos los items de almacen #
-		Spree::StockMovement.where("(originator_type = ? OR originator_type = ?) AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)", "Spree::StockTransfer", "Scheduler").each do |movement|
+		Spree::StockMovement.where("originator_type = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
 			movement.with_lock do
 				# buscaremos los productos (id) que moveremos
 				almacen_id = movement.stock_item.stock_location.admin_name
@@ -174,8 +179,12 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 				movement.save!  ## actualizamos lo movido
 
 				if movement.moved_quantity < -movement.quantity
-					raise "Botamos aproposito para que no siga ejecutanto"
+					stop_scheduler = true
 				end
+			end
+
+			if stop_scheduler
+				raise "Botamos aproposito para que no siga ejecutanto"
 			end
 		end
 
