@@ -4,12 +4,13 @@ Spree::Variant.class_eval do
   foreign_key: 'ingredient_variant_sku', primary_key:'sku'
 
   def can_produce?
-    self.ingredient_recipes.each do |ingredient|
-      if Spree::Variant.find_by(sku: ingredient.ingredient_variant_sku).total_on_hand < amount
+    self.recipes.each do |recipe|
+      ingredient = Spree::Variant.find_by(sku: recipe.ingredient_variant_sku)
+      if ingredient.total_on_hand < recipe.amount
         return false
       end
     end
-    
+
     return true
   end
 
