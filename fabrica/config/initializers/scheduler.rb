@@ -49,9 +49,18 @@ sftp2 = Net::SFTP.start(CONTENT_SERVER_DOMAIN_NAME, CONTENT_SERVER_FTP_LOGIN,
                   content_qty = content
                   # puts content_qty
 
-                  SftpOrder.new({
-                    orderId: content_id, sku: content_sku, qty: content_qty
-                    }).save
+                  newOrder = SftpOrder.where(orderId: content_id).first_or_create! do |order|
+
+                    order.orderId = content_id
+                    order.sku = content_sku
+                    order.qty= content_qty
+
+                  end
+
+                  if newOrder
+                    newOrder.save
+                  end
+
                 end
               end
             end
