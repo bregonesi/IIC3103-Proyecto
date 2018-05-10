@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180510020802) do
+ActiveRecord::Schema.define(version: 20180510140154) do
 
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string "slug", null: false
@@ -41,6 +41,14 @@ ActiveRecord::Schema.define(version: 20180510020802) do
     t.string "sku"
     t.string "ingredient_variant_sku"
     t.integer "amount"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "sftp_orders", force: :cascade do |t|
+    t.string "orderId"
+    t.string "sku"
+    t.integer "qty"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
