@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  sku: MyString
+  ingredient_variant_sku: MyString
+  amount: 1
+
+two:
+  sku: MyString
+  ingredient_variant_sku: MyString
+  amount: 1
