@@ -80,10 +80,14 @@ sftp2 = Net::SFTP.start(CONTENT_SERVER_DOMAIN_NAME, CONTENT_SERVER_FTP_LOGIN,
                     # o.total = 0
                     o.shipping_address = Spree::Address.first
                     o.billing_address = Spree::Address.last
-
-                    o.state = 'complete'
+                    o.state = 'confirm'
                     o.store = Spree::Store.default
                     o.completed_at = Time.current - 1.day
+                    # o.line_items.new(
+                    # variant: Spree::Variant.find_by!(id: 1),
+                    # quantity: content_qty,
+                    # price: 0
+                    # ).save!
                   end
                   orden_nueva.save!
 
