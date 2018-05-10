@@ -274,6 +274,21 @@ HTTParty.get(url, headers: { 'Content-type': 'application/json', 'Authorization'
 
 base = 'PUT' + hook_url
 key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-r = HTTParty.put(url,
-                 body: {url: hook_url}.to_json,
+r = HTTParty.put(url, body: {url: hook_url}.to_json,
                  headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})  # primero eliminamos hook
+
+
+# Billing and shipping address
+ Spree::Address.create!(
+ country: Spree::Country.find_by(iso: 'CL'),
+ state: Spree::Country.find_by(iso: 'CL').states.find_by(abbr: 'RM'),
+   firstname: FFaker::Name.first_name,
+   lastname: FFaker::Name.last_name,
+   address1: 'Av. Vicuña Mackenna 4860',
+   address2: FFaker::Address.secondary_address,
+   city: 'Santiago',
+   state: Spree::Country.find_by(iso: 'CL').states.find_by(abbr: 'RM'),
+   zipcode: '7820436',
+   country: Spree::Country.find_by(iso: 'CL'),
+   phone: FFaker::PhoneNumber.phone_number
+ )

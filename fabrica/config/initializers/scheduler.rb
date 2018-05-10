@@ -55,11 +55,39 @@ sftp2 = Net::SFTP.start(CONTENT_SERVER_DOMAIN_NAME, CONTENT_SERVER_FTP_LOGIN,
                     order.sku = content_sku
                     order.qty= content_qty
 
+
+
+
+
+                    # orden_nueva.line_items.new(variant: Spree::Variant.find_by!(id: 1),
+                    # quantity: order.qty,
+                    # price: 0).save!
+                    # orden_nueva.save
+
+
                   end
 
                   if newOrder
                     newOrder.save
                   end
+
+                  orden_nueva = Spree::Order.where(
+                    number: content_id,
+                    email: 'spree@example.com'
+                  ).first_or_create! do |o|
+                    # o.item_total = 0
+                    # o.adjustment_total = 0
+                    # o.total = 0
+                    o.shipping_address = Spree::Address.first
+                    o.billing_address = Spree::Address.last
+
+                    o.state = 'complete'
+                    o.store = Spree::Store.default
+                    o.completed_at = Time.current - 1.day
+                  end
+                  orden_nueva.save!
+
+
 
                 end
               end
