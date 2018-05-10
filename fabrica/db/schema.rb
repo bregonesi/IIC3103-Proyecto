@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180504183944) do
+ActiveRecord::Schema.define(version: 20180510140154) do
 
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string "slug", null: false
@@ -33,6 +33,14 @@ ActiveRecord::Schema.define(version: 20180504183944) do
     t.integer "ip"
     t.boolean "aceptado"
     t.text "razon"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "sftp_orders", force: :cascade do |t|
+    t.string "orderId"
+    t.string "sku"
+    t.integer "qty"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

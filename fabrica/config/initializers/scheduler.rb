@@ -27,7 +27,7 @@ sftp2 = Net::SFTP.start(CONTENT_SERVER_DOMAIN_NAME, CONTENT_SERVER_FTP_LOGIN,
       entries.dir.foreach('/pedidos/') do |entry|
 
           if entry.name.include?("xml")
-            puts entry.name
+            # puts entry.name
               sftp2.file.open("/pedidos" + "/" + entry.name, "r") do |f|
               while !f.eof?
                 # puts f.gets
@@ -36,7 +36,22 @@ sftp2 = Net::SFTP.start(CONTENT_SERVER_DOMAIN_NAME, CONTENT_SERVER_FTP_LOGIN,
                 if content.include?("id")
                   content = content.split('>')[1]
                   content = content.split('<')[0]
-                  puts content
+                  content_id = content
+                  # puts content_id
+                elsif content.include?("sku")
+                  content = content.split('>')[1]
+                  content = content.split('<')[0]
+                  content_sku = content
+                  # puts content_sku
+                elsif content.include?("qty")
+                  content = content.split('>')[1]
+                  content = content.split('<')[0]
+                  content_qty = content
+                  # puts content_qty
+
+                  SftpOrder.new({
+                    orderId: content_id, sku: content_sku, qty: content_qty
+                    }).save
                 end
               end
             end
