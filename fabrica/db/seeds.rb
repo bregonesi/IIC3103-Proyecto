@@ -41,13 +41,14 @@ end
 
 # Customer address
 print "Cargando customer address.\n"
-Spree::Address.create!(firstname: "PUC",
-                       lastname: "San Joaquin",
-                       address1: 'Av. Vicuña Mackenna 4860'
+Spree::Address.create!(firstname: "Distribuidor",
+                       lastname: "PUC",
+                       address1: 'Av. Vicuña Mackenna 4860',
                        city: 'Santiago',
                        state: Spree::Country.find_by(iso: 'CL').states.find_by(abbr: 'RM'),
                        zipcode: '7820436',
-                       country: Spree::Country.find_by(iso: 'CL')
+                       country: Spree::Country.find_by(iso: 'CL'),
+                       phone: FFaker::PhoneNumber.phone_number
 )
 
 # Shipping categories y methods #
@@ -210,3 +211,6 @@ else
   print "Error. Response code not 200.\n"
 end
 
+# Descargamos nuevas ordenes
+print "Descargando y agregando ordenes al por mayor.\n"
+Scheduler::SftpHelper.agregar_nuevas_ordenes

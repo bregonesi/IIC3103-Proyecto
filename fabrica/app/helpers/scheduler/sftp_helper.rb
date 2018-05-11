@@ -1,16 +1,12 @@
 module Scheduler::SftpHelper
 
 	def agregar_nuevas_ordenes
-
-		dm = "integradev.ing.puc.cl"
-		flogin = "grupo4"
-		fpasswd = "1ccWcVkAmJyrOfA"
-
-
-	  sftp = Net::SFTP.start(dm, flogin, password: fpasswd) do |entries|
+		sftp = Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd'])  ## necesitamos dos conexiones
+	  Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd']) do |entries|
     	entries.dir.foreach('/pedidos/') do |entry|
       	if entry.name.include?("xml")
-      		sftp2.file.open("/pedidos" + "/" + entry.name, "r") do |f|
+      		date_ingreso = entry.name.split('.xml').join
+      		sftp.file.open("/pedidos" + "/" + entry.name, "r") do |f|
           
             content_id = nil
             content_sku = nil
@@ -36,26 +32,36 @@ module Scheduler::SftpHelper
               end
             end
 
+            orden_nueva = Spree::Order.where(number: content_id,
+            																 email: 'spree@example.com').first_or_create! do |o|
+              variant = Spree::Variant.find_by!(sku: content_sku)
 
-            orden_nueva = Spree::Order.where(
-              number: content_id,
-              email: 'spree@example.com'
-            ).first_or_create! do |o|
-              # o.item_total = 0
-              # o.adjustment_total = 0
-              # o.total = 0
+              o.channel = "ftp"
+
               o.shipping_address = Spree::Address.first
-              o.billing_address = Spree::Address.last
-              o.state = 'confirm'
-              o.store = Spree::Store.default
-              o.completed_at = Time.current - 1.day
-              # o.line_items.new(
-              # variant: Spree::Variant.find_by!(id: 1),
-              # quantity: content_qty,
-              # price: 0
-              # ).save!
+              o.billing_address = Spree::Address.first
+
+              o.item_total = (content_qty.to_f * variant.price.to_f).to_i
+              o.total = o.item_total
+              
+              o.line_items.new(variant: variant,
+              								 quantity: content_qty,
+              								 price: o.item_total).save!
             end
-            orden_nueva.save!
+            
+            if orden_nueva.state != 'complete'
+	            orden_nueva.create_proposed_shipments
+	            orden_nueva.state = 'complete'
+	            orden_nueva.store = Spree::Store.default
+	            orden_nueva.completed_at = DateTime.strptime((date_ingreso.to_f / 1000).to_s, '%s')
+	            orden_nueva.save!
+
+	            orden_nueva.update_with_updater!
+						  payment = orden_nueva.payments.where(amount: BigDecimal(orden_nueva.total, 4),
+						                                 			 payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first).first_or_create!
+
+						  payment.update_columns(state: 'checkout')
+	          end
 
           end # end de inside file
         end # end de if.xml

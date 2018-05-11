@@ -8,7 +8,7 @@ class HookController < ApplicationController
     sku_producto = params[:sku]
     producto = Spree::Variant.find_by(sku: sku_producto)
     save_request = HookRequest.create!(sku: sku_producto, cantidad: params[:cantidad],
-      disponible: DateTime.strptime((params[:disponible].to_f / 1000).to_s, '%s'), ip: ip2long(request.remote_ip))
+      disponible: DateTime.strptime((params[:disponible].to_f / 1000).to_s,'%s'), ip: ip2long(request.remote_ip))
     if producto
       stock = producto.total_on_hand
       #if stock < 10
@@ -25,6 +25,7 @@ class HookController < ApplicationController
       save_request.aceptado = false
       save_request.razon = "Rechazado por que sku no existe."
     end
+    save_request.save!
   end
 
   def list_requests

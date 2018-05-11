@@ -42,12 +42,10 @@ gem 'httparty'
 # HMAC-SHA1 codification
 gem 'ruby-hmac'
 
-# Worker
-gem 'sidekiq'
-
 # Scheduler
 gem 'rufus-scheduler'
 
+# Sftp conection
 gem 'net-sftp'
 
 group :production do  ## Heroku trabaja con production, por lo tanto usara postgres

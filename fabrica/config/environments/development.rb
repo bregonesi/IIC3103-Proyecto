@@ -55,4 +55,9 @@ Rails.application.configure do
   # API url
   ENV['api_url'] = "https://integracion-2018-dev.herokuapp.com/" 
   ENV['api_psswd'] = "TGVaa:#Dtih:kx4"
+
+  # SFTP de ordenes mayorias
+  ENV['sftp_ordenes_url'] = "integradev.ing.puc.cl"
+  ENV['sftp_ordenes_login'] = "grupo4"
+  ENV['sftp_ordenes_psswd'] = "1ccWcVkAmJyrOfA"
 end

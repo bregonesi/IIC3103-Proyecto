@@ -1,14 +1,14 @@
 require 'rufus-scheduler'
-require 'net/sftp'
 
 include SchedulerHelper
 
 
 if defined?(::Rails::Server) || File.basename($0) =='rake'
 	puts "Partiendo scheduler"
+  Scheduler::SftpHelper.agregar_nuevas_ordenes
 
 	job = Rufus::Scheduler.new(:max_work_threads => 1)
-	job.every '35s' do
+	job.every '9135s' do
 	#job.every '1m' do
 	  puts "Ejecutando update."
 
@@ -33,9 +33,13 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 
 
   job_sftp = Rufus::Scheduler.new(:max_work_threads => 1)
-  job_sftp.every '1h' do
+  job_sftp.every '30m' do
+    puts "Ejecutando chequeo de ordenes nuevas"
+    
     # Descargamos nuevas ordenes
     Scheduler::SftpHelper.agregar_nuevas_ordenes
+
+    puts "Termina chequeo de ordenes nuevas"
   end
 
 end
