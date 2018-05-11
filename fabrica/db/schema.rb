@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180509211145) do
+ActiveRecord::Schema.define(version: 20180510151027) do
 
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string "slug", null: false
@@ -29,12 +29,26 @@ ActiveRecord::Schema.define(version: 20180509211145) do
   create_table "hook_requests", force: :cascade do |t|
     t.string "sku"
     t.integer "cantidad"
-    t.text "disponible"
+    t.datetime "disponible"
     t.integer "ip"
     t.boolean "aceptado"
     t.text "razon"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "productos_apis", force: :cascade do |t|
+    t.string "id_api"
+    t.integer "stock_item_id"
+    t.integer "costo"
+    t.integer "precio"
+    t.datetime "vencimiento"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["costo"], name: "index_productos_apis_on_costo"
+    t.index ["precio"], name: "index_productos_apis_on_precio"
+    t.index ["stock_item_id"], name: "index_productos_apis_on_stock_item_id"
+    t.index ["vencimiento"], name: "index_productos_apis_on_vencimiento"
   end
 
   create_table "spree_addresses", force: :cascade do |t|

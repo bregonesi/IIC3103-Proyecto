@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id_api: MyString
+  variant: 
+  costo: 1
+  precio: 1
+  vencimiento: 2018-05-10 12:10:27
+  stock_location: 
+
+two:
+  id_api: MyString
+  variant: 
+  costo: 1
+  precio: 1
+  vencimiento: 2018-05-10 12:10:27
+  stock_location: 

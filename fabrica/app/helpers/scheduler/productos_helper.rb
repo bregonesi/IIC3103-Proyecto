@@ -1,44 +1,45 @@
 module Scheduler::ProductosHelper
 
+	def obtener_lote_antiguo(stock_item, cantidad=nil)
+		vencimiento_menor = ProductosApi.where(stock_item: stock_item, vencimiento: DateTime.now..Float::INFINITY).order(:vencimiento).first
+		if vencimiento_menor
+			vencimiento_menor = vencimiento_menor.vencimiento
+		end
+
+		return ProductosApi.where(stock_item: stock_item, vencimiento: vencimiento_menor).limit(cantidad)
+	end
+
 	def hacer_movimientos
 		stop_scheduler = false
 		Spree::StockMovement.where("originator_type = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
 			movement.with_lock do
 				# buscaremos los productos (id) que moveremos
-				almacen_id = movement.stock_item.stock_location.admin_name
-				sku_movement = movement.stock_item.variant.sku
-				url = ENV['api_url'] + "bodega/stock"
-				base = 'GET' + almacen_id.to_s + sku_movement.to_s
-				key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-				r = HTTParty.get(url,
-												 query: {almacenId: almacen_id.to_s,
-												 				 sku: sku_movement.to_s,
-												 				 limit: -movement.quantity.to_i - movement.moved_quantity.to_i},
-												 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
-				# lo ideal seria que el request anterior lo ordene por fecha de vencimiento de producto
-
-	      if r.code != 200
-	        raise "Error obteniendo productos en almacen " + almacen_id.to_s + "."
-	      end
+				productos_mover = obtener_lote_antiguo(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
 
 	      almacen_id_dest = nil
+	      stock_item_dest = nil
 			  Spree::StockMovement.where("originator_type = ? AND originator_id = ? AND quantity > 0", movement.originator_type, movement.originator_id).each do |movement_dest|
 			  	almacen_id_dest = movement_dest.stock_item.stock_location.admin_name
+			  	stock_item_dest = movement_dest.stock_item
 			  end
 
 	      j = 0
-				JSON.parse(r.body).each do |prod|  ## hay que mover producto por producto (si, ineficiente)
+				productos_mover.each do |prod|  ## hay que mover producto por producto (si, ineficiente)
 				  # ahora hay que mover el prod_id encontrado
 					url = ENV['api_url'] + "bodega/moveStock"
-	  			base = 'POST' + prod['_id'].to_s + almacen_id_dest.to_s
+	  			base = 'POST' + prod.id_api.to_s + almacen_id_dest.to_s
 	  			key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
 	  			r = HTTParty.post(url,
-	  													body: {productoId: prod['_id'].to_s,
+	  													body: {productoId: prod.id_api.to_s,
 	  																 almacenId: almacen_id_dest.to_s}.to_json,
 	  													headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
 	  			
 	  			if r.code == 200
 	  				j += 1
+
+						prod.stock_item = stock_item_dest  ## se movio de lugar
+						prod.save!
+
 	  				puts "Movimiento de un producto exitoso. Van " + j.to_s + " productos movidos."
 	  			else
 	          puts "Error movimiento orden. Error en response code de api. Responde code " + r.code.to_s + "."
@@ -51,6 +52,9 @@ module Scheduler::ProductosHelper
 				movement.moved_quantity += j
 				movement.save!  ## actualizamos lo movido
 
+				cargar_detalles(movement.stock_item)  ## por si aparecen nuevos stocks q agregar
+				cargar_detalles(stock_item_dest)  ## por si aparecen nuevos stocks q agregar
+
 				if movement.moved_quantity < -movement.quantity
 					stop_scheduler = true
 				end
@@ -62,10 +66,44 @@ module Scheduler::ProductosHelper
 		end
 	end
 
+	def cargar_detalles(stock_item)
+		variant = stock_item.variant
+		almacen = stock_item.stock_location
+
+		url = ENV['api_url'] + "bodega/stock"
+	  base = 'GET' + almacen.admin_name + variant.sku
+	  key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+
+	  r = HTTParty.get(url,
+	                   query: {almacenId: almacen.admin_name.to_s,
+	                   				 sku: variant.sku,
+	                   				 limit: 200},
+	                   headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+			
+		if r.code != 200
+			raise "Error en get stock (detalle productos)"
+		end
+
+	  JSON.parse(r.body).each do |prod_api|
+	  	new_producto = ProductosApi.where(id_api: prod_api['_id']).first_or_create! do |new_p|
+	  		new_p.stock_item = stock_item
+	  	end
+
+	  	if new_producto
+	  		new_producto.stock_item = stock_item
+	  		new_producto.costo = prod_api['costo']
+	  		new_producto.precio = prod_api['precio']
+	  		new_producto.vencimiento = prod_api['vencimiento']
+
+	  		new_producto.save!
+	  	end
+	  end
+	end
+
 	def cargar_nuevos  ## y elimina vencidos
 		url = ENV['api_url'] + "bodega/skusWithStock"
 
-		Spree::StockLocation.all.each do |stock_location|
+		Spree::StockLocation.where.not(proposito: "Backorderable").each do |stock_location|
 		  base = 'GET' + stock_location.admin_name
 		  key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
 
@@ -103,8 +141,10 @@ module Scheduler::ProductosHelper
 
 								if stock_movement.save
 									puts "Cargando stock para item sku: " + prod_api['_id'] + ", stock: " + diferencia.to_s + "."
+									cargar_detalles(stock_item)
 								end
 				      end
+
 				    end
 
 			    end
@@ -113,22 +153,22 @@ module Scheduler::ProductosHelper
 		    end
 		  end
 
-	    variants_eliminar = Spree::Variant.where.not(sku: skus_en_stock)
-	    variants_eliminar.each do |variant|
-	    	stock_item = stock_location.stock_items.find_by(variant: variant)
-	    	if stock_item
-	    		stock_item.with_lock do
-		    		if stock_item.count_on_hand > 0
-							stock_movement = stock_location.stock_movements.build(quantity: -(stock_item.count_on_hand.to_i))
-							stock_movement.action = "Eliminado por vencimiento (o desaparecio de bodega)."
-							stock_movement.stock_item = stock_location.set_up_stock_item(variant)
-							if stock_movement.save
-		    				puts "Se marca " + variant.sku + " como vencido."
-							end
-		    		end
-		    	end
-	    	end
-	    end
+	    #variants_eliminar = Spree::Variant.where.not(sku: skus_en_stock)
+	    #variants_eliminar.each do |variant|
+	    #	stock_item = stock_location.stock_items.find_by(variant: variant)
+	    #	if stock_item
+	    #		stock_item.with_lock do
+		  #  		if stock_item.count_on_hand > 0
+			#				stock_movement = stock_location.stock_movements.build(quantity: -(stock_item.count_on_hand.to_i))
+			#				stock_movement.action = "Eliminado por vencimiento (o desaparecio de bodega)."
+			#				stock_movement.stock_item = stock_location.set_up_stock_item(variant)
+			#				if stock_movement.save
+		  #  				puts "Se marca " + variant.sku + " como vencido."
+			#				end
+		  #  		end
+		  #  	end
+	    #	end
+	    #end
 		  
 		end # end de actualizar stock
 	end

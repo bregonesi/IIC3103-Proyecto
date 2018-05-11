@@ -15,7 +15,8 @@ module Scheduler::AlmacenesHelper
 		  almacen_q = Spree::StockLocation.find_by(admin_name: almacen['_id'].to_s)
 		  if !almacen_q  ## si no existe
 		  	puts "Se detecto un nuevo almacen. Almacen nuevo " + almacen['_id']
-			  new_almacen = Spree::StockLocation.where(name: 'Almacen ' + (Spree::StockLocation.last.name.split(" ")[1].to_i + 1).to_s,
+		  	nombre = Spree::StockLocation.count > 0 ? Spree::StockLocation.last.name.split(" ")[1].to_i + 1 : 1
+			  new_almacen = Spree::StockLocation.where(name: 'Almacen ' + nombre.to_s,
 			                                           address1: 'Av. Vicuña Mackenna 4860',
 			                                           city: 'Santiago',
 			                                           zipcode: '7820436',
@@ -34,6 +35,7 @@ module Scheduler::AlmacenesHelper
 			    end
 			    a_new.proposito = proposito
 			    a_new.capacidad_maxima = almacen['totalSpace']
+			    a_new.active = false  ## con esto evitamos que las ordenes se vayan para aca
 		    end
 			  if new_almacen
 			    new_almacen.save
@@ -53,7 +55,7 @@ module Scheduler::AlmacenesHelper
 			raise "Error en get almacenes"
 		end
 
-	  if JSON.parse(r.body).count != Spree::StockLocation.count  ## si nos eliminaron alguno
+	  if JSON.parse(r.body).count != Spree::StockLocation.count - 1  ## si nos eliminaron alguno (-1 por el almacen de backorder)
 	  	puts "Se detecto diferencias en cantidad de almacenes."
 	  	Spree::StockLocation.all.each do |stock_location|
 	  		encontrado = false

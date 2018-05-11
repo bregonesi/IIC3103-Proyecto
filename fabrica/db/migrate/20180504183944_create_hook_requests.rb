@@ -3,7 +3,7 @@ class CreateHookRequests < ActiveRecord::Migration[5.1]
     create_table :hook_requests do |t|
       t.string :sku
       t.integer :cantidad
-      t.text :disponible
+      t.datetime :disponible
       t.integer :ip
       t.boolean :aceptado
       t.text :razon

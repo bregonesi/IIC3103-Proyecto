@@ -7,12 +7,14 @@ class HookController < ApplicationController
     productos = Spree::Product.all
     sku_producto = params[:sku]
     producto = Spree::Variant.find_by(sku: sku_producto)
+    save_request = HookRequest.create!(sku: sku_producto, cantidad: params[:cantidad],
+      disponible: DateTime.strptime((params[:disponible].to_f / 1000).to_s, '%s'), ip: ip2long(request.remote_ip))
     if producto
       stock = producto.total_on_hand
       #if stock < 10
         render json: stock, :status => 200  ## voy a dejar que siempre retorne 200 para aceptar todo por mientras
-        save_request = HookRequest.create!(sku: sku_producto, cantidad: params[:cantidad], disponible: params[:disponible],
-          ip: ip2long(request.remote_ip), aceptado: true, razon: "Estoy aceptando todo")
+        save_request.aceptado = true
+        save_request.razon = "Estoy aceptando todo"
       #else
       #  render json: @stock, :status => 401
       #  HookRequests.create!(sku: sku_producto, cantidad: params[:cantidad], disponible: params[:disponible],
@@ -20,8 +22,8 @@ class HookController < ApplicationController
       #end
     else
       render json: [{:error => "Producto sku " + sku_producto + " no existe."}], :status => 400
-      HookRequest.create!(sku: sku_producto, cantidad: params[:cantidad], disponible: params[:disponible],
-          ip: ip2long(request.remote_ip), aceptado: true, razon: "Rechazado por que sku no existe.")
+      save_request.aceptado = false
+      save_request.razon = "Rechazado por que sku no existe."
     end
   end
 
