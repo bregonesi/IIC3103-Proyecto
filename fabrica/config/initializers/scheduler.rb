@@ -32,7 +32,7 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 
 
   job_sftp = Rufus::Scheduler.new(:max_work_threads => 1)
-  job_sftp.every '30s' do
+  job_sftp.every '30m' do
     puts "Ejecutando chequeo de ordenes nuevas"
     
     # Descargamos nuevas ordenes
