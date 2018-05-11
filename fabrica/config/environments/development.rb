@@ -53,8 +53,11 @@ Rails.application.configure do
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   # API url
-  ENV['api_url'] = "https://integracion-2018-dev.herokuapp.com/" 
+  ENV['api_url'] = "https://integracion-2018-dev.herokuapp.com/"
   ENV['api_psswd'] = "TGVaa:#Dtih:kx4"
+
+  # API OC url
+  ENV['api_oc_url'] = "https://integracion-2018-dev.herokuapp.com/oc/"
 
   # SFTP de ordenes mayorias
   ENV['sftp_ordenes_url'] = "integradev.ing.puc.cl"

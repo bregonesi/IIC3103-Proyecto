@@ -94,6 +94,10 @@ Rails.application.configure do
   # ENV['api_url'] = "https://integracion-2018-prod.herokuapp.com/"  ## production
   ENV['api_psswd'] = "TGVaa:#Dtih:kx4"
 
+  # API OC url
+  ENV['api_oc_url'] = "https://integracion-2018-dev.herokuapp.com/oc/"
+  # ENV['api_oc_url'] = "https://integracion-2018-prod.herokuapp.com/oc/"  ## production
+
   # SFTP de ordenes mayorias
   ENV['sftp_ordenes_url'] = "integradev.ing.puc.cl"  ## development
   #ENV['sftp_ordenes_url'] = "integracion.ing.puc.cl"  ## production

@@ -1,6 +1,8 @@
 module Scheduler::SftpHelper
 
 	def agregar_nuevas_ordenes
+		url = ENV['api_oc_url'] + "obtener/"
+
 		sftp = Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd'])  ## necesitamos dos conexiones
 	  Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd']) do |entries|
     	entries.dir.foreach('/pedidos/') do |entry|
@@ -18,17 +20,14 @@ module Scheduler::SftpHelper
                 content = content.split('>')[1]
                 content = content.split('<')[0]
                 content_id = content
-                # puts content_id
               elsif content.include?("sku")
                 content = content.split('>')[1]
                 content = content.split('<')[0]
                 content_sku = content
-                # puts content_sku
               elsif content.include?("qty")
                 content = content.split('>')[1]
                 content = content.split('<')[0]
                 content_qty = content
-                # puts content_qty
               end
             end
 
@@ -48,10 +47,24 @@ module Scheduler::SftpHelper
               								 quantity: content_qty,
               								 price: o.item_total).save!
             end
-            
-            if orden_nueva.state != 'complete'
+
+            if !orden_nueva.completed_at  # si es primera vez que la creamos
+							r = HTTParty.get(url + content_id, headers: { 'Content-type': 'application/json' })
+							if r.code != 200
+								raise "Error en get oc."
+							end
+							body = JSON.parse(r.body)[0]
+							puts body['fechaEntrega']
+							orden_nueva.fechaEntrega = body['fechaEntrega']
+
 	            orden_nueva.create_proposed_shipments
-	            orden_nueva.state = 'complete'
+
+	            if Time.now() >= orden_nueva.fechaEntrega || body['estado'] == "rechazada" || body['estado'] == "anulada" 
+		            orden_nueva.state = 'canceled'
+		          else
+		          	orden_nueva.state = 'complete'
+		          end
+
 	            orden_nueva.store = Spree::Store.default
 	            orden_nueva.completed_at = DateTime.strptime((date_ingreso.to_f / 1000).to_s, '%s')
 	            orden_nueva.save!
