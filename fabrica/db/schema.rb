@@ -49,7 +49,6 @@ ActiveRecord::Schema.define(version: 20180510151027) do
     t.index ["precio"], name: "index_productos_apis_on_precio"
     t.index ["stock_item_id"], name: "index_productos_apis_on_stock_item_id"
     t.index ["vencimiento"], name: "index_productos_apis_on_vencimiento"
-  end
 
   create_table "spree_addresses", force: :cascade do |t|
     t.string "firstname"

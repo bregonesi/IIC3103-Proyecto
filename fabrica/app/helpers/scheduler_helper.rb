@@ -4,4 +4,6 @@ module SchedulerHelper
 	include Scheduler::AlmacenesHelper
 	include Scheduler::ProductosHelper
 
+	include Scheduler::SftpHelper
+
 end

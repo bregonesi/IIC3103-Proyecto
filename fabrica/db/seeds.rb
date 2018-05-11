@@ -39,6 +39,17 @@ Spree::TaxRate.where(
   tax_rate.calculator = Spree::Calculator::DefaultTax.create!
 end
 
+# Customer address
+print "Cargando customer address.\n"
+Spree::Address.create!(firstname: "PUC",
+                       lastname: "San Joaquin",
+                       address1: 'Av. Vicuña Mackenna 4860'
+                       city: 'Santiago',
+                       state: Spree::Country.find_by(iso: 'CL').states.find_by(abbr: 'RM'),
+                       zipcode: '7820436',
+                       country: Spree::Country.find_by(iso: 'CL')
+)
+
 # Shipping categories y methods #
 print "Cargando shipping categories y methods.\n"
 
@@ -198,3 +209,4 @@ if r.code == 200
 else
   print "Error. Response code not 200.\n"
 end
+
