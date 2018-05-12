@@ -3,13 +3,14 @@ module Scheduler::SftpHelper
 	def agregar_nuevas_ordenes
 		url = ENV['api_oc_url'] + "obtener/"
 
+    j = 0
+
 		sftp = Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd'])  ## necesitamos dos conexiones
 	  Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd']) do |entries|
     	entries.dir.foreach('/pedidos/') do |entry|
       	if entry.name.include?("xml")
       		date_ingreso = entry.name.split('.xml').join
       		sftp.file.open("/pedidos" + "/" + entry.name, "r") do |f|
-          
             content_id = nil
             content_sku = nil
             content_qty = nil
@@ -32,49 +33,52 @@ module Scheduler::SftpHelper
             end
 
             orden_nueva = Spree::Order.where(number: content_id,
-            																 email: 'spree@example.com').first_or_create! do |o|
-              variant = Spree::Variant.find_by!(sku: content_sku)
-
-              o.channel = "ftp"
-
-              o.shipping_address = Spree::Address.first
-              o.billing_address = Spree::Address.first
-
-              o.item_total = (content_qty.to_f * variant.price.to_f).to_i
-              o.total = o.item_total
+                                             email: 'spree@example.com').first_or_create! do |o|
+              j += 1
+              puts j.to_s + ": Cargando " + entry.name
               
-              o.line_items.new(variant: variant,
-              								 quantity: content_qty,
-              								 price: o.item_total).save!
+              variant = Spree::Variant.find_by!(sku: content_sku)
+              o.contents.add(variant, content_qty.to_i, {})  ## variant, quantity, options
+              o.update_line_item_prices!
+              o.create_tax_charge!
+              o.next!  # pasamos a address
+
+              o.bill_address = Spree::Address.first
+              o.ship_address = Spree::Address.first
+              o.next!  # pasamos a delivery
+
+              o.create_proposed_shipments
+              o.next!  # pasamos a payment
+
+              payment = o.payments.where(amount: BigDecimal(o.total, 4),
+                                         payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first).first_or_create!
+              payment.update_columns(state: 'checkout')
+
+              o.confirmation_delivered = true  ## forzamos para que no se envie mail
+              o.next!  # pasamos a complete
             end
 
-            if !orden_nueva.completed_at  # si es primera vez que la creamos
+            if orden_nueva.channel != "ftp"  # si es primera vez que la creamos
 							r = HTTParty.get(url + content_id, headers: { 'Content-type': 'application/json' })
 							if r.code != 200
 								raise "Error en get oc."
 							end
 							body = JSON.parse(r.body)[0]
-							puts body['fechaEntrega']
+
+              orden_nueva.completed_at = DateTime.strptime((date_ingreso.to_f / 1000).to_s, '%s')
+              orden_nueva.channel = "ftp"
 							orden_nueva.fechaEntrega = body['fechaEntrega']
 
-	            orden_nueva.create_proposed_shipments
-
-	            if Time.now() >= orden_nueva.fechaEntrega || body['estado'] == "rechazada" || body['estado'] == "anulada" 
-		            orden_nueva.state = 'canceled'
-		          else
-		          	orden_nueva.state = 'complete'
-		          end
-
-	            orden_nueva.store = Spree::Store.default
-	            orden_nueva.completed_at = DateTime.strptime((date_ingreso.to_f / 1000).to_s, '%s')
 	            orden_nueva.save!
 
-	            orden_nueva.update_with_updater!
-						  payment = orden_nueva.payments.where(amount: BigDecimal(orden_nueva.total, 4),
-						                                 			 payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first).first_or_create!
-
-						  payment.update_columns(state: 'checkout')
+              if Time.now() >= orden_nueva.fechaEntrega || body['estado'] == "rechazada" || body['estado'] == "anulada"   ## chequeat q no haya sido ni despachado algo o terminada
+                orden_nueva.canceled_by(Spree::User.first)
+              end
 	          end
+
+            if j == 30
+              raise "Botamos por que agregamos maximo 30"
+            end
 
           end # end de inside file
         end # end de if.xml
