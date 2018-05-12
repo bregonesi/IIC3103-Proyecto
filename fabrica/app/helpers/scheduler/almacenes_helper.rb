@@ -21,12 +21,15 @@ module Scheduler::AlmacenesHelper
 				productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
 				a_mover = productos_ordenados.where.not(stock_item: despacho_stock_items).group(:vencimiento)  ## quiero limit pero me tira error, asi que lo haremos a la mala
 
-				# cambiar el if count == 0 break
+        if a_mover.empty?
+        	break
+        end
 
 				a_mover_prods = a_mover.each
-				a_mover_prods_count = a_mover.count[prod.vencimiento]
 
 				prod = a_mover_prods.next
+
+				a_mover_prods_count = a_mover.count[prod.vencimiento]
 
         variants = Hash.new(0)
         variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
@@ -38,10 +41,6 @@ module Scheduler::AlmacenesHelper
         Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 
         j -= [a_mover_prods_count, j - cap_dis].min
-
-        if productos_ordenados.count == 0
-        	break
-        end
 			end
 		end
 
@@ -50,12 +49,18 @@ module Scheduler::AlmacenesHelper
 			cap_dis = 500
 			while j > cap_dis
 				productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
-
 				a_mover = productos_ordenados.where.not(stock_item: despacho_stock_items + general_stock_items).group(:vencimiento)  ## quiero limit pero me tira error, asi que lo haremos a la mala
+				
+				if a_mover.empty?
+        	break
+        end
+				
 				a_mover_prods = a_mover.each
-				a_mover_prods_count = a_mover.count[prod.vencimiento]
 
 				prod = a_mover_prods.next
+
+				a_mover_prods_count = a_mover.count[prod.vencimiento]
+
 
         variants = Hash.new(0)
         variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
@@ -67,10 +72,6 @@ module Scheduler::AlmacenesHelper
         Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 
         j -= [a_mover_prods_count, j - cap_dis].min
-
-        if productos_ordenados.count == 0
-        	break
-        end
 			end
 		end
 

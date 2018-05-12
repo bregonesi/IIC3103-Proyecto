@@ -17,7 +17,8 @@
                 <% if variant_price variant %>
                   <span class="price diff"><%= variant_price variant %></span>
                 <% end %>
-                <% unless variant.can_supply? %>
+                <%# unless variant.can_supply? %>
+                <% if variant.total_on_hand > 0 %>
                   <span class="out-of-stock"><%= Spree.t(:out_of_stock) %></span>
                 <% end %>
               <% end %>
