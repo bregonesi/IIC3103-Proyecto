@@ -5,6 +5,7 @@
 #
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
+require 'csv'
 
 include SchedulerHelper
 
@@ -93,14 +94,15 @@ Spree::PaymentMethod::Check.where(
 # Products #
 print "Cargando productos.\n"
 Spree::Sample.load_sample("shipping_categories")
-require 'csv'
+#####################################inicio CSV1######################
+productos_csv_text = File.read(Rails.root.join('lib', 'seeds', 'productos.csv'))
+#puts productos_csv_text
 
-csv_text = File.read(Rails.root.join('lib', 'seeds', 'Grupos.csv'))
-puts csv_text
-
-csv = CSV.parse(csv_text, :headers => true, :encoding => 'ISO-8859-1')
+productos_csv = CSV.parse(productos_csv_text, :headers => true, :encoding => 'ISO-8859-1')
 default_shipping_category = Spree::ShippingCategory.find_by!(name: "Default")
-csv.each do |product_attrs|
+productos_csv.each do |product_attrs|
+  puts product_attrs
+
   Spree::Config[:currency] = "CLP"
 
   new_product = Spree::Product.where(name: product_attrs['Producto'],
@@ -115,6 +117,43 @@ csv.each do |product_attrs|
     new_product.save
   end
 end
+#####################################fin CSV1######################
+
+#####################################inicio CSV2######################
+formulas_csv_text = File.read(Rails.root.join('lib', 'seeds', 'formulas.csv'))
+#puts formulas_csv_text
+
+formulas_csv = CSV.parse(formulas_csv_text, :headers => true, :encoding => 'ISO-8859-1')
+
+formulas_csv.each do |formula_attrs|
+  puts formula_attrs
+
+  sku = formula_attrs['SKU'.to_i]
+
+  variante = Spree::Variant.find_by(sku: sku)
+  variante.lote_minimo = formula_attrs['Lote']
+  variante.save!
+
+  if formula_attrs['Manzana'].to_i > 0
+    variante.recipe.build({variant_ingredient: Spree::Variant.find_by(sku: "20"), amount: formula_attrs['Manzana'].to_i}).save!
+  end
+  if formula_attrs['Naranja'].to_i > 0
+    variante.recipe.build({variant_ingredient: Spree::Variant.find_by(sku: "30"), amount: formula_attrs['Naranja'].to_i}).save!
+  end
+  if formula_attrs['Frutilla'].to_i > 0
+    variante.recipe.build({variant_ingredient: Spree::Variant.find_by(sku: "40"), amount: formula_attrs['Frutilla'].to_i}).save!
+  end
+  if formula_attrs['Frambuesa'].to_i > 0
+    variante.recipe.build({variant_ingredient: Spree::Variant.find_by(sku: "50"), amount: formula_attrs['Frambuesa'].to_i}).save!
+  end
+  if formula_attrs['Durazno'].to_i > 0
+    variante.recipe.build({variant_ingredient: Spree::Variant.find_by(sku: "60"), amount: formula_attrs['Durazno'].to_i}).save!
+  end
+  if formula_attrs['Arándano'].to_i > 0
+    variante.recipe.build({variant_ingredient: Spree::Variant.find_by(sku: "70"), amount: formula_attrs['Arándano'].to_i}).save!
+  end
+end
+################################fin CSV2
 
 # Object types #
 print "Cargando object types.\n"

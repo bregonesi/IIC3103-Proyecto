@@ -51,6 +51,17 @@ ActiveRecord::Schema.define(version: 20180511065315) do
     t.index ["vencimiento"], name: "index_productos_apis_on_vencimiento"
   end
 
+  create_table "recipes", force: :cascade do |t|
+    t.integer "variant_product_id"
+    t.integer "variant_ingredient_id"
+    t.integer "amount"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["amount"], name: "index_recipes_on_amount"
+    t.index ["variant_ingredient_id"], name: "index_recipes_on_variant_ingredient_id"
+    t.index ["variant_product_id"], name: "index_recipes_on_variant_product_id"
+  end
+
   create_table "spree_addresses", force: :cascade do |t|
     t.string "firstname"
     t.string "lastname"
@@ -1059,6 +1070,7 @@ ActiveRecord::Schema.define(version: 20180511065315) do
     t.datetime "updated_at", null: false
     t.datetime "discontinue_on"
     t.datetime "created_at", null: false
+    t.integer "lote_minimo", default: 0
     t.index ["deleted_at"], name: "index_spree_variants_on_deleted_at"
     t.index ["discontinue_on"], name: "index_spree_variants_on_discontinue_on"
     t.index ["is_master"], name: "index_spree_variants_on_is_master"
