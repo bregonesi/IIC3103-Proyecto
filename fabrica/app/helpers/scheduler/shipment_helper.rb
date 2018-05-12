@@ -4,7 +4,7 @@ module Scheduler::ShipmentHelper
     url = ENV['api_url'] + "bodega/stock"
     stop_scheduler = false
     
-    Spree::Shipment.where(state: "ready", stock_location: Spree::StockLocation.where(proposito: "Despacho").map(&:id)).each do |shipment|  ## seleccionamos solo los que estan listos y en despacho
+    Spree::Shipment.where(state: "ready", stock_location: Spree::StockLocation.where(proposito: "Despacho")).each do |shipment|  ## seleccionamos solo los que estan listos y en despacho
       shipment.with_lock do
         if shipment.order.payment_state == "paid"  ## hay que pagar primero
           shipment.inventory_units.each do |iu|

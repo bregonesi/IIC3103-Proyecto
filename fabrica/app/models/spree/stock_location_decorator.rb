@@ -12,4 +12,8 @@ Spree::StockLocation.class_eval do
   def available_capacity
   	self.capacidad_maxima - used_capacity
   end
+
+  def self.almacenes
+    Spree::StockLocation.where(proposito: ["Recepcion", "Despacho", "Pulmon"])
+  end
 end

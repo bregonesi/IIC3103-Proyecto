@@ -1,12 +1,25 @@
 module Scheduler::ProductosHelper
 
+	def mas_antiguo(stock_item)
+		vencimiento_menor = ProductosApi.no_vencidos.where(stock_item: stock_item).order(:vencimiento).first
+		return vencimiento_menor.vencimiento
+	end
+
 	def obtener_lote_antiguo(stock_item, cantidad=nil)
-		vencimiento_menor = ProductosApi.where(stock_item: stock_item, vencimiento: DateTime.now..Float::INFINITY).order(:vencimiento).first
-		if vencimiento_menor
-			vencimiento_menor = vencimiento_menor.vencimiento
-		end
+		vencimiento_menor = mas_antiguo(stock_item)
 
 		return ProductosApi.where(stock_item: stock_item, vencimiento: vencimiento_menor).limit(cantidad)
+	end
+
+	def mas_joven(stock_item)
+		vencimiento_mayor = ProductosApi.no_vencidos.where(stock_item: stock_item).order(:vencimiento).last
+		return vencimiento_mayor.vencimiento
+	end
+
+	def obtener_lote_joven(stock_item, cantidad=nil)
+		vencimiento_mayor = mas_joven(stock_item)
+
+		return ProductosApi.where(stock_item: stock_item, vencimiento: vencimiento_mayor).limit(cantidad)
 	end
 
 	def hacer_movimientos
@@ -14,7 +27,11 @@ module Scheduler::ProductosHelper
 		Spree::StockMovement.where("originator_type = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
 			movement.with_lock do
 				# buscaremos los productos (id) que moveremos
-				productos_mover = obtener_lote_antiguo(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
+				if movement.stock_item.stock_location.proposito == "Despacho"  ## si es que saco de despacho, saco los jovenes y dejo los antiguos
+					productos_mover = obtener_lote_joven(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
+				else
+					productos_mover = obtener_lote_antiguo(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
+				end
 
 	      almacen_id_dest = nil
 	      stock_item_dest = nil
@@ -30,9 +47,9 @@ module Scheduler::ProductosHelper
 	  			base = 'POST' + prod.id_api.to_s + almacen_id_dest.to_s
 	  			key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
 	  			r = HTTParty.post(url,
-	  													body: {productoId: prod.id_api.to_s,
-	  																 almacenId: almacen_id_dest.to_s}.to_json,
-	  													headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+  													body: {productoId: prod.id_api.to_s,
+  																 almacenId: almacen_id_dest.to_s}.to_json,
+  													headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
 	  			
 	  			if r.code == 200
 	  				j += 1

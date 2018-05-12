@@ -1,5 +1,81 @@
 module Scheduler::AlmacenesHelper
 
+	def mantener_consistencia  ## consiste en ordenar productos por antiguedad en almacenes (en lo posible) y mantenerlos todos ocupados
+		# en despacho iran los mas antiguos y se deja un gap de 1000 para cambiar a despachos cuando sea necesario
+		# en recepcion se dejan los mas jovenes (probablemente este vacio nomas)
+		# en general se deja el resto y se deja un gap de 500 para poder hacer movimientos
+		# pulmon solo se deja si recepcion se llena, ningun otro almacen se va a llenar
+		despacho = Spree::StockLocation.where(proposito: "Despacho")
+		despacho_stock_items = despacho.map(&:stock_items).flatten
+		general = Spree::StockLocation.where(proposito: "General")
+		general_stock_items = general.map(&:stock_items).flatten
+		recepcion = Spree::StockLocation.where(proposito: "Recepcion")
+		recepcion_stock_items = recepcion.map(&:stock_items).flatten
+		pulmon = Spree::StockLocation.where(proposito: "Pulmon")
+		pulmon_stock_items = pulmon.map(&:stock_items).flatten
+
+		despacho.each do |almacen|
+			j = almacen.available_capacity
+			cap_dis = 1000
+			while j > cap_dis
+				productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
+				a_mover = productos_ordenados.where.not(stock_item: despacho_stock_items).group(:vencimiento)  ## quiero limit pero me tira error, asi que lo haremos a la mala
+
+				# cambiar el if count == 0 break
+
+				a_mover_prods = a_mover.each
+				a_mover_prods_count = a_mover.count[prod.vencimiento]
+
+				prod = a_mover_prods.next
+
+        variants = Hash.new(0)
+        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
+
+        stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
+        stock_transfer.transfer(prod.stock_item.stock_location,
+                                almacen,
+                                variants)
+        Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
+
+        j -= [a_mover_prods_count, j - cap_dis].min
+
+        if productos_ordenados.count == 0
+        	break
+        end
+			end
+		end
+
+		general.each do |almacen|
+			j = almacen.available_capacity
+			cap_dis = 500
+			while j > cap_dis
+				productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
+
+				a_mover = productos_ordenados.where.not(stock_item: despacho_stock_items + general_stock_items).group(:vencimiento)  ## quiero limit pero me tira error, asi que lo haremos a la mala
+				a_mover_prods = a_mover.each
+				a_mover_prods_count = a_mover.count[prod.vencimiento]
+
+				prod = a_mover_prods.next
+
+        variants = Hash.new(0)
+        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
+
+       	stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
+        stock_transfer.transfer(prod.stock_item.stock_location,
+                                almacen,
+                                variants)
+        Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
+
+        j -= [a_mover_prods_count, j - cap_dis].min
+
+        if productos_ordenados.count == 0
+        	break
+        end
+			end
+		end
+
+	end
+
 	def nuevos_almacenes
 		url = ENV['api_url'] + "bodega/almacenes"
 
