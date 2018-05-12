@@ -13,6 +13,8 @@ module Scheduler::OrderHelper
 		## para caducar. Esto por que la fabricacion toma a veces 12 horas.
 		## Fabrico hasta tres lotes maximos (mando uno a uno)
 		##
+		## Si son dos o menos lotes y tengo stock acepto de inmediato
+		##
 		## A las ordenes caducan en menos de 8 horas le despacho solo si tengo para satisfacer
 		## la mitad o mas de lo que le falta (siempre deberia ser a lo mas una orden que se encuentra asi)
 		##
@@ -20,8 +22,57 @@ module Scheduler::OrderHelper
 		## eso depende de si los productos que me piden se me vencen dentro de 6 horas o si es
 		## cubro toda su demanda
 		##
+
+		## aqui veo si tengo stock de alguna orden y tiene menos de dos lotes
+		Spree::Order.where(state: "complete", channel: "ftp", payment_state: "paid").each do |orden|
+			orden.with_lock do
+				se_completa = true
+				orden.inventory_units.each do |iu|
+					variant = iu.variant
+					lotes = BigDecimal((iu.quantity.to_f/variant.lote_minimo.to_f).to_s).ceil
+
+					if variant.total_on_hand < iu.quantity || lotes > 2
+						se_completa = false
+					end
+				end
+				
+				if se_completa
+					#####
+					#####
+					#####
+					#####
+					#####
+					#####
+					#####
+					#####
+					# marcar en la api que se acepta
+					#####
+					#####
+					#####
+					#####
+					#####
+					#####
+					orden.inventory_units.each do |iu|
+						iu.with_lock do
+							# cambiamos los prod al almacen de despacho
+							cambiar_items_a_despacho(Spree::Variant.find(iu.variant.id), iu.quantity.to_i)
+
+							# cambiamos el shipment de backorder a almacen de despacho
+							Spree::Shipment.find(shipment.id).transfer_to_location(
+																									Spree::Variant.find(iu.variant.id),
+																									iu.quantity.to_i,
+																									Spree::StockLocation.where(proposito: "Despacho").first)
+							orden.atencion = 2
+							orden.save!
+						end
+					end
+				end
+
+			end
+		end
+
 		ordenes = []  # [orden, costo_un_lote, lotes, costo_total]
-		ordenes_query = Spree::Order.where(state: "complete", channel: "ftp", payment_state: "paid").where("fechaEntrega >= ?", 16.hours.ago).each do |order|
+		ordenes_query = Spree::Order.where(state: "complete", channel: "ftp", payment_state: "paid", shipment_state: "backorder").where("fechaEntrega >= ?", 16.hours.ago).each do |order|
 			order.inventory_units.each do |iu|
 				variant = iu.variant
 
@@ -38,12 +89,104 @@ module Scheduler::OrderHelper
 		# asi va a quedar mas importante costo total
 
 		puts ordenes
+
 		j = 0
-		while j < (ordenes_query.count/3).floor
+		while Spree::Order.where(atencion: 1).count < (ordenes_query.count/2).floor
+			orden = ordenes[j]  ## recorremos por la prioridad
+
+			can_produce = true
+			lotes_total = 0
+			orden[0].inventory_units.each do |iu|
+				variant = iu.variant
+				lotes = BigDecimal((iu.quantity.to_f/variant.lote_minimo.to_f).to_s).ceil
+				lotes_total += lotes
+
+				if !iu.variant.can_produce?(lotes)
+					can_produce = false
+				end
+			end
+
+			if can_produce
+				url = ENV['api_oc_url'] + "recepcionar/"
+  			r = HTTParty.post(url + orden[0].number.to_s, headers: { 'Content-type': 'application/json' })
+  			puts r
+  			if r.code != 200
+  				raise "Error en recepcionar oc"
+  			end
+
+				orden[0].atencion = 1
+				orden[0].save!
+				lotes_total = [lotes_total, 3].min
+				orden[0].inventory_units.each do |iu|
+					variant = iu.variant
+					lotes = BigDecimal((iu.quantity.to_f/variant.lote_minimo.to_f).to_s).ceil
+					fabricar(variant, [lotes_total, lotes].min)
+					lotes_total -= [lotes_total, lotes].min
+				end
+				break
+
+			end
+
 			j += 1
-			puts j
+
+			if j >= ordenes.count
+				break
+			end
 		end
 
+	end
+
+	def fabricar(variant, lotes=1)
+		lotes.times do |i|
+			save_request = FabricarRequest.create!(aceptado: false, sku: variant.sku, cantidad: variant.lote_minimo)
+		end
+		fabricar_api
+	end
+
+
+	def fabricar_api
+		FabricarRequest.where(aceptado: false).each do |request|
+			request.with_lock do
+				variant = Spree::Variant.find_by(sku: request.sku)
+
+				variant.recipe.each do |ingredient|
+					#puts ingredient.amount
+					stock_location = Spree::StockLocation.where(proposito: "Despacho").first
+					if stock_location.stock_items.find_by(variant: ingredient.variant_ingredient).count_on_hand < ingredient.amount.to_i
+						#puts "agrego stock"
+						cambiar_items_a_despacho(Spree::Variant.find(ingredient.variant_ingredient.id), ingredient.amount.to_i)
+					end
+				end
+
+				url = ENV['api_url'] + "bodega/fabrica/fabricarSinPago"
+				base = 'PUT' + variant.sku + variant.lote_minimo.to_s
+				key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+				r = HTTParty.put(url,
+												 body: {sku: variant.sku.to_s,
+																cantidad: variant.lote_minimo.to_s}.to_json,
+												 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+				
+				if r.code != 200
+					"Error en fabricar"
+				end
+				
+				if r.code == 200
+					variant.recipe.each do |ingredient|
+						stock_location = Spree::StockLocation.where(proposito: "Despacho").first
+						stock_movement = stock_location.stock_movements.build(quantity: -ingredient.amount.to_i)
+						stock_movement.action = "Mandamos a fabricar."
+						stock_movement.stock_item = stock_location.set_up_stock_item(ingredient.variant_ingredient)
+					end
+
+					body = JSON.parse(r)
+					request.aceptado = true
+					request.id_prod = body['_id']
+					request.grupo = body['grupo']
+					request.disponible = DateTime.strptime((body['disponible'].to_f / 1000).to_s,'%s')
+					request.save!
+				end
+			end
+		end
 	end
 
 	def cambiar_items_a_despacho(variant, cantidad)  ## siempre vamos a mover para mantener con un stock

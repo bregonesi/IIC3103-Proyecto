@@ -1,0 +1,2 @@
+class FabricarRequest < ApplicationRecord
+end

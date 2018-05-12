@@ -30,7 +30,6 @@ class HookController < ApplicationController
   end
 
   def list_requests
-    Scheduler::OrderHelper.aceptar_ordenes
     render json: HookRequest.all
   end
 

@@ -7,7 +7,7 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 	puts "Partiendo scheduler"
 
 	job = Rufus::Scheduler.new(:max_work_threads => 1)
-	job.every '35s' do
+	job.every '5s' do
 	#job.every '1m' do
 	  puts "Ejecutando update."
 
@@ -15,7 +15,8 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 		Scheduler::PaymentHelper.pagar_ordenes
 
 		# Vemos que ordenes aceptar y cual ignorar (despues las rechazamos) #
-		#Scheduler::OrderHelper.aceptar_ordenes
+		Scheduler::OrderHelper.aceptar_ordenes
+		Scheduler::OrderHelper.fabricar_api
 
     # Cambiamos las ordenes de almacen #
     Scheduler::OrderHelper.cambiar_almacen

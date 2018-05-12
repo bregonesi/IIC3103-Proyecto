@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id_prod: MyString
+  sku: MyString
+  grupo: MyString
+  disponible: 2018-05-12 14:54:24
+  cantidad: 1
+
+two:
+  id_prod: MyString
+  sku: MyString
+  grupo: MyString
+  disponible: 2018-05-12 14:54:24
+  cantidad: 1

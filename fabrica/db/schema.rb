@@ -10,7 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180511065315) do
+ActiveRecord::Schema.define(version: 20180512175423) do
+
+  create_table "fabricar_requests", force: :cascade do |t|
+    t.string "id_prod"
+    t.string "sku"
+    t.string "grupo"
+    t.datetime "disponible"
+    t.integer "cantidad"
+    t.boolean "aceptado"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string "slug", null: false
@@ -325,6 +336,7 @@ ActiveRecord::Schema.define(version: 20180511065315) do
     t.decimal "taxable_adjustment_total", precision: 10, scale: 2, default: "0.0", null: false
     t.decimal "non_taxable_adjustment_total", precision: 10, scale: 2, default: "0.0", null: false
     t.datetime "fechaEntrega"
+    t.integer "atencion", default: 0
     t.index ["approver_id"], name: "index_spree_orders_on_approver_id"
     t.index ["bill_address_id"], name: "index_spree_orders_on_bill_address_id"
     t.index ["canceler_id"], name: "index_spree_orders_on_canceler_id"
