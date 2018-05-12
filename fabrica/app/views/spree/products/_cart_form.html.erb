@@ -18,7 +18,7 @@
                   <span class="price diff"><%= variant_price variant %></span>
                 <% end %>
                 <%# unless variant.can_supply? %>
-                <% if variant.total_on_hand > 0 %>
+                <% if variant.total_on_hand <= 0 %>
                   <span class="out-of-stock"><%= Spree.t(:out_of_stock) %></span>
                 <% end %>
               <% end %>
@@ -41,7 +41,8 @@
             <span itemprop="priceCurrency" content="<%= current_currency %>"></span>
           </div>
 
-          <% if @product.master.can_supply? %>
+          <%# if @product.master.can_supply? %>
+          <% if @product.total_on_hand > 0 %>
             <link itemprop="availability" href="https://schema.org/InStock" />
           <% elsif @product.variants.empty? %>
             <br />
@@ -49,7 +50,8 @@
           <% end %>
         </div>
 
-        <% if @product.can_supply? %>
+        <%# if @product.can_supply? %>
+        <% if @product.total_on_hand > 0 %>
           <div class="add-to-cart">
             <br />
             <div class="input-group">

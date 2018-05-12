@@ -59,7 +59,7 @@ module Scheduler::ProductosHelper
 
 	  				puts "Movimiento de un producto exitoso. Van " + j.to_s + " productos movidos."
 	  			else
-	          puts "Error movimiento orden. Error en response code de api. Responde code " + r.code.to_s + "."
+	          puts "Error movimiento productos. Error en response code de api. Responde code " + r.code.to_s + "."
 	        end
 				end
 

@@ -1,5 +1,6 @@
 class HookController < ApplicationController
   include ApplicationHelper
+  include SchedulerHelper
   
   skip_before_action :verify_authenticity_token
 
@@ -29,6 +30,7 @@ class HookController < ApplicationController
   end
 
   def list_requests
+    Scheduler::OrderHelper.aceptar_ordenes
     render json: HookRequest.all
   end
 

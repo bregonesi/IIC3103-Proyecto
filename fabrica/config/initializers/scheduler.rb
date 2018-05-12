@@ -14,6 +14,9 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 		# Aca pagamos las ordenes #
 		Scheduler::PaymentHelper.pagar_ordenes
 
+		# Vemos que ordenes aceptar y cual ignorar (despues las rechazamos) #
+		#Scheduler::OrderHelper.aceptar_ordenes
+
     # Cambiamos las ordenes de almacen #
     Scheduler::OrderHelper.cambiar_almacen
 

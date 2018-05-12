@@ -34,10 +34,19 @@ module Scheduler::AlmacenesHelper
         variants = Hash.new(0)
         variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
 
-        stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
-        stock_transfer.transfer(prod.stock_item.stock_location,
-                                almacen,
-                                variants)
+				begin
+	        stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
+	        stock_transfer.transfer(prod.stock_item.stock_location,
+	                                almacen,
+	                                variants)
+        rescue ActiveRecord::RecordInvalid => e
+      		puts e
+      		prod.stock_item.stock_location.stock_items.each do |x|  ## me tira error (como que sincroniza mal), entonces actualizamos todo de nuevo
+      			Scheduler::ProductosHelper::cargar_detalles(x)
+      		end
+      		break
+      	end
+
         Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 
         j -= [a_mover_prods_count, j - cap_dis].min
@@ -65,10 +74,22 @@ module Scheduler::AlmacenesHelper
         variants = Hash.new(0)
         variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
 
-       	stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
-        stock_transfer.transfer(prod.stock_item.stock_location,
-                                almacen,
-                                variants)
+        begin
+	       	stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
+	       	puts prod.stock_item.stock_location.to_yaml
+	       	puts prod.stock_item.variant.to_yaml
+	        stock_transfer.transfer(prod.stock_item.stock_location,
+	                                almacen,
+	                                variants)
+
+        rescue ActiveRecord::RecordInvalid => e
+      		puts e
+      		prod.stock_item.stock_location.stock_items.each do |x|  ## me tira error (como que sincroniza mal), entonces actualizamos todo de nuevo
+      			Scheduler::ProductosHelper::cargar_detalles(x)
+      		end
+      		break
+      	end
+
         Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 
         j -= [a_mover_prods_count, j - cap_dis].min
