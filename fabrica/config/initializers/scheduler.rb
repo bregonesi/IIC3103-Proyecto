@@ -3,7 +3,8 @@ require 'rufus-scheduler'
 include SchedulerHelper
 
 
-if defined?(::Rails::Server) || File.basename($0) =='rake'
+#if defined?(::Rails::Server) || File.basename($0) =='rake'
+if defined?(::Rails::Server)
 	puts "Partiendo scheduler"
 
 	job = Rufus::Scheduler.new(:max_work_threads => 1)
