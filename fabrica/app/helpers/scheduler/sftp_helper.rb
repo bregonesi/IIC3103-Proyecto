@@ -56,6 +56,7 @@ module Scheduler::SftpHelper
 
               o.confirmation_delivered = true  ## forzamos para que no se envie mail
               o.next!  # pasamos a complete
+              o.completed_at = nil
             end
 
             if orden_nueva.channel != "ftp"  # si es primera vez que la creamos
@@ -69,16 +70,23 @@ module Scheduler::SftpHelper
               orden_nueva.channel = "ftp"
 							orden_nueva.fechaEntrega = body['fechaEntrega']
 
+              if body['estado'] == "aceptada"
+                orden_nueva.atencion = 1
+              elsif body['estado'] == "finalizada"
+                orden_nueva.atencion = 2
+              end
+
 	            orden_nueva.save!
 
               if Time.now() >= orden_nueva.fechaEntrega || body['estado'] == "rechazada" || body['estado'] == "anulada"   ## chequeat q no haya sido ni despachado algo o terminada
+                r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + orden_nueva.number.to_s, body: {}.to_json, headers: { 'Content-type': 'application/json' })
                 orden_nueva.canceled_by(Spree::User.first)
               end
 	          end
 
-            if j == 30
-              raise "Botamos por que agregamos maximo 30"
-            end
+            #if j == 30
+            #  raise "Botamos por que agregamos maximo 30"
+            #end
 
           end # end de inside file
         end # end de if.xml

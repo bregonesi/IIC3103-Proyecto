@@ -26,12 +26,6 @@ module Scheduler::ProductosHelper
 		stop_scheduler = false
 		Spree::StockMovement.where("originator_type = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
 			movement.with_lock do
-				# buscaremos los productos (id) que moveremos
-				if movement.stock_item.stock_location.proposito == "Despacho"  ## si es que saco de despacho, saco los jovenes y dejo los antiguos
-					productos_mover = obtener_lote_joven(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
-				else
-					productos_mover = obtener_lote_antiguo(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
-				end
 
 	      almacen_id_dest = nil
 	      stock_item_dest = nil
@@ -40,27 +34,43 @@ module Scheduler::ProductosHelper
 			  	stock_item_dest = movement_dest.stock_item
 			  end
 
+				cargar_detalles(movement.stock_item)  ## por si aparecen nuevos stocks q agregar
+				cargar_detalles(stock_item_dest)  ## por si aparecen nuevos stocks q agregar
+
+
+				# buscaremos los productos (id) que moveremos
+				if movement.stock_item.stock_location.proposito == "Despacho"  ## si es que saco de despacho, saco los jovenes y dejo los antiguos
+					productos_mover = obtener_lote_joven(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
+				else
+					productos_mover = obtener_lote_antiguo(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
+				end
+
 	      j = 0
 				productos_mover.each do |prod|  ## hay que mover producto por producto (si, ineficiente)
-				  # ahora hay que mover el prod_id encontrado
-					url = ENV['api_url'] + "bodega/moveStock"
-	  			base = 'POST' + prod.id_api.to_s + almacen_id_dest.to_s
-	  			key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-	  			r = HTTParty.post(url,
-  													body: {productoId: prod.id_api.to_s,
-  																 almacenId: almacen_id_dest.to_s}.to_json,
-  													headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
-	  			
-	  			if r.code == 200
-	  				j += 1
+					prod.with_lock do 
+					  # ahora hay que mover el prod_id encontrado
+						url = ENV['api_url'] + "bodega/moveStock"
+		  			base = 'POST' + prod.id_api.to_s + almacen_id_dest.to_s
+		  			key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+		  			r = HTTParty.post(url,
+	  													body: {productoId: prod.id_api.to_s,
+	  																 almacenId: almacen_id_dest.to_s}.to_json,
+	  													headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+		  			
+		  			if r.code == 200
+		  				j += 1
 
-						prod.stock_item = stock_item_dest  ## se movio de lugar
-						prod.save!
+							prod.stock_item = stock_item_dest  ## se movio de lugar
+							prod.save!
 
-	  				puts "Movimiento de un producto exitoso. Van " + j.to_s + " productos movidos."
-	  			else
-	          puts "Error movimiento productos. Error en response code de api. Responde code " + r.code.to_s + "."
-	        end
+		  				puts "Movimiento de un producto exitoso. Van " + j.to_s + " productos movidos."
+		  			else
+		          puts "Error movimiento productos. Error en response code de api. Responde code " + r.code.to_s + "."
+		          if r.code == 404 || r.code == 400
+		          	prod.destroy!
+		          end
+		        end
+		      end
 				end
 
 				if movement.moved_quantity == nil
@@ -76,10 +86,10 @@ module Scheduler::ProductosHelper
 					stop_scheduler = true
 				end
 			end
+		end
 
-			if stop_scheduler
-				raise "Botamos aproposito para que no siga ejecutanto"
-			end
+		if stop_scheduler
+			return hacer_movimientos
 		end
 	end
 
@@ -170,22 +180,22 @@ module Scheduler::ProductosHelper
 		    end
 		  end
 
-	    #variants_eliminar = Spree::Variant.where.not(sku: skus_en_stock)
-	    #variants_eliminar.each do |variant|
-	    #	stock_item = stock_location.stock_items.find_by(variant: variant)
-	    #	if stock_item
-	    #		stock_item.with_lock do
-		  #  		if stock_item.count_on_hand > 0
-			#				stock_movement = stock_location.stock_movements.build(quantity: -(stock_item.count_on_hand.to_i))
-			#				stock_movement.action = "Eliminado por vencimiento (o desaparecio de bodega)."
-			#				stock_movement.stock_item = stock_location.set_up_stock_item(variant)
-			#				if stock_movement.save
-		  #  				puts "Se marca " + variant.sku + " como vencido."
-			#				end
-		  #  		end
-		  #  	end
-	    #	end
-	    #end
+	    variants_eliminar = Spree::Variant.where.not(sku: skus_en_stock)
+	    variants_eliminar.each do |variant|
+	    	stock_item = stock_location.stock_items.find_by(variant: variant)
+	    	if stock_item
+	    		stock_item.with_lock do
+		   		if stock_item.count_on_hand > 0
+							stock_movement = stock_location.stock_movements.build(quantity: -(stock_item.count_on_hand.to_i))
+							stock_movement.action = "Eliminado por vencimiento (o desaparecio de bodega)."
+							stock_movement.stock_item = stock_location.set_up_stock_item(variant)
+							if stock_movement.save
+		    				puts "Se marca " + variant.sku + " como vencido."
+							end
+		    		end
+		    	end
+	    	end
+	    end
 		  
 		end # end de actualizar stock
 	end

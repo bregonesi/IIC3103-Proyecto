@@ -63,4 +63,6 @@ Rails.application.configure do
   ENV['sftp_ordenes_url'] = "integradev.ing.puc.cl"
   ENV['sftp_ordenes_login'] = "grupo4"
   ENV['sftp_ordenes_psswd'] = "1ccWcVkAmJyrOfA"
+
+config.active_record.logger = nil
 end

@@ -10,6 +10,7 @@ module Scheduler::ShipmentHelper
           shipment.inventory_units.each do |iu|
             iu.with_lock do
               cantidad_despachar = iu.quantity.to_i - iu.shipped_quantity.to_i
+              Scheduler::ProductosHelper.cargar_detalles(Spree::StockItem.find_by(variant: iu.variant, stock_location: shipment.stock_location))
               productos_despachar = Scheduler::ProductosHelper.obtener_lote_antiguo(
                                       Spree::StockItem.find_by(variant: iu.variant, stock_location: shipment.stock_location),
                                       cantidad=cantidad_despachar)
@@ -32,13 +33,19 @@ module Scheduler::ShipmentHelper
                   puts "Despacho de un producto exitoso. Van " + j.to_s + " productos despachados."
                 else
                   puts "Error despachando orden. Error en response code de api. Responde code " + r.code.to_s + "."
+                  puts r
                 end
               end  # end prod
               iu.shipped_quantity += j
               iu.save!  ## actualizamos lo despachado
 
+              Scheduler::ProductosHelper.cargar_detalles(Spree::StockItem.find_by(variant: iu.variant, stock_location: shipment.stock_location))
+
               if iu.shipped_quantity >= iu.quantity
                 iu.shipment.ship!
+
+                iu.order.atencion = 2
+                iu.order.save!
                 puts "Orden despachada"
               else
                 stop_scheduler = true
@@ -47,7 +54,7 @@ module Scheduler::ShipmentHelper
           end # end iteracion iu
 
           if stop_scheduler
-            raise "Botamos aproposito para que no siga ejecutanto"
+            return despachar
           end
         end # end if paid
       end  # end lock shipment

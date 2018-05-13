@@ -11,6 +11,9 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 	#job.every '1m' do
 	  puts "Ejecutando update."
 
+    # Marcamos ordenes vencidas como canceladas y las finalizadas como shipped
+    Scheduler::OrderHelper.marcar_vencidas
+
 		# Aca pagamos las ordenes #
 		Scheduler::PaymentHelper.pagar_ordenes
 
@@ -23,9 +26,6 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 
 		# Aca despachamos lo pagado #
 		Scheduler::ShipmentHelper.despachar_ordenes
-
-    # Marcamos ordenes vencidas como canceladas
-    Scheduler::OrderHelper.marcar_vencidas
 
 		# Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
 		Scheduler::AlmacenesHelper.nuevos_almacenes
