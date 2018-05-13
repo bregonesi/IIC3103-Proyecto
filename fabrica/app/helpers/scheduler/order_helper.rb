@@ -1,7 +1,7 @@
 module Scheduler::OrderHelper
 
 	def marcar_vencidas
-		Spree::Order.where("'fechaEntrega' <= ?", DateTime.now).where.not(state: "canceled").each do |order|
+		Spree::Order.where(fechaEntrega: Time.at(0)..DateTime.now).where.not(state: "canceled").each do |order|
 			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + order.number.to_s, body: {}.to_json, headers: { 'Content-type': 'application/json' })
 			order.canceled_by(Spree::User.first)  ## el primero se supone que es el admin
 		end
@@ -65,7 +65,7 @@ module Scheduler::OrderHelper
 		end
 
 		ordenes = []  # [orden, costo_un_lote, lotes, costo_total]
-		ordenes_query = Spree::Order.where(state: "complete", channel: "ftp", payment_state: "paid", shipment_state: "backorder", atencion: 0).where("'fechaEntrega' >= ?", 16.hours.ago).each do |order|
+		ordenes_query = Spree::Order.where(state: "complete", channel: "ftp", payment_state: "paid", shipment_state: "backorder", atencion: 0, fechaEntrega: 16.hours.ago..Float::INFINITY).each do |order|
 			order.inventory_units.each do |iu|
 				variant = iu.variant
 
