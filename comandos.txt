@@ -18,4 +18,4 @@ sudo service nginx restart
 
 
 # Varios en uno  (para reiniciar db seedearla y partir)
-sudo service nginx stop  &&  bundle exec rake db:drop RAILS_ENV=production DISABLE_DATABASE_ENVIRONMENT_CHECK=1  &&  bundle exec rake db:setup RAILS_ENV=production  && sudo service nginx start
+sudo service nginx stop  &&  bundle exec rake db:drop RAILS_ENV=production DISABLE_DATABASE_ENVIRONMENT_CHECK=1  &&  bundle exec rake db:setup RAILS_ENV=production  &&  sudo service nginx start
