@@ -92,9 +92,9 @@ Rails.application.configure do
   # API url
   #ENV['api_url'] = "https://integracion-2018-dev.herokuapp.com/"  ## development
   ENV['api_url'] = "https://integracion-2018-prod.herokuapp.com/"  ## production
-  ENV['api_psswd'] = "TGVaa:#Dtih:kx4"  ## production
-  ENV['api_psswd'] = ".cZXvgT%MQjDLig"  ## development
-  
+  #ENV['api_psswd'] = "TGVaa:#Dtih:kx4"  ## development
+  ENV['api_psswd'] = ".cZXvgT%MQjDLig"  ## production
+
   # API OC url
   #ENV['api_oc_url'] = "https://integracion-2018-dev.herokuapp.com/oc/"  ## development
   ENV['api_oc_url'] = "https://integracion-2018-prod.herokuapp.com/oc/"  ## production
