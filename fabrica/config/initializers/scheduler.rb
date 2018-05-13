@@ -7,7 +7,7 @@ if defined?(::Rails::Server) || File.basename($0) =='rake'
 	puts "Partiendo scheduler"
 
 	job = Rufus::Scheduler.new(:max_work_threads => 1)
-	job.every '5s' do
+	job.every '35s' do
 	#job.every '1m' do
 	  puts "Ejecutando update."
 

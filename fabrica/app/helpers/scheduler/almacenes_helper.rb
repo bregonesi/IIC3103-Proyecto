@@ -76,8 +76,7 @@ module Scheduler::AlmacenesHelper
 
         begin
 	       	stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
-	       	puts prod.stock_item.stock_location.to_yaml
-	       	puts prod.stock_item.variant.to_yaml
+	       	
 	        stock_transfer.transfer(prod.stock_item.stock_location,
 	                                almacen,
 	                                variants)
