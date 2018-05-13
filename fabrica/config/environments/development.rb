@@ -52,17 +52,24 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
+  # Para que no salgan las queries en consola
+  config.active_record.logger = nil
+
   # API url
-  ENV['api_url'] = "https://integracion-2018-dev.herokuapp.com/"
-  ENV['api_psswd'] = "TGVaa:#Dtih:kx4"
+  ENV['api_url'] = "https://integracion-2018-dev.herokuapp.com/"  ## development
+  #ENV['api_url'] = "https://integracion-2018-prod.herokuapp.com/"  ## production
+  ENV['api_psswd'] = "TGVaa:#Dtih:kx4"  ## development
+  #ENV['api_psswd'] = ".cZXvgT%MQjDLig"  ## production
 
   # API OC url
-  ENV['api_oc_url'] = "https://integracion-2018-dev.herokuapp.com/oc/"
+  ENV['api_oc_url'] = "https://integracion-2018-dev.herokuapp.com/oc/"  ## development
+  #ENV['api_oc_url'] = "https://integracion-2018-prod.herokuapp.com/oc/"  ## production
 
   # SFTP de ordenes mayorias
-  ENV['sftp_ordenes_url'] = "integradev.ing.puc.cl"
+  ENV['sftp_ordenes_url'] = "integradev.ing.puc.cl"  ## development
+  #ENV['sftp_ordenes_url'] = "integracion.ing.puc.cl"  ## production
   ENV['sftp_ordenes_login'] = "grupo4"
-  ENV['sftp_ordenes_psswd'] = "1ccWcVkAmJyrOfA"
+  ENV['sftp_ordenes_psswd'] = "1ccWcVkAmJyrOfA"  ## development
+  #ENV['sftp_ordenes_psswd'] = "U81Y9W1umtDDvON2w"  ## production
 
-config.active_record.logger = nil
 end

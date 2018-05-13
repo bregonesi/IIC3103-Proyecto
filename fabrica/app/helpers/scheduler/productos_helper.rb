@@ -24,12 +24,12 @@ module Scheduler::ProductosHelper
 
 	def hacer_movimientos
 		stop_scheduler = false
-		Spree::StockMovement.where("originator_type = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
+		Spree::StockMovement.where("'originator_type' = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
 			movement.with_lock do
 
 	      almacen_id_dest = nil
 	      stock_item_dest = nil
-			  Spree::StockMovement.where("originator_type = ? AND originator_id = ? AND quantity > 0", movement.originator_type, movement.originator_id).each do |movement_dest|
+			  Spree::StockMovement.where("'originator_type' = ? AND originator_id = ? AND quantity > 0", movement.originator_type, movement.originator_id).each do |movement_dest|
 			  	almacen_id_dest = movement_dest.stock_item.stock_location.admin_name
 			  	stock_item_dest = movement_dest.stock_item
 			  end
