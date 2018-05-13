@@ -3,13 +3,65 @@ require 'rufus-scheduler'
 include SchedulerHelper
 
 
-#if defined?(::Rails::Server) || File.basename($0) =='rake'
-#if defined?(::Rails::Server)
-if 1
+if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	puts "Partiendo scheduler"
 
 	job = Rufus::Scheduler.new(:max_work_threads => 1)
+	job.every '35s' do 
+    # Marcamos ordenes vencidas como canceladas y las finalizadas como shipped
+    Scheduler::OrderHelper.marcar_vencidas
+	end
+
 	job.every '35s' do
+		# Aca pagamos las ordenes #
+		Scheduler::PaymentHelper.pagar_ordenes
+	end
+	
+	job.every '35s' do
+		# Vemos que ordenes aceptar y cual ignorar (despues las rechazamos) #
+		Scheduler::OrderHelper.aceptar_ordenes
+	end
+	
+	job.every '35s' do
+		Scheduler::OrderHelper.fabricar_api
+	end
+	
+	job.every '35s' do
+		# Cambiamos las ordenes de almacen #
+    Scheduler::OrderHelper.cambiar_almacen
+	end
+	
+	job.every '35s' do
+		# Aca despachamos lo pagado #
+		Scheduler::ShipmentHelper.despachar_ordenes
+	end
+	
+	job.every '35s' do
+		# Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
+		Scheduler::AlmacenesHelper.nuevos_almacenes
+	end
+	
+	job.every '35s' do
+		Scheduler::AlmacenesHelper.eliminar_extras
+	end
+	
+	job.every '35s' do
+		# Aca movemos los items de almacen #
+		Scheduler::ProductosHelper.hacer_movimientos
+	end
+	
+	job.every '35s' do
+		# Cargamos nuevos stocks y stock de almacenes nuevos #
+	  Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
+	end
+	
+	job.every '35s' do
+		# Tratamos de que se mantenga los optimos de cada almacen #
+		Scheduler::AlmacenesHelper.mantener_consistencia
+	end
+=begin
+	job = Rufus::Scheduler.new(:max_work_threads => 1)
+	job.every '35' do
 	#job.every '1m' do
 	  puts "Ejecutando update."
 
@@ -45,7 +97,7 @@ if 1
 	  puts "Termina update."
 	end # end del scheduler
 
-
+=end
   job_sftp = Rufus::Scheduler.new(:max_work_threads => 1)
   job_sftp.every '10m' do
     puts "Ejecutando chequeo de ordenes nuevas ftp"
