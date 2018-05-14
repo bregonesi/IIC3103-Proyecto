@@ -208,6 +208,7 @@ module Scheduler::OrderHelper
 			prod = a_mover_prods.next
 
 			a_mover_prods_count = a_mover.count[prod.vencimiento]
+			puts a_mover_prods_count
 
       variants = Hash.new(0)
       variants[prod.stock_item.variant] = [a_mover_prods_count, q].min
