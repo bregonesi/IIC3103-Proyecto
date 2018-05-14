@@ -2,7 +2,7 @@ module Scheduler::ProductosHelper
 
 	def mas_antiguo(stock_item)
 		vencimiento_menor = ProductosApi.no_vencidos.where(stock_item: stock_item).order(:vencimiento).first
-		return vencimiento_menor.vencimiento
+		return vencimiento_menor ? vencimiento_menor.vencimiento : Float::INFINITY
 	end
 
 	def obtener_lote_antiguo(stock_item, cantidad=nil)
@@ -13,7 +13,7 @@ module Scheduler::ProductosHelper
 
 	def mas_joven(stock_item)
 		vencimiento_mayor = ProductosApi.no_vencidos.where(stock_item: stock_item).order(:vencimiento).last
-		return vencimiento_mayor.vencimiento
+		return vencimiento_mayor ? vencimiento_mayor.vencimiento : Time.at(0)
 	end
 
 	def obtener_lote_joven(stock_item, cantidad=nil)
@@ -23,13 +23,15 @@ module Scheduler::ProductosHelper
 	end
 
 	def hacer_movimientos
+		puts "hanciendo movs"
 		stop_scheduler = false
-		Spree::StockMovement.where("'originator_type' = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
+		Spree::StockMovement.where("originator_type = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
+puts "haciendo uno"
 			movement.with_lock do
 
 	      almacen_id_dest = nil
 	      stock_item_dest = nil
-			  Spree::StockMovement.where("'originator_type' = ? AND originator_id = ? AND quantity > 0", movement.originator_type, movement.originator_id).each do |movement_dest|
+			  Spree::StockMovement.where("originator_type = ? AND originator_id = ? AND quantity > 0", movement.originator_type, movement.originator_id).each do |movement_dest|
 			  	almacen_id_dest = movement_dest.stock_item.stock_location.admin_name
 			  	stock_item_dest = movement_dest.stock_item
 			  end

@@ -5,7 +5,7 @@ include SchedulerHelper
 
 if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	puts "Partiendo scheduler"
-
+=begin
 	job = Rufus::Scheduler.new(:max_work_threads => 1)
 	job.every '35s' do 
     # Marcamos ordenes vencidas como canceladas y las finalizadas como shipped
@@ -59,7 +59,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		# Tratamos de que se mantenga los optimos de cada almacen #
 		Scheduler::AlmacenesHelper.mantener_consistencia
 	end
-=begin
+=end
 	job = Rufus::Scheduler.new(:max_work_threads => 1)
 	job.every '35' do
 	#job.every '1m' do
@@ -97,7 +97,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	  puts "Termina update."
 	end # end del scheduler
 
-=end
+
   job_sftp = Rufus::Scheduler.new(:max_work_threads => 1)
   job_sftp.every '10m' do
     puts "Ejecutando chequeo de ordenes nuevas ftp"

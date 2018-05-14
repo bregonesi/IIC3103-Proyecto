@@ -164,7 +164,7 @@ module Scheduler::OrderHelper
 												 body: {sku: variant.sku.to_s,
 																cantidad: variant.lote_minimo.to_s}.to_json,
 												 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
-				
+				puts r
 				if r.code != 200
 					"Error en fabricar"
 				end
@@ -197,22 +197,24 @@ module Scheduler::OrderHelper
     q = cantidad
     while q != 0
 			productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
-			a_mover = productos_ordenados.where(stock_item: stock_item.variant.stock_items.where(backorderable: false)).where.not(stock_item: stock_item).group(:id, :vencimiento)  ## quiero limit pero me tira error, asi que lo haremos a la mala
+			a_mover = productos_ordenados.where(stock_item: stock_item.variant.stock_items.where(backorderable: false)).where.not(stock_item: stock_item)
+			a_mover_groupped = a_mover.group(:vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
 			
       if a_mover.empty?
       	break
       end
 
-			a_mover_prods = a_mover.each
+			a_mover_datos = a_mover_groupped.each.next
 
-			prod = a_mover_prods.next
+			a_mover_fecha = a_mover_datos[0]
+			a_mover_prods_count = a_mover_datos[1]
 
-			a_mover_prods_count = a_mover.count[prod.vencimiento]
-			puts a_mover_prods_count
+			prods = productos_ordenados.where(stock_item: stock_item.variant.stock_items.where(backorderable: false)).where.not(stock_item: stock_item).where(vencimiento: a_mover_fecha)
+			prod = prods.first			
 
       variants = Hash.new(0)
       variants[prod.stock_item.variant] = [a_mover_prods_count, q].min
-
+	puts variants
       begin
 	      stock_transfer = Spree::StockTransfer.create(reference: "Para poder despachar orden")
 	      stock_transfer.transfer(prod.stock_item.stock_location,
@@ -221,7 +223,7 @@ module Scheduler::OrderHelper
 	      Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 	    rescue ActiveRecord::RecordInvalid => e
       		puts e
-      		prod.destroy!
+      		prods.destroy_all
       		return cambiar_items_a_despacho(variant, q)
       end
 
@@ -261,20 +263,21 @@ module Scheduler::OrderHelper
 					shipment.with_lock do
 						shipment.inventory_units.each do |iu|
 							iu.with_lock do
-								variant = iu.variant
+								variant = Spree::Variant.find(iu.variant.id)
 								if variant.total_on_hand > 0
 									puts "Cambiamos de almacen una orden por ftp"
 
 									cantidad = [iu.quantity.to_i, variant.total_on_hand].min
-
+									puts "cantidad" + cantidad.to_s
 									# cambiamos los prod al almacen de despacho
 									cambiar_items_a_despacho(variant, cantidad)
-
+									puts "cambiamos sku a despacho"+variant.sku.to_s
 									# cambiamos el shipment de backorder a almacen de despacho
 									Spree::Shipment.find(shipment.id).transfer_to_location(
 																											variant,
 																											cantidad.to_i,
 																											Spree::StockLocation.where(proposito: "Despacho").first)
+									puts "hacemos shipment sku "+variant.sku
 								end
 							end
 						end
