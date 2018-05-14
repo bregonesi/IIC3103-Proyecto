@@ -1,6 +1,7 @@
 module Scheduler::OrderHelper
 
 	def marcar_vencidas
+		# no funciona si ocupo -Float::INFINITY
 		Spree::Order.where(fechaEntrega: Time.at(0)..DateTime.now).where.not(state: "canceled").each do |order|
 			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + order.number.to_s, body: {}.to_json, headers: { 'Content-type': 'application/json' })
 			order.canceled_by(Spree::User.first)  ## el primero se supone que es el admin
@@ -196,7 +197,7 @@ module Scheduler::OrderHelper
     q = cantidad
     while q != 0
 			productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
-			a_mover = productos_ordenados.where(stock_item: stock_item.variant.stock_items.where(backorderable: false)).where.not(stock_item: stock_item).group(:vencimiento)  ## quiero limit pero me tira error, asi que lo haremos a la mala
+			a_mover = productos_ordenados.where(stock_item: stock_item.variant.stock_items.where(backorderable: false)).where.not(stock_item: stock_item).group(:id, :vencimiento)  ## quiero limit pero me tira error, asi que lo haremos a la mala
 			
       if a_mover.empty?
       	break
