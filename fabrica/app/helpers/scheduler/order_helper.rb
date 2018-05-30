@@ -4,7 +4,20 @@ module Scheduler::OrderHelper
 		# no funciona si ocupo -Float::INFINITY
 		Spree::Order.where(fechaEntrega: Time.at(0)..DateTime.now).where.not(state: "canceled").each do |order|
 			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + order.number.to_s, body: {}.to_json, headers: { 'Content-type': 'application/json' })
-			order.canceled_by(Spree::User.first)  ## el primero se supone que es el admin
+			order.state = "canceled"
+			order.canceled_at = Time.now
+			order.canceler = Spree::User.first
+			order.save!
+
+			# no ejecuto canceled_by para que no fallen los stocks
+			#order.canceled_by(Spree::User.first)  ## el primero se supone que es el admin
+=begin
+			begin
+				order.canceled_by(Spree::User.first)  ## el primero se supone que es el admin
+			rescue StateMachines::InvalidTransition => e
+				puts e
+			end
+=end
 		end
 	end
 
@@ -48,6 +61,8 @@ module Scheduler::OrderHelper
 
 					orden.inventory_units.each do |iu|
 						iu.with_lock do
+
+							puts "Detectamos que una orden se puede satisfacer completamente"
 							# cambiamos los prod al almacen de despacho
 							cambiar_items_a_despacho(Spree::Variant.find(iu.variant.id), iu.quantity.to_i)
 
@@ -148,6 +163,11 @@ module Scheduler::OrderHelper
 				stock_location = Spree::StockLocation.where(proposito: "Despacho").first
 				Scheduler::ProductosHelper.cargar_nuevos
 
+				if !variant.can_produce?  # por si se nos vencio lo que ibamos a fabricar
+					request.destroy
+					return
+				end
+
 				variant.recipe.each do |ingredient|
 					if stock_location.stock_items.find_by(variant: ingredient.variant_ingredient).count_on_hand < ingredient.amount.to_i
 						puts "Hay que mover stock antes de fabricar"
@@ -189,17 +209,21 @@ module Scheduler::OrderHelper
 	end
 
 	def cambiar_items_a_despacho(variant, cantidad)  ## siempre vamos a mover para mantener con un stock
+		puts "Ejecutando cambiar items a despacho"
 		despacho = Spree::StockLocation.where(proposito: "Despacho").first
 		stock_item = despacho.stock_items.find_by(variant: variant)
 
-		Scheduler::ProductosHelper.cargar_detalles(stock_item)
+		Scheduler::ProductosHelper.cargar_nuevos
+		variant.stock_items.where(backorderable: false).each do |stock_item_detalle|
+			Scheduler::ProductosHelper.cargar_detalles(stock_item_detalle)
+		end
 
     q = cantidad
     while q != 0
 			productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
-			a_mover = productos_ordenados.where(stock_item: stock_item.variant.stock_items.where(backorderable: false)).where.not(stock_item: stock_item)
+			a_mover = productos_ordenados.where(stock_item: variant.stock_items.where(backorderable: false)).where.not(stock_item: stock_item)
 			a_mover_groupped = a_mover.group(:vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
-			
+
       if a_mover.empty?
       	break
       end
@@ -214,7 +238,9 @@ module Scheduler::OrderHelper
 
       variants = Hash.new(0)
       variants[prod.stock_item.variant] = [a_mover_prods_count, q].min
-	puts variants
+			
+			puts variants
+      
       begin
 	      stock_transfer = Spree::StockTransfer.create(reference: "Para poder despachar orden")
 	      stock_transfer.transfer(prod.stock_item.stock_location,
@@ -229,6 +255,7 @@ module Scheduler::OrderHelper
 
       q -= [a_mover_prods_count, q].min
     end
+    #return true
 	end
 
 	def cambiar_almacen

@@ -23,7 +23,7 @@ module Scheduler::ShipmentHelper
                 j = cantidad_despachar
               end
 
-		productos_shipped = []
+              productos_shipped = []
               productos_despachar.each do |prod|  ## hay que eliminar producto por producto (si, ineficiente)
                 #base = 'DELETE' + prod['_id'].to_s + inventario_para_despachar.shipment.address.address1 + inventario_para_despachar.line_item.price.to_i.to_s + inventario_para_despachar.order.number.to_s
                 base = 'DELETE' + prod.id_api + shipment.address.address1 + iu.line_item.price.to_i.to_s + shipment.order.number
@@ -38,7 +38,7 @@ module Scheduler::ShipmentHelper
 
                 if r.code == 200
                   j += 1
-			productos_shipped << prod
+                  productos_shipped << prod
                   puts "Despacho de un producto exitoso. Van " + j.to_s + " productos despachados."
                 else
                   puts "Error despachando orden. Error en response code de api. Responde code " + r.code.to_s + "."
@@ -60,10 +60,10 @@ module Scheduler::ShipmentHelper
               if iu.shipped_quantity >= iu.quantity
                 iu.shipment.ship!
 
-		iu.order.with_lock do
+		            iu.order.with_lock do
 	                iu.order.atencion = 2
         	        iu.order.save!
-		end
+		            end
                 puts "Orden despachada"
               else
                 stop_scheduler = true

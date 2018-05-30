@@ -1,7 +1,7 @@
 module Scheduler::AlmacenesHelper
 
 	def mantener_consistencia  ## consiste en ordenar productos por antiguedad en almacenes (en lo posible) y mantenerlos todos ocupados
-	puts "Mantener consistencias ejecutandose"
+		puts "Mantener consistencias ejecutandose"
 		# en despacho iran los mas antiguos y se deja un gap de 1000 para cambiar a despachos cuando sea necesario
 		# en recepcion se dejan los mas jovenes (probablemente este vacio nomas)
 		# en general se deja el resto y se deja un gap de 500 para poder hacer movimientos
@@ -19,6 +19,7 @@ module Scheduler::AlmacenesHelper
 			j = almacen.available_capacity
 			cap_dis = 1000
 			while j > cap_dis
+				puts "Chequeando si hay para mover a despacho. Capacidad despacho " + j.to_s
 				productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
 				a_mover = productos_ordenados.where.not(stock_item: despacho_stock_items)
 				a_mover_groupped = a_mover.group(:vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
@@ -26,7 +27,7 @@ module Scheduler::AlmacenesHelper
 	      if a_mover.empty?
 	      	break
 	      end
-		puts "cap j" + j.to_s
+				
 				a_mover_datos = a_mover_groupped.each.next
 
 				a_mover_fecha = a_mover_datos[0]
@@ -34,11 +35,10 @@ module Scheduler::AlmacenesHelper
 
 				prods = productos_ordenados.where.not(stock_item: despacho_stock_items).where(vencimiento: a_mover_fecha)
 				prod = prods.first
-	puts "moviendo" + prod.stock_item.variant.sku
-	puts a_mover_prods_count.to_s + " productos"
+
         variants = Hash.new(0)
         variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
-	puts variants
+
 				begin
 	        stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
 	        stock_transfer.transfer(prod.stock_item.stock_location,
@@ -46,7 +46,7 @@ module Scheduler::AlmacenesHelper
 	                                variants)
         rescue ActiveRecord::RecordInvalid => e
       		puts e
-	prods.destroy_all
+					prods.destroy_all
       		prod.stock_item.stock_location.stock_items.each do |x|  ## me tira error (como que sincroniza mal), entonces actualizamos todo de nuevo
       			Scheduler::ProductosHelper::cargar_detalles(x)
       		end
@@ -56,7 +56,6 @@ module Scheduler::AlmacenesHelper
         Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 
         j -= [a_mover_prods_count, j - cap_dis].min
-puts "cap nuevo j" + j.to_s
 			end
 		end
 
@@ -64,6 +63,7 @@ puts "cap nuevo j" + j.to_s
 			j = almacen.available_capacity
 			cap_dis = 500
 			while j > cap_dis
+				puts "Chequeando si hay para mover a general. Capacidad general " + j.to_s
 				productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
 				a_mover = productos_ordenados.where.not(stock_item: despacho_stock_items + general_stock_items)
 				a_mover_groupped = a_mover.group(:vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
@@ -92,7 +92,7 @@ puts "cap nuevo j" + j.to_s
 
         rescue ActiveRecord::RecordInvalid => e
       		puts e
-	prods.destroy_all
+					prods.destroy_all
       		prod.stock_item.stock_location.stock_items.each do |x|  ## me tira error (como que sincroniza mal), entonces actualizamos todo de nuevo
       			Scheduler::ProductosHelper::cargar_detalles(x)
       		end

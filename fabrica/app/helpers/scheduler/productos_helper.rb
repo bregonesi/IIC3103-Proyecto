@@ -26,12 +26,13 @@ module Scheduler::ProductosHelper
 		puts "hanciendo movs"
 		stop_scheduler = false
 		Spree::StockMovement.where("originator_type = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
-puts "haciendo uno"
 			movement.with_lock do
+				puts "Ejecutando movement id " + movement.id.to_s
 
 	      almacen_id_dest = nil
 	      stock_item_dest = nil
 			  Spree::StockMovement.where("originator_type = ? AND originator_id = ? AND quantity > 0", movement.originator_type, movement.originator_id).each do |movement_dest|
+			  	puts "Movement destino id " + movement_dest.id.to_s
 			  	almacen_id_dest = movement_dest.stock_item.stock_location.admin_name
 			  	stock_item_dest = movement_dest.stock_item
 			  end
@@ -98,6 +99,7 @@ puts "haciendo uno"
 	def cargar_detalles(stock_item)
 		variant = stock_item.variant
 		almacen = stock_item.stock_location
+		puts "Cargando detlles stock item " + stock_item.id.to_s + " y variant " + variant.sku.to_s + " almacen " + almacen.admin_name.to_s
 
 		url = ENV['api_url'] + "bodega/stock"
 	  base = 'GET' + almacen.admin_name + variant.sku
@@ -108,6 +110,7 @@ puts "haciendo uno"
 	                   				 sku: variant.sku,
 	                   				 limit: 200},
 	                   headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+	  #puts r
 			
 		if r.code != 200
 			raise "Error en get stock (detalle productos)"
