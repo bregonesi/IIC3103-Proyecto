@@ -1,0 +1,54 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Oc:</strong>
+  <%= @sftp_order.oc %>
+</p>
+
+<p>
+  <strong>Sku:</strong>
+  <%= @sftp_order.sku %>
+</p>
+
+<p>
+  <strong>Quantity:</strong>
+  <%= @sftp_order.quantity %>
+</p>
+
+<p>
+  <strong>Cliente:</strong>
+  <%= @sftp_order.cliente %>
+</p>
+
+<p>
+  <strong>Proveedor:</strong>
+  <%= @sftp_order.proveedor %>
+</p>
+
+<p>
+  <strong>Fechaentrega:</strong>
+  <%= @sftp_order.fechaEntrega %>
+</p>
+
+<p>
+  <strong>Canal:</strong>
+  <%= @sftp_order.canal %>
+</p>
+
+<p>
+  <strong>Urlnotificacion:</strong>
+  <%= @sftp_order.urlNotificacion %>
+</p>
+
+<p>
+  <strong>Myestado:</strong>
+  <%= @sftp_order.myEstado %>
+</p>
+
+<p>
+  <strong>Serverestado:</strong>
+  <%= @sftp_order.serverEstado %>
+</p>
+
+<%= link_to 'Edit', edit_sftp_order_path(@sftp_order) %> |
+<%= link_to 'Back', sftp_orders_path %>

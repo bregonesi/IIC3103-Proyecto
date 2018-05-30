@@ -32,6 +32,26 @@ module Scheduler::SftpHelper
               end
             end
 
+            orden_nueva = SftpOrder.where(oc: content_id).first_or_create! do |o|
+              r = HTTParty.get(url + content_id, headers: { 'Content-type': 'application/json' })
+              if r.code != 200
+                raise "Error en get oc."
+              end
+
+              body = JSON.parse(r.body)[0]
+
+              o.sku = body['sku']
+              o.quantity = body['cantidad']
+              o.cliente = body['cliente']
+              o.proveedor = body['proveedor']
+              o.fechaEntrega = body['fechaEntrega']
+              o.canal = body['canal']
+              o.urlNotificacion = body['urlNotificacion']
+              o.myEstado = 'creada'
+              o.serverEstado = body['estado']
+              o.created_at = body['created_at']
+            end
+=begin
             orden_nueva = Spree::Order.where(number: content_id,
                                              email: 'spree@example.com').first_or_create! do |o|
               j += 1
@@ -87,7 +107,7 @@ module Scheduler::SftpHelper
             #if j == 30
             #  raise "Botamos por que agregamos maximo 30"
             #end
-
+=end
           end # end de inside file
         end # end de if.xml
       end # end de foreach file

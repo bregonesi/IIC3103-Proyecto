@@ -16,4 +16,6 @@ Rails.application.routes.draw do
 
   post '/hook', to: 'hook#materias_primas'
   get '/hook_list', to: 'hook#list_requests'
+  
+  resources :sftp_orders
 end

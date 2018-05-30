@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180512175423) do
+ActiveRecord::Schema.define(version: 20180529231836) do
 
   create_table "fabricar_requests", force: :cascade do |t|
     t.string "id_prod"
@@ -71,6 +71,21 @@ ActiveRecord::Schema.define(version: 20180512175423) do
     t.index ["amount"], name: "index_recipes_on_amount"
     t.index ["variant_ingredient_id"], name: "index_recipes_on_variant_ingredient_id"
     t.index ["variant_product_id"], name: "index_recipes_on_variant_product_id"
+  end
+
+  create_table "sftp_orders", force: :cascade do |t|
+    t.string "oc"
+    t.string "sku"
+    t.integer "quantity"
+    t.string "cliente"
+    t.string "proveedor"
+    t.datetime "fechaEntrega"
+    t.string "canal"
+    t.string "urlNotificacion"
+    t.string "myEstado"
+    t.string "serverEstado"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "spree_addresses", force: :cascade do |t|

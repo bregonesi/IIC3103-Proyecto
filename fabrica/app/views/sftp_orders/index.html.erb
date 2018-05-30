@@ -1,0 +1,45 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Sftp Orders</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Oc</th>
+      <th>Sku</th>
+      <th>Quantity</th>
+      <th>Cliente</th>
+      <th>Proveedor</th>
+      <th>Fechaentrega</th>
+      <th>Canal</th>
+      <th>Urlnotificacion</th>
+      <th>Myestado</th>
+      <th>Serverestado</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @sftp_orders.each do |sftp_order| %>
+      <tr>
+        <td><%= sftp_order.oc %></td>
+        <td><%= sftp_order.sku %></td>
+        <td><%= sftp_order.quantity %></td>
+        <td><%= sftp_order.cliente %></td>
+        <td><%= sftp_order.proveedor %></td>
+        <td><%= sftp_order.fechaEntrega %></td>
+        <td><%= sftp_order.canal %></td>
+        <td><%= sftp_order.urlNotificacion %></td>
+        <td><%= sftp_order.myEstado %></td>
+        <td><%= sftp_order.serverEstado %></td>
+        <td><%= link_to 'Show', sftp_order %></td>
+        <td><%= link_to 'Edit', edit_sftp_order_path(sftp_order) %></td>
+        <td><%= link_to 'Destroy', sftp_order, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Sftp Order', new_sftp_order_path %>
