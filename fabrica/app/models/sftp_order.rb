@@ -1,7 +1,7 @@
 class SftpOrder < ApplicationRecord
 
 	def self.aceptadas
-		SftpOrder.where(myEstado: 'aceptada').count
+		SftpOrder.where(myEstado: 'aceptada')
 	end
 
 	def self.acepto?

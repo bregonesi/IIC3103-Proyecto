@@ -3,7 +3,7 @@ module Scheduler::SftpHelper
 	def agregar_nuevas_ordenes
 		url = ENV['api_oc_url'] + "obtener/"
 
-    j = 0
+    #j = 0
 
 		sftp = Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd'])  ## necesitamos dos conexiones
 	  Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd']) do |entries|

@@ -10,8 +10,8 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	job.every '35' do
 	  puts "Ejecutando update."
 
-    # Marcamos ordenes vencidas como canceladas y las finalizadas como shipped
-    #Scheduler::OrderHelper.marcar_vencidas
+    # Marcamos ordenes vencidas y las finalizadas
+    Scheduler::OrderHelper.marcar_vencidas
 
 		# Aca pagamos las ordenes #
 		#Scheduler::PaymentHelper.pagar_ordenes
@@ -31,7 +31,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		#Scheduler::AlmacenesHelper.eliminar_extras
 
 		# Aca movemos los items de almacen #
-		#Scheduler::ProductosHelper.hacer_movimientos
+		Scheduler::ProductosHelper.hacer_movimientos
 
 	  # Cargamos nuevos stocks y stock de almacenes nuevos #
 	  #Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos

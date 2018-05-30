@@ -23,10 +23,11 @@ module Scheduler::ProductosHelper
 	end
 
 	def hacer_movimientos
-		puts "hanciendo movs"
+		puts "Chequeando si nuevos movimientos por hacer"
+		
 		stop_scheduler = false
 		Spree::StockMovement.where("originator_type = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
-puts "haciendo uno"
+	
 			movement.with_lock do
 
 	      almacen_id_dest = nil
@@ -36,9 +37,12 @@ puts "haciendo uno"
 			  	stock_item_dest = movement_dest.stock_item
 			  end
 
+			  if !almacen_id_dest || !stock_item_dest
+			  	raise "No hay destino de transferencia"
+			  end
+
 				cargar_detalles(movement.stock_item)  ## por si aparecen nuevos stocks q agregar
 				cargar_detalles(stock_item_dest)  ## por si aparecen nuevos stocks q agregar
-
 
 				# buscaremos los productos (id) que moveremos
 				if movement.stock_item.stock_location.proposito == "Despacho"  ## si es que saco de despacho, saco los jovenes y dejo los antiguos
@@ -68,6 +72,7 @@ puts "haciendo uno"
 		  				puts "Movimiento de un producto exitoso. Van " + j.to_s + " productos movidos."
 		  			else
 		          puts "Error movimiento productos. Error en response code de api. Responde code " + r.code.to_s + "."
+		          puts "Response: " + r.to_s
 		          if r.code == 404 || r.code == 400
 		          	prod.destroy!
 		          end
@@ -79,10 +84,22 @@ puts "haciendo uno"
 					movement.moved_quantity = 0
 				end
 				movement.moved_quantity += j
-				movement.save!  ## actualizamos lo movido
 
 				cargar_detalles(movement.stock_item)  ## por si aparecen nuevos stocks q agregar
 				cargar_detalles(stock_item_dest)  ## por si aparecen nuevos stocks q agregar
+
+				# volvemos a ver si hay lotes
+				if movement.stock_item.stock_location.proposito == "Despacho"  ## si es que saco de despacho, saco los jovenes y dejo los antiguos
+					productos_mover = obtener_lote_joven(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
+				else
+					productos_mover = obtener_lote_antiguo(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
+				end
+
+				if productos_mover.empty?  ## si fallo entre medio pero ya se movio (o se vencieron)
+					movement.moved_quantity = -movement.quantity
+				end
+
+				movement.save!  ## actualizamos lo movido
 
 				if movement.moved_quantity < -movement.quantity
 					stop_scheduler = true

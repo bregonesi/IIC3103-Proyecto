@@ -1,10 +1,24 @@
 module Scheduler::OrderHelper
 
 	def marcar_vencidas
-		# no funciona si ocupo -Float::INFINITY
-		Spree::Order.where(fechaEntrega: Time.at(0)..DateTime.now).where.not(state: "canceled").each do |order|
-			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + order.number.to_s, body: {}.to_json, headers: { 'Content-type': 'application/json' })
-			order.canceled_by(Spree::User.first)  ## el primero se supone que es el admin
+		puts "Viendo si hay que marcar vencidas"
+		
+		SftpOrder.vencidas.where.not(myEstado: ["rechazada", "anulada"]).or(
+					SftpOrder.vencidas.where.not(serverEstado: ["rechazada", "anulada"])).each do |sftp_order|
+			puts "Marcando " + sftp_order.oc.to_s + " como rechazada"
+
+			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + sftp_order.oc.to_s,
+												body: { rechazo: "Orden se encuentra fuera de plazo" }.to_json,
+												headers: { 'Content-type': 'application/json' })
+
+			if r.code == 200
+				body = JSON.parse(r.body)[0]
+				sftp_order.myEstado = "rechazada"
+				sftp_order.serverEstado = body['estado']
+				sftp_order.save!
+			else
+				puts r
+			end
 		end
 	end
 
