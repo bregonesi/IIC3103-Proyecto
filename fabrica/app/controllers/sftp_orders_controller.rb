@@ -48,6 +48,6 @@ class SftpOrdersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def sftp_order_params
-      params.require(:sftp_order).permit(:oc, :sku, :quantity, :cliente, :proveedor, :fechaEntrega, :canal, :urlNotificacion, :myEstado, :serverEstado)
+      params.require(:sftp_order).permit(:oc, :cliente, :proveedor, :sku, :fechaEntrega, :cantidad, :myCantidadDespachada, :serverCantidadDespachada, :precioUnitario, :canal, :notas, :rechazo, :anulacion, :urlNotificacion, :myEstado, :serverEstado)
     end
 end

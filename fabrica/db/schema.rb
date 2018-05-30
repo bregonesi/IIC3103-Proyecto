@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180529231836) do
+ActiveRecord::Schema.define(version: 20180530161328) do
 
   create_table "fabricar_requests", force: :cascade do |t|
     t.string "id_prod"
@@ -70,17 +70,24 @@ ActiveRecord::Schema.define(version: 20180529231836) do
     t.datetime "updated_at", null: false
     t.index ["amount"], name: "index_recipes_on_amount"
     t.index ["variant_ingredient_id"], name: "index_recipes_on_variant_ingredient_id"
+    t.index ["variant_product_id", "variant_ingredient_id"], name: "index_recipes_on_variant_product_id_and_variant_ingredient_id", unique: true
     t.index ["variant_product_id"], name: "index_recipes_on_variant_product_id"
   end
 
   create_table "sftp_orders", force: :cascade do |t|
     t.string "oc"
-    t.string "sku"
-    t.integer "quantity"
     t.string "cliente"
     t.string "proveedor"
+    t.string "sku"
     t.datetime "fechaEntrega"
+    t.integer "cantidad"
+    t.integer "myCantidadDespachada"
+    t.integer "serverCantidadDespachada"
+    t.integer "precioUnitario"
     t.string "canal"
+    t.text "notas"
+    t.text "rechazo"
+    t.text "anulacion"
     t.string "urlNotificacion"
     t.string "myEstado"
     t.string "serverEstado"

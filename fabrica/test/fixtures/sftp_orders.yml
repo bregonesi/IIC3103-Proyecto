@@ -2,24 +2,36 @@
 
 one:
   oc: MyString
-  sku: MyString
-  quantity: 1
   cliente: MyString
   proveedor: MyString
-  fechaEntrega: 2018-05-29 19:18:36
+  sku: MyString
+  fechaEntrega: 2018-05-30 12:13:28
+  cantidad: 1
+  myCantidadDespachada: 1
+  serverCantidadDespachada: 1
+  precioUnitario: 1
   canal: MyString
+  notas: MyText
+  rechazo: MyText
+  anulacion: MyText
   urlNotificacion: MyString
   myEstado: MyString
   serverEstado: MyString
 
 two:
   oc: MyString
-  sku: MyString
-  quantity: 1
   cliente: MyString
   proveedor: MyString
-  fechaEntrega: 2018-05-29 19:18:36
+  sku: MyString
+  fechaEntrega: 2018-05-30 12:13:28
+  cantidad: 1
+  myCantidadDespachada: 1
+  serverCantidadDespachada: 1
+  precioUnitario: 1
   canal: MyString
+  notas: MyText
+  rechazo: MyText
+  anulacion: MyText
   urlNotificacion: MyString
   myEstado: MyString
   serverEstado: MyString

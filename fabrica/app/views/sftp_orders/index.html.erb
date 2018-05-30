@@ -6,12 +6,18 @@
   <thead>
     <tr>
       <th>Oc</th>
-      <th>Sku</th>
-      <th>Quantity</th>
       <th>Cliente</th>
       <th>Proveedor</th>
+      <th>Sku</th>
       <th>Fechaentrega</th>
+      <th>Cantidad</th>
+      <th>Mycantidaddespachada</th>
+      <th>Servercantidaddespachada</th>
+      <th>Preciounitario</th>
       <th>Canal</th>
+      <th>Notas</th>
+      <th>Rechazo</th>
+      <th>Anulacion</th>
       <th>Urlnotificacion</th>
       <th>Myestado</th>
       <th>Serverestado</th>
@@ -23,12 +29,18 @@
     <% @sftp_orders.each do |sftp_order| %>
       <tr>
         <td><%= sftp_order.oc %></td>
-        <td><%= sftp_order.sku %></td>
-        <td><%= sftp_order.quantity %></td>
         <td><%= sftp_order.cliente %></td>
         <td><%= sftp_order.proveedor %></td>
+        <td><%= sftp_order.sku %></td>
         <td><%= sftp_order.fechaEntrega %></td>
+        <td><%= sftp_order.cantidad %></td>
+        <td><%= sftp_order.myCantidadDespachada %></td>
+        <td><%= sftp_order.serverCantidadDespachada %></td>
+        <td><%= sftp_order.precioUnitario %></td>
         <td><%= sftp_order.canal %></td>
+        <td><%= sftp_order.notas %></td>
+        <td><%= sftp_order.rechazo %></td>
+        <td><%= sftp_order.anulacion %></td>
         <td><%= sftp_order.urlNotificacion %></td>
         <td><%= sftp_order.myEstado %></td>
         <td><%= sftp_order.serverEstado %></td>

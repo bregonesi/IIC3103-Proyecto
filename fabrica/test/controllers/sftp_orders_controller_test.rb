@@ -17,7 +17,7 @@ class SftpOrdersControllerTest < ActionDispatch::IntegrationTest
 
   test "should create sftp_order" do
     assert_difference('SftpOrder.count') do
-      post sftp_orders_url, params: { sftp_order: { canal: @sftp_order.canal, cliente: @sftp_order.cliente, fechaEntrega: @sftp_order.fechaEntrega, myEstado: @sftp_order.myEstado, oc: @sftp_order.oc, proveedor: @sftp_order.proveedor, quantity: @sftp_order.quantity, serverEstado: @sftp_order.serverEstado, sku: @sftp_order.sku, urlNotificacion: @sftp_order.urlNotificacion } }
+      post sftp_orders_url, params: { sftp_order: { anulacion: @sftp_order.anulacion, canal: @sftp_order.canal, cantidad: @sftp_order.cantidad, cliente: @sftp_order.cliente, fechaEntrega: @sftp_order.fechaEntrega, myCantidadDespachada: @sftp_order.myCantidadDespachada, myEstado: @sftp_order.myEstado, notas: @sftp_order.notas, oc: @sftp_order.oc, precioUnitario: @sftp_order.precioUnitario, proveedor: @sftp_order.proveedor, rechazo: @sftp_order.rechazo, serverCantidadDespachada: @sftp_order.serverCantidadDespachada, serverEstado: @sftp_order.serverEstado, sku: @sftp_order.sku, urlNotificacion: @sftp_order.urlNotificacion } }
     end
 
     assert_redirected_to sftp_order_url(SftpOrder.last)
@@ -34,7 +34,7 @@ class SftpOrdersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update sftp_order" do
-    patch sftp_order_url(@sftp_order), params: { sftp_order: { canal: @sftp_order.canal, cliente: @sftp_order.cliente, fechaEntrega: @sftp_order.fechaEntrega, myEstado: @sftp_order.myEstado, oc: @sftp_order.oc, proveedor: @sftp_order.proveedor, quantity: @sftp_order.quantity, serverEstado: @sftp_order.serverEstado, sku: @sftp_order.sku, urlNotificacion: @sftp_order.urlNotificacion } }
+    patch sftp_order_url(@sftp_order), params: { sftp_order: { anulacion: @sftp_order.anulacion, canal: @sftp_order.canal, cantidad: @sftp_order.cantidad, cliente: @sftp_order.cliente, fechaEntrega: @sftp_order.fechaEntrega, myCantidadDespachada: @sftp_order.myCantidadDespachada, myEstado: @sftp_order.myEstado, notas: @sftp_order.notas, oc: @sftp_order.oc, precioUnitario: @sftp_order.precioUnitario, proveedor: @sftp_order.proveedor, rechazo: @sftp_order.rechazo, serverCantidadDespachada: @sftp_order.serverCantidadDespachada, serverEstado: @sftp_order.serverEstado, sku: @sftp_order.sku, urlNotificacion: @sftp_order.urlNotificacion } }
     assert_redirected_to sftp_order_url(@sftp_order)
   end
 

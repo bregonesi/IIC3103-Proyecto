@@ -1,7 +1,7 @@
 module Scheduler::AlmacenesHelper
 
 	def mantener_consistencia  ## consiste en ordenar productos por antiguedad en almacenes (en lo posible) y mantenerlos todos ocupados
-	puts "Mantener consistencias ejecutandose"
+		puts "Mantener consistencias ejecutandose"
 		# en despacho iran los mas antiguos y se deja un gap de 1000 para cambiar a despachos cuando sea necesario
 		# en recepcion se dejan los mas jovenes (probablemente este vacio nomas)
 		# en general se deja el resto y se deja un gap de 500 para poder hacer movimientos
@@ -21,45 +21,45 @@ module Scheduler::AlmacenesHelper
 			while j > cap_dis
 				productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
 				a_mover = productos_ordenados.where.not(stock_item: despacho_stock_items)
-				a_mover_groupped = a_mover.group(:vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
+				a_mover_groupped = a_mover.group(:stock_item_id, :vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
 				
 	      if a_mover.empty?
 	      	break
 	      end
-		puts "cap j" + j.to_s
+
 				a_mover_datos = a_mover_groupped.each.next
 
-				a_mover_fecha = a_mover_datos[0]
+				a_mover_stock_item = a_mover_datos[0][0]
+				a_mover_fecha = a_mover_datos[0][1]
 				a_mover_prods_count = a_mover_datos[1]
 
-				prods = productos_ordenados.where.not(stock_item: despacho_stock_items).where(vencimiento: a_mover_fecha)
+				prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
 				prod = prods.first
-	puts "moviendo" + prod.stock_item.variant.sku
-	puts a_mover_prods_count.to_s + " productos"
+
         variants = Hash.new(0)
         variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
-	puts variants
+
 				begin
 	        stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
 	        stock_transfer.transfer(prod.stock_item.stock_location,
 	                                almacen,
 	                                variants)
-        rescue ActiveRecord::RecordInvalid => e
+        rescue ActiveRecord::RecordInvalid => e  ## por si tira error (no esta sincronizado)
       		puts e
-	prods.destroy_all
-      		prod.stock_item.stock_location.stock_items.each do |x|  ## me tira error (como que sincroniza mal), entonces actualizamos todo de nuevo
+					prods.destroy_all
+      		prod.stock_item.stock_location.stock_items.each do |x|
       			Scheduler::ProductosHelper::cargar_detalles(x)
       		end
       		break
       	end
 
-        Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
+        #Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 
         j -= [a_mover_prods_count, j - cap_dis].min
-puts "cap nuevo j" + j.to_s
+				puts "cap nuevo j" + j.to_s
 			end
 		end
-
+=begin
 		general.each do |almacen|
 			j = almacen.available_capacity
 			cap_dis = 500
@@ -104,7 +104,7 @@ puts "cap nuevo j" + j.to_s
         j -= [a_mover_prods_count, j - cap_dis].min
 			end
 		end
-
+=end
 	end
 
 	def nuevos_almacenes
@@ -142,7 +142,6 @@ puts "cap nuevo j" + j.to_s
 			    end
 			    a_new.proposito = proposito
 			    a_new.capacidad_maxima = almacen['totalSpace']
-			    a_new.active = false  ## con esto evitamos que las ordenes se vayan para aca
 		    end
 			  if new_almacen
 			    new_almacen.save
@@ -162,7 +161,7 @@ puts "cap nuevo j" + j.to_s
 			raise "Error en get almacenes"
 		end
 
-	  if JSON.parse(r.body).count != Spree::StockLocation.count - 1  ## si nos eliminaron alguno (-1 por el almacen de backorder)
+	  if JSON.parse(r.body).count != Spree::StockLocation.count  ## si nos eliminaron alguno
 	  	puts "Se detecto diferencias en cantidad de almacenes."
 	  	Spree::StockLocation.all.each do |stock_location|
 	  		encontrado = false

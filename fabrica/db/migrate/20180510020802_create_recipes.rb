@@ -9,6 +9,6 @@ class CreateRecipes < ActiveRecord::Migration[5.1]
     end
 
     add_index :recipes, :amount
-    add_index :recipes, [:variant_product, :variant_ingredient], unique: true
+    add_index :recipes, [:variant_product_id, :variant_ingredient_id], unique: true
   end
 end

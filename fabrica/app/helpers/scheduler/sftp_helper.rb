@@ -33,6 +33,8 @@ module Scheduler::SftpHelper
             end
 
             orden_nueva = SftpOrder.where(oc: content_id).first_or_create! do |o|
+              puts "Cargando " + content_id
+
               r = HTTParty.get(url + content_id, headers: { 'Content-type': 'application/json' })
               if r.code != 200
                 raise "Error en get oc."
@@ -40,14 +42,20 @@ module Scheduler::SftpHelper
 
               body = JSON.parse(r.body)[0]
 
-              o.sku = body['sku']
-              o.quantity = body['cantidad']
               o.cliente = body['cliente']
               o.proveedor = body['proveedor']
+              o.sku = body['sku']
               o.fechaEntrega = body['fechaEntrega']
+              o.cantidad = body['cantidad']
+              o.myCantidadDespachada = body['cantidadDespachada']
+              o.serverCantidadDespachada = body['cantidadDespachada']
+              o.precioUnitario = body['precioUnitario']
               o.canal = body['canal']
+              o.notas = body['notas']
+              o.rechazo = body['rechazo']
+              o.anulacion = body['anulacion']
               o.urlNotificacion = body['urlNotificacion']
-              o.myEstado = 'creada'
+              o.myEstado = body['estado']
               o.serverEstado = body['estado']
               o.created_at = body['created_at']
             end
