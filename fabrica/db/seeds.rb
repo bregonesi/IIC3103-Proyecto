@@ -120,6 +120,7 @@ end
 #####################################fin CSV1######################
 
 #####################################inicio CSV2######################
+print "Cargando formulas.\n"
 formulas_csv_text = File.read(Rails.root.join('lib', 'seeds', 'formulas.csv'))
 #puts formulas_csv_text
 
@@ -128,7 +129,7 @@ formulas_csv = CSV.parse(formulas_csv_text, :headers => true, :encoding => 'ISO-
 formulas_csv.each do |formula_attrs|
   puts formula_attrs
 
-  sku = formula_attrs['SKU'.to_i]
+  sku = formula_attrs['SKU'.to_i].to_s
 
   variante = Spree::Variant.find_by(sku: sku)
   variante.lote_minimo = formula_attrs['Lote']
@@ -197,22 +198,6 @@ end
 # Stocks location #
 print "Cargando stock locations.\n"
 Scheduler::AlmacenesHelper.nuevos_almacenes
-nombre = Spree::StockLocation.count > 0 ? Spree::StockLocation.last.name.split(" ")[1].to_i + 1 : 1
-new_almacen = Spree::StockLocation.where(name: 'Almacen ' + nombre.to_s,
-                                         address1: 'Av. Vicuña Mackenna 4860',
-                                         city: 'Santiago',
-                                         zipcode: '7820436',
-                                         country: Spree::Country.find_by(iso: 'CL'),
-                                         state: Spree::Country.find_by(iso: 'CL').states.find_by(abbr: 'RM')
-                                        ).first_or_create! do |a_new|
-  a_new.admin_name = "Backorderable"
-  a_new.backorderable_default = true
-  a_new.proposito = "Backorderable"
-  a_new.capacidad_maxima = 99999999
-end
-if new_almacen
-  new_almacen.save!
-end
 
 # Stocks iniciales productos #
 print "Cargando stock iniciales de productos.\n"

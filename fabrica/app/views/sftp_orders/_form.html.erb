@@ -1,0 +1,97 @@
+<%= form_with(model: sftp_order, local: true) do |form| %>
+  <% if sftp_order.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(sftp_order.errors.count, "error") %> prohibited this sftp_order from being saved:</h2>
+
+      <ul>
+      <% sftp_order.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :oc %>
+    <%= form.text_field :oc, id: :sftp_order_oc %>
+  </div>
+
+  <div class="field">
+    <%= form.label :cliente %>
+    <%= form.text_field :cliente, id: :sftp_order_cliente %>
+  </div>
+
+  <div class="field">
+    <%= form.label :proveedor %>
+    <%= form.text_field :proveedor, id: :sftp_order_proveedor %>
+  </div>
+
+  <div class="field">
+    <%= form.label :sku %>
+    <%= form.text_field :sku, id: :sftp_order_sku %>
+  </div>
+
+  <div class="field">
+    <%= form.label :fechaEntrega %>
+    <%= form.datetime_select :fechaEntrega, id: :sftp_order_fechaEntrega %>
+  </div>
+
+  <div class="field">
+    <%= form.label :cantidad %>
+    <%= form.number_field :cantidad, id: :sftp_order_cantidad %>
+  </div>
+
+  <div class="field">
+    <%= form.label :myCantidadDespachada %>
+    <%= form.number_field :myCantidadDespachada, id: :sftp_order_myCantidadDespachada %>
+  </div>
+
+  <div class="field">
+    <%= form.label :serverCantidadDespachada %>
+    <%= form.number_field :serverCantidadDespachada, id: :sftp_order_serverCantidadDespachada %>
+  </div>
+
+  <div class="field">
+    <%= form.label :precioUnitario %>
+    <%= form.number_field :precioUnitario, id: :sftp_order_precioUnitario %>
+  </div>
+
+  <div class="field">
+    <%= form.label :canal %>
+    <%= form.text_field :canal, id: :sftp_order_canal %>
+  </div>
+
+  <div class="field">
+    <%= form.label :notas %>
+    <%= form.text_area :notas, id: :sftp_order_notas %>
+  </div>
+
+  <div class="field">
+    <%= form.label :rechazo %>
+    <%= form.text_area :rechazo, id: :sftp_order_rechazo %>
+  </div>
+
+  <div class="field">
+    <%= form.label :anulacion %>
+    <%= form.text_area :anulacion, id: :sftp_order_anulacion %>
+  </div>
+
+  <div class="field">
+    <%= form.label :urlNotificacion %>
+    <%= form.text_field :urlNotificacion, id: :sftp_order_urlNotificacion %>
+  </div>
+
+  <div class="field">
+    <%= form.label :myEstado %>
+    <%= form.text_field :myEstado, id: :sftp_order_myEstado %>
+  </div>
+
+  <div class="field">
+    <%= form.label :serverEstado %>
+    <%= form.text_field :serverEstado, id: :sftp_order_serverEstado %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

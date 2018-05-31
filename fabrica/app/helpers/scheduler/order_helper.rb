@@ -1,23 +1,24 @@
 module Scheduler::OrderHelper
 
 	def marcar_vencidas
-		# no funciona si ocupo -Float::INFINITY
-		Spree::Order.where(fechaEntrega: Time.at(0)..DateTime.now).where.not(state: "canceled").each do |order|
-			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + order.number.to_s, body: {}.to_json, headers: { 'Content-type': 'application/json' })
-			order.state = "canceled"
-			order.canceled_at = Time.now
-			order.canceler = Spree::User.first
-			order.save!
+		puts "Viendo si hay que marcar vencidas"
 
-			# no ejecuto canceled_by para que no fallen los stocks
-			#order.canceled_by(Spree::User.first)  ## el primero se supone que es el admin
-=begin
-			begin
-				order.canceled_by(Spree::User.first)  ## el primero se supone que es el admin
-			rescue StateMachines::InvalidTransition => e
-				puts e
+		SftpOrder.vencidas.where(myEstado: "creada", serverEstado: "creada").each do |sftp_order|
+			puts "Marcando " + sftp_order.oc.to_s + " como rechazada"
+			sftp_order.rechazo = "Orden se encuentra fuera de plazo"
+
+			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + sftp_order.oc.to_s,
+												body: { rechazo: sftp_order.rechazo }.to_json,
+												headers: { 'Content-type': 'application/json' })
+
+			if r.code == 200
+				body = JSON.parse(r.body)[0]
+				sftp_order.myEstado = "rechazada"
+				sftp_order.serverEstado = body['estado']
+				sftp_order.save!
+			else
+				puts r
 			end
-=end
 		end
 	end
 
@@ -38,140 +39,218 @@ module Scheduler::OrderHelper
 		## cubro toda su demanda
 		##
 
-		## aqui veo si tengo stock de alguna orden y tiene menos de dos lotes
-		Spree::Order.where(state: "complete", channel: "ftp", payment_state: "paid").where.not(atencion: 2).each do |orden|
-			orden.with_lock do
-				se_completa = true
-				orden.inventory_units.each do |iu|
-					variant = iu.variant
-					lotes = BigDecimal((iu.quantity.to_f/variant.lote_minimo.to_f).to_s).ceil
+		if SftpOrder.acepto?  ## ie, si tengo una tasa de aceptadas menor a 0.6
+			ordenes = []  # [orden, costo_un_lote, lotes, costo_total]
+			#fechaEntrega: 16.hours.ago..Float::INFINITY
+			ordenes_creadas = SftpOrder.creadas.each do |sftp_order|
+				variant = Spree::Variant.find_by(sku: sftp_order.sku)
 
-					if variant.total_on_hand < iu.quantity || lotes > 2
-						se_completa = false
-					end
+				costo = variant.ingredients.sum(:lote_minimo)  ## llamamos costo a la cantidad de productos que hay que utilizar
+
+				cantidad_efectiva = sftp_order.cantidad - variant.total_on_hand
+
+				if !variant.primary?
+					costo_lote = variant.lote_minimo
+					lotes = BigDecimal((cantidad_efectiva.to_f / variant.lote_minimo.to_f).to_s).ceil
+				else
+					costo_lote = 1
+					lotes = cantidad_efectiva
 				end
-				
-				if se_completa
-					url = ENV['api_oc_url'] + "recepcionar/"
-	  			r = HTTParty.post(url + orden.number.to_s, body: {}.to_json, headers: { 'Content-type': 'application/json' })
-	  			
-	  			if r.code != 200
-	  				raise "Error en recepcionar oc"
-	  			end
 
-					orden.inventory_units.each do |iu|
-						iu.with_lock do
+				lotes = [lotes, 0].max  ## por si tengo mas de lo que me pide
 
-							puts "Detectamos que una orden se puede satisfacer completamente"
-							# cambiamos los prod al almacen de despacho
-							cambiar_items_a_despacho(Spree::Variant.find(iu.variant.id), iu.quantity.to_i)
+				ordenes << [sftp_order, costo_lote, lotes, costo_lote * lotes]
+			end
 
-							# cambiamos el shipment de backorder a almacen de despacho
-							Spree::Shipment.find(iu.shipment.id).transfer_to_location(
-																											Spree::Variant.find(iu.variant.id),
-																											iu.quantity.to_i,
-																											Spree::StockLocation.where(proposito: "Despacho").first)
-							orden.atencion = 2
+			ordenes = ordenes.sort_by{ |i| i[1] }  ## primero ordeno por costo de un lote
+			ordenes = ordenes.sort_by{ |i| i[3] }  ## despues ordeno por costo total
+			# asi va a quedar mas importante costo total y luego el costo de un lote
+
+			ordenes.each do |orden_entry|
+				if !SftpOrder.acepto?  ## si ya cumpli mi cuota
+					break
+				end
+
+				orden = orden_entry[0]
+				variant = Spree::Variant.find_by(sku: orden.sku)
+
+				if ( (variant.can_produce? && orden.fechaEntrega - DateTime.now() >= 6.hours.seconds) || variant.can_ship? ) || (variant.primary? && variant.can_ship?)  ## sino no alcanzamos a fabricar
+					puts "Acepto oc " + orden.oc.to_s
+					if !variant.primary?  ## hay que fabricar
+						puts "Hay q fabricar"
+						lotes_restante_fabricar = orden_entry[2]
+						while variant.can_produce? && lotes_restante_fabricar > 0  ## si hay que fabricar y si tengo que fabricar
+							puts "Fabrico"
+							orden.myEstado = "preaceptada"
 							orden.save!
+							fabricar(orden)
+							lotes_restante_fabricar -= 1
+						end
+					else  ## acepto de inmediato
+						puts "Es materia prima"
+						if variant.can_ship?
+							puts "Tengo para despachar"
+							create_spree_from_sftp_order(orden)
 						end
 					end
 				end
 
 			end
+
 		end
-
-		ordenes = []  # [orden, costo_un_lote, lotes, costo_total]
-		ordenes_query = Spree::Order.where(state: "complete", channel: "ftp", payment_state: "paid", shipment_state: "backorder", atencion: 0, fechaEntrega: 16.hours.ago..Float::INFINITY).each do |order|
-			order.inventory_units.each do |iu|
-				variant = iu.variant
-
-				costo = variant.ingredients.sum(:lote_minimo)  ## llamamos costo a la cantidad de productos que hay que utilizar
-
-				costo_lote = variant.lote_minimo
-				lotes = BigDecimal((iu.quantity.to_f/variant.lote_minimo.to_f).to_s).ceil
-				ordenes << [order, costo_lote, lotes, costo_lote * lotes]
-			end
-		end
-
-		ordenes = ordenes.sort_by{ |i| i[1] }  ## primero ordeno por costo de un lote
-		ordenes = ordenes.sort_by{ |i| i[3] }  ## despues ordeno por costo total
-		# asi va a quedar mas importante costo total
-
-		#puts ordenes
-
-		j = 0
-		while Spree::Order.where(atencion: 1).count < (ordenes_query.count/2).floor
-			orden = ordenes[j]  ## recorremos por la prioridad
-
-			can_produce = true
-			lotes_total = 0
-			orden[0].inventory_units.each do |iu|
-				variant = iu.variant
-				lotes = BigDecimal((iu.quantity.to_f/variant.lote_minimo.to_f).to_s).ceil
-				lotes_total += lotes
-
-				if !iu.variant.can_produce?(lotes)
-					can_produce = false
-				end
-			end
-
-			if can_produce
-				url = ENV['api_oc_url'] + "recepcionar/"
-  			r = HTTParty.post(url + orden[0].number.to_s, body: {}.to_json, headers: { 'Content-type': 'application/json' })
-  			
-  			if r.code != 200
-  				raise "Error en recepcionar oc"
-  			end
-
-				orden[0].atencion = 1
-				orden[0].save!
-				lotes_total = [lotes_total, 3].min
-				orden[0].inventory_units.each do |iu|
-					variant = iu.variant
-					lotes = BigDecimal((iu.quantity.to_f/variant.lote_minimo.to_f).to_s).ceil
-					fabricar(variant, [lotes_total, lotes].min)
-					lotes_total -= [lotes_total, lotes].min
-				end
-				break
-
-			end
-
-			j += 1
-
-			if j >= ordenes.count
-				break
-			end
-		end
-
 	end
 
-	def fabricar(variant, lotes=1)
+	def create_spree_from_sftp_order(sftp_order)
+		puts "Creando spree order from sftp order"
+
+		if sftp_order.myEstado != "aceptada"
+			r = HTTParty.post(ENV['api_oc_url'] + "recepcionar/" + sftp_order.oc.to_s,
+													body: { }.to_json,
+													headers: { 'Content-type': 'application/json' })
+			puts r
+		end
+
+		if sftp_order.myEstado == "aceptada" || r.code == 200
+			if sftp_order.myEstado != "aceptada"
+				sftp_order.myEstado = "aceptada"
+				sftp_order.serverEstado = "aceptada"
+				sftp_order.save!
+			end
+
+			variant = Spree::Variant.find_by!(sku: sftp_order.sku)
+			cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
+			cantidad_despachar = [cantidad_restante, variant.total_on_hand].min
+			recien_creada = false
+
+			spree_order = Spree::Order.where(number: sftp_order.oc,
+																			 email: 'spree@example.com').first_or_create! do |o|
+				puts "Creando spree order " + sftp_order.oc
+				recien_creada = true
+
+				o.contents.add(variant, cantidad_despachar.to_i, {})  ## variant, quantity, options
+				o.update_line_item_prices!
+				o.create_tax_charge!
+				o.next!  # pasamos a address
+
+				o.bill_address = Spree::Address.first
+				o.ship_address = Spree::Address.first
+				o.next!  # pasamos a delivery
+
+				o.create_proposed_shipments
+				o.next!  # pasamos a payment
+
+				payment = o.payments.where(amount: BigDecimal(o.total, 4),
+																	 payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first).first_or_create!
+				payment.update_columns(state: 'checkout')
+
+				o.confirmation_delivered = true  ## forzamos para que no se envie mail
+				o.next!  # pasamos a complete
+
+				o.channel = "ftp"
+			end
+
+			if !recien_creada && spree_order
+				puts "Agregando stock a orden ya creada. Number: " + spree_order.number
+
+				shipment_quantity_left = cantidad_despachar
+				new_shipments = []
+				while shipment_quantity_left > 0
+					Spree::StockLocation.almacenes.each do |almacen|
+						stock_item = almacen.stock_items.find_by(variant: variant, count_on_hand: 1..Float::INFINITY)
+						if !stock_item.nil?
+							cantidad_despachar_shipment = [stock_item.count_on_hand, shipment_quantity_left].min
+							new_shipments << [almacen, cantidad_despachar_shipment]
+							shipment_quantity_left -= cantidad_despachar_shipment
+						end
+
+						if shipment_quantity_left == 0
+							break
+						end
+					end
+
+					if shipment_quantity_left > 0
+						raise "Error en generar nuevo shipment para orden ya creada. Faltan " + shipment_quantity_left.to_s + " unidades"
+					end
+				end
+
+				new_shipments.each do |new_shipment|
+					shipment = spree_order.shipments.find_by(stock_location: new_shipment[0])
+					if shipment.nil?
+						shipment = spree_order.shipments.create(stock_location: new_shipment[0])
+					end
+
+					spree_order.contents.add(variant, new_shipment[1].to_i, {shipment: shipment})  ## variant, quantity, options
+				end
+				
+				sftp_order.myCantidadDespachada += cantidad_despachar.to_i
+				sftp_order.save!
+
+				#spree_order.update_line_item_prices!
+				#spree_order.create_tax_charge!
+				#while spree_order.next; end
+			end
+		end
+	end
+
+	def chequear_si_hay_stock
+		##
+		## Si hay stock creo otra 'create_spree_from_sftp_order'
+		## Y si tengo que producir creo otra orden para fabricar
+		##
+		puts "Chequeando si hay stock"
+
+		(SftpOrder.aceptadas + SftpOrder.preaceptadas).each do |sftp_order|
+			variant = Spree::Variant.find_by(sku: sftp_order.sku)
+			cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
+
+			if cantidad_restante > 0
+				if variant.total_on_hand > 0  ## si tengo stock creo shipments
+					puts "Llego stock para una orden aun no finalizada"
+
+					create_spree_from_sftp_order(sftp_order)
+				end
+
+				cantidad_en_fabricacion = sftp_order.fabricar_requests.where(aceptado: false).or(sftp_order.fabricar_requests.where(aceptado: true, disponible: Time.at(0)..DateTime.now())).map(&:cantidad).reduce(:+).to_i
+				if cantidad_restante - cantidad_en_fabricacion > 0
+					puts "Falta para fabricar"
+					if variant.can_produce?
+						puts "Voy a producir"
+						fabricar(sftp_order)
+					end
+				end
+			end
+		end
+	end
+
+	def fabricar(sftp_order, lotes=1)
+		variant = Spree::Variant.find_by(sku: sftp_order.sku)
 		lotes.times do |i|
 			puts "Hacemos solicitud de fabricacion"
-			save_request = FabricarRequest.create!(aceptado: false, sku: variant.sku, cantidad: variant.lote_minimo)
+			sftp_order.fabricar_requests.build(aceptado: false, sku: variant.sku, cantidad: variant.lote_minimo)
+			sftp_order.save!
 		end
-		fabricar_api
+		#fabricar_api
 	end
 
 
 	def fabricar_api
 		FabricarRequest.where(aceptado: false).each do |request|
 			request.with_lock do
-				puts "Mandamos a fabricas"
+				puts "Mandamos a fabricar"
 
 				variant = Spree::Variant.find_by(sku: request.sku)
-				stock_location = Spree::StockLocation.where(proposito: "Despacho").first
 				Scheduler::ProductosHelper.cargar_nuevos
 
-				if !variant.can_produce?  # por si se nos vencio lo que ibamos a fabricar
+				if !variant.can_produce?  ## por si me robaron el stock
 					request.destroy
-					return
+					return fabricar_api
 				end
 
 				variant.recipe.each do |ingredient|
-					if stock_location.stock_items.find_by(variant: ingredient.variant_ingredient).count_on_hand < ingredient.amount.to_i
+					disponible_en_despacho = variant.stock_items.where(stock_location: Spree::StockLocation.where(proposito: "Despacho")).map(&:count_on_hand).reduce(:+)
+					if disponible_en_despacho.to_i < ingredient.amount.to_i
 						puts "Hay que mover stock antes de fabricar"
-						cambiar_items_a_despacho(Spree::Variant.find(ingredient.variant_ingredient.id), ingredient.amount.to_i)
+						cambiar_items_a_despacho(Spree::Variant.find(ingredient.variant_ingredient.id), ingredient.amount.to_i - disponible_en_despacho.to_i)
 					end
 				end
 
@@ -210,7 +289,7 @@ module Scheduler::OrderHelper
 
 	def cambiar_items_a_despacho(variant, cantidad)  ## siempre vamos a mover para mantener con un stock
 		puts "Ejecutando cambiar items a despacho"
-		despacho = Spree::StockLocation.where(proposito: "Despacho").first
+		despachos = Spree::StockLocation.where(proposito: "Despacho")
 		stock_item = despacho.stock_items.find_by(variant: variant)
 
 		Scheduler::ProductosHelper.cargar_nuevos
@@ -219,39 +298,58 @@ module Scheduler::OrderHelper
 		end
 
     q = cantidad
-    while q != 0
+    while q > 0
 			productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
-			a_mover = productos_ordenados.where(stock_item: variant.stock_items.where(backorderable: false)).where.not(stock_item: stock_item)
-			a_mover_groupped = a_mover.group(:vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
-
+			a_mover = productos_ordenados.where(stock_item: (Spree::StockLocation.almacenes - despachos).map(&:stock_items).flatten)
+			a_mover_groupped = a_mover.group(:stock_item_id, :vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
+			
       if a_mover.empty?
       	break
       end
 
+      despacho_escogido = nil
+      despachos.each do |despacho_entry|
+      	if despacho_entry.available_capacity >= q
+      		despacho_escogido = despacho_entry
+      	end
+      end
+
+      if despacho_escogido.nil?
+      	raise "Error en escoger despacho para cambiar item a despacho"
+      end
+
+			puts "Cambiando a " + despacho_escogido.proposito + " (" + despacho_escogido.name + "), q " + q.to_s
+
 			a_mover_datos = a_mover_groupped.each.next
 
-			a_mover_fecha = a_mover_datos[0]
+			a_mover_stock_item = a_mover_datos[0][0]
+			a_mover_fecha = a_mover_datos[0][1]
 			a_mover_prods_count = a_mover_datos[1]
 
-			prods = productos_ordenados.where(stock_item: stock_item.variant.stock_items.where(backorderable: false)).where.not(stock_item: stock_item).where(vencimiento: a_mover_fecha)
-			prod = prods.first			
+			prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
+			prod = prods.first	
 
       variants = Hash.new(0)
       variants[prod.stock_item.variant] = [a_mover_prods_count, q].min
-			
-			puts variants
-      
-      begin
-	      stock_transfer = Spree::StockTransfer.create(reference: "Para poder despachar orden")
-	      stock_transfer.transfer(prod.stock_item.stock_location,
-	                              despacho,
-	                              variants)
-	      Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
-	    rescue ActiveRecord::RecordInvalid => e
-      		puts e
-      		prods.destroy_all
-      		return cambiar_items_a_despacho(variant, q)
-      end
+
+			begin
+				puts "Moveremos " + variants.to_s + " desde almacen " + prod.stock_item.stock_location.name + " a " + despacho_escogido.name
+
+        stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
+        stock_transfer.transfer(prod.stock_item.stock_location,
+                                despacho_escogido,
+                                variants)
+      rescue ActiveRecord::RecordInvalid => e  ## por si tira error (no esta sincronizado)
+    		puts e
+    		stock_transfer.destroy
+				prods.destroy_all
+    		prod.stock_item.stock_location.stock_items.each do |x|
+    			Scheduler::ProductosHelper::cargar_detalles(x)
+    		end
+    		break
+    	end
+
+    	Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 
       q -= [a_mover_prods_count, q].min
     end

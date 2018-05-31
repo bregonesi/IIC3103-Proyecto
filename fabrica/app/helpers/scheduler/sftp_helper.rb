@@ -3,8 +3,6 @@ module Scheduler::SftpHelper
 	def agregar_nuevas_ordenes
 		url = ENV['api_oc_url'] + "obtener/"
 
-    j = 0
-
 		sftp = Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd'])  ## necesitamos dos conexiones
 	  Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd']) do |entries|
     	entries.dir.foreach('/pedidos/') do |entry|
@@ -32,62 +30,33 @@ module Scheduler::SftpHelper
               end
             end
 
-            orden_nueva = Spree::Order.where(number: content_id,
-                                             email: 'spree@example.com').first_or_create! do |o|
-              j += 1
-              puts j.to_s + ": Cargando " + entry.name
-              
-              variant = Spree::Variant.find_by!(sku: content_sku)
-              o.contents.add(variant, content_qty.to_i, {})  ## variant, quantity, options
-              o.update_line_item_prices!
-              o.create_tax_charge!
-              o.next!  # pasamos a address
+            orden_nueva = SftpOrder.where(oc: content_id).first_or_create! do |o|
+              puts "Cargando " + content_id
 
-              o.bill_address = Spree::Address.first
-              o.ship_address = Spree::Address.first
-              o.next!  # pasamos a delivery
+              r = HTTParty.get(url + content_id, headers: { 'Content-type': 'application/json' })
+              if r.code != 200
+                raise "Error en get oc."
+              end
 
-              o.create_proposed_shipments
-              o.next!  # pasamos a payment
+              body = JSON.parse(r.body)[0]
 
-              payment = o.payments.where(amount: BigDecimal(o.total, 4),
-                                         payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first).first_or_create!
-              payment.update_columns(state: 'checkout')
-
-              o.confirmation_delivered = true  ## forzamos para que no se envie mail
-              o.next!  # pasamos a complete
-              o.completed_at = nil
+              o.cliente = body['cliente']
+              o.proveedor = body['proveedor']
+              o.sku = body['sku']
+              o.fechaEntrega = body['fechaEntrega']
+              o.cantidad = body['cantidad']
+              o.myCantidadDespachada = body['cantidadDespachada']
+              o.serverCantidadDespachada = body['cantidadDespachada']
+              o.precioUnitario = body['precioUnitario']
+              o.canal = body['canal']
+              o.notas = body['notas']
+              o.rechazo = body['rechazo']
+              o.anulacion = body['anulacion']
+              o.urlNotificacion = body['urlNotificacion']
+              o.myEstado = body['estado']
+              o.serverEstado = body['estado']
+              o.created_at = body['created_at']
             end
-
-            if orden_nueva.channel != "ftp"  # si es primera vez que la creamos
-							r = HTTParty.get(url + content_id, headers: { 'Content-type': 'application/json' })
-							if r.code != 200
-								raise "Error en get oc."
-							end
-							body = JSON.parse(r.body)[0]
-
-              orden_nueva.completed_at = DateTime.strptime((date_ingreso.to_f / 1000).to_s, '%s')
-              orden_nueva.channel = "ftp"
-							orden_nueva.fechaEntrega = body['fechaEntrega']
-
-              if body['estado'] == "aceptada"
-                orden_nueva.atencion = 1
-              elsif body['estado'] == "finalizada"
-                orden_nueva.atencion = 2
-              end
-
-	            orden_nueva.save!
-
-              if Time.now() >= orden_nueva.fechaEntrega || body['estado'] == "rechazada" || body['estado'] == "anulada"   ## chequeat q no haya sido ni despachado algo o terminada
-                r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + orden_nueva.number.to_s, body: {}.to_json, headers: { 'Content-type': 'application/json' })
-                orden_nueva.canceled_by(Spree::User.first)
-              end
-	          end
-
-            #if j == 30
-            #  raise "Botamos por que agregamos maximo 30"
-            #end
-
           end # end de inside file
         end # end de if.xml
       end # end de foreach file

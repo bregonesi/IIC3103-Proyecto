@@ -7,107 +7,69 @@ module Scheduler::AlmacenesHelper
 		# en general se deja el resto y se deja un gap de 500 para poder hacer movimientos
 		# pulmon solo se deja si recepcion se llena, ningun otro almacen se va a llenar
 		despacho = Spree::StockLocation.where(proposito: "Despacho")
-		despacho_stock_items = despacho.map(&:stock_items).flatten
 		general = Spree::StockLocation.where(proposito: "General")
-		general_stock_items = general.map(&:stock_items).flatten
 		recepcion = Spree::StockLocation.where(proposito: "Recepcion")
-		recepcion_stock_items = recepcion.map(&:stock_items).flatten
 		pulmon = Spree::StockLocation.where(proposito: "Pulmon")
-		pulmon_stock_items = pulmon.map(&:stock_items).flatten
 
-		despacho.each do |almacen|
-			j = almacen.available_capacity
-			cap_dis = 1000
-			while j > cap_dis
-				puts "Chequeando si hay para mover a despacho. Capacidad despacho " + j.to_s
-				productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
-				a_mover = productos_ordenados.where.not(stock_item: despacho_stock_items)
-				a_mover_groupped = a_mover.group(:vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
-				
-	      if a_mover.empty?
-	      	break
-	      end
-				
-				a_mover_datos = a_mover_groupped.each.next
+		# esperado = [mover a stock, gap, excluir]
+		esperado = [[despacho, 1000, []], [general, 500, [despacho]]]
 
-				a_mover_fecha = a_mover_datos[0]
-				a_mover_prods_count = a_mover_datos[1]
+		esperado.each do |entry|
+			cap_dis = entry[1]
 
-				prods = productos_ordenados.where.not(stock_item: despacho_stock_items).where(vencimiento: a_mover_fecha)
-				prod = prods.first
+			entry[0].each do |almacen|
+				j = almacen.available_capacity
+				while j > cap_dis
+					productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
+					a_mover = productos_ordenados.where.not(stock_item: (entry[0] + entry[2].flatten).map(&:stock_items).flatten)
+					a_mover_groupped = a_mover.group(:stock_item_id, :vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
+					
+		      if a_mover.empty?
+		      	break
+		      end
 
-        variants = Hash.new(0)
-        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
+					puts "Cambiando a " + almacen.proposito + " (" + almacen.name + "), cap dis " + cap_dis.to_s
 
-				begin
-	        stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
-	        stock_transfer.transfer(prod.stock_item.stock_location,
-	                                almacen,
-	                                variants)
-        rescue ActiveRecord::RecordInvalid => e
-      		puts e
-					prods.destroy_all
-      		prod.stock_item.stock_location.stock_items.each do |x|  ## me tira error (como que sincroniza mal), entonces actualizamos todo de nuevo
-      			Scheduler::ProductosHelper::cargar_detalles(x)
-      		end
-      		break
-      	end
+					a_mover_datos = a_mover_groupped.each.next
 
-        Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
+					a_mover_stock_item = a_mover_datos[0][0]
+					a_mover_fecha = a_mover_datos[0][1]
+					a_mover_prods_count = a_mover_datos[1]
 
-        j -= [a_mover_prods_count, j - cap_dis].min
+					prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
+					prod = prods.first
+
+	        variants = Hash.new(0)
+	        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
+
+					begin
+						puts "Moveremos " + variants.to_s + " desde almacen " + prod.stock_item.stock_location.name + " a " + almacen.name
+
+		        stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
+		        stock_transfer.transfer(prod.stock_item.stock_location,
+		                                almacen,
+		                                variants)
+	        rescue ActiveRecord::RecordInvalid => e  ## por si tira error (no esta sincronizado)
+	      		puts e
+	      		stock_transfer.destroy
+						prods.destroy_all
+	      		prod.stock_item.stock_location.stock_items.each do |x|
+	      			Scheduler::ProductosHelper::cargar_detalles(x)
+	      		end
+	      		break
+	      	end
+
+	        Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
+
+	        j -= [a_mover_prods_count, j - cap_dis].min
+				end
 			end
 		end
-
-		general.each do |almacen|
-			j = almacen.available_capacity
-			cap_dis = 500
-			while j > cap_dis
-				puts "Chequeando si hay para mover a general. Capacidad general " + j.to_s
-				productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
-				a_mover = productos_ordenados.where.not(stock_item: despacho_stock_items + general_stock_items)
-				a_mover_groupped = a_mover.group(:vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
-				
-	      if a_mover.empty?
-	      	break
-	      end
-
-				a_mover_datos = a_mover_groupped.each.next
-
-				a_mover_fecha = a_mover_datos[0]
-				a_mover_prods_count = a_mover_datos[1]
-
-				prods = productos_ordenados.where.not(stock_item: despacho_stock_items + general_stock_items).where(vencimiento: a_mover_fecha)
-				prod = prods.first
-
-        variants = Hash.new(0)
-        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
-
-        begin
-	       	stock_transfer = Spree::StockTransfer.create(reference: "Para tener capacidades 'optimas'")
-	       	
-	        stock_transfer.transfer(prod.stock_item.stock_location,
-	                                almacen,
-	                                variants)
-
-        rescue ActiveRecord::RecordInvalid => e
-      		puts e
-					prods.destroy_all
-      		prod.stock_item.stock_location.stock_items.each do |x|  ## me tira error (como que sincroniza mal), entonces actualizamos todo de nuevo
-      			Scheduler::ProductosHelper::cargar_detalles(x)
-      		end
-      		break
-      	end
-
-        Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
-
-        j -= [a_mover_prods_count, j - cap_dis].min
-			end
-		end
-
 	end
 
 	def nuevos_almacenes
+		puts "Chequeando si hay nuevos almacenes"
+
 		url = ENV['api_url'] + "bodega/almacenes"
 
 		base = 'GET'
@@ -142,7 +104,6 @@ module Scheduler::AlmacenesHelper
 			    end
 			    a_new.proposito = proposito
 			    a_new.capacidad_maxima = almacen['totalSpace']
-			    a_new.active = false  ## con esto evitamos que las ordenes se vayan para aca
 		    end
 			  if new_almacen
 			    new_almacen.save
@@ -152,6 +113,8 @@ module Scheduler::AlmacenesHelper
 	end
 
 	def eliminar_extras
+		puts "Chequeando si eliminaron almacenes"
+
 		url = ENV['api_url'] + "bodega/almacenes"
 
 		base = 'GET'
@@ -162,7 +125,7 @@ module Scheduler::AlmacenesHelper
 			raise "Error en get almacenes"
 		end
 
-	  if JSON.parse(r.body).count != Spree::StockLocation.count - 1  ## si nos eliminaron alguno (-1 por el almacen de backorder)
+	  if JSON.parse(r.body).count != Spree::StockLocation.count  ## si nos eliminaron alguno
 	  	puts "Se detecto diferencias en cantidad de almacenes."
 	  	Spree::StockLocation.all.each do |stock_location|
 	  		encontrado = false

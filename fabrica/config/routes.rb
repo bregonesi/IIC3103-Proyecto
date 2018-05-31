@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :sftp_orders
   # This line mounts Spree's routes at the root of your application.
   # This means, any requests to URLs such as /products, will go to
   # Spree::ProductsController.
@@ -16,4 +17,5 @@ Rails.application.routes.draw do
 
   post '/hook', to: 'hook#materias_primas'
   get '/hook_list', to: 'hook#list_requests'
+  
 end
