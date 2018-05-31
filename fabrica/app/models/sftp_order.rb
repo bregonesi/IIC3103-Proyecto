@@ -1,4 +1,5 @@
 class SftpOrder < ApplicationRecord
+	has_many :fabricar_requests
 
 	def self.creadas
 		SftpOrder.where(myEstado: 'creada')

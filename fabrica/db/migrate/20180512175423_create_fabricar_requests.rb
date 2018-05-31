@@ -7,6 +7,7 @@ class CreateFabricarRequests < ActiveRecord::Migration[5.1]
       t.datetime :disponible
       t.integer :cantidad
       t.boolean :aceptado
+      t.references :sftp_order
 
       t.timestamps
     end

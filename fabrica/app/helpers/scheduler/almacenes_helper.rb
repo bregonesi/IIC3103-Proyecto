@@ -62,7 +62,6 @@ module Scheduler::AlmacenesHelper
 	        Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 
 	        j -= [a_mover_prods_count, j - cap_dis].min
-					puts "cap nuevo j" + j.to_s
 				end
 			end
 		end

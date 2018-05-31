@@ -14,6 +14,6 @@ Spree::StockLocation.class_eval do
   end
 
   def self.almacenes
-    Spree::StockLocation.where(proposito: ["Recepcion", "Despacho", "Pulmon"])
+    Spree::StockLocation.where(proposito: ["Recepcion", "Despacho", "Pulmon", "General"])
   end
 end

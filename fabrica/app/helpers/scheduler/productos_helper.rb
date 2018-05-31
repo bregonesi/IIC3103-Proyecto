@@ -175,10 +175,12 @@ module Scheduler::ProductosHelper
 				      print "Variant sku: " + prod_api['_id'] + " encontrada.\n"
 
 				      por_despachar = 0
-				      stock_location.shipments.where(state: "ready").each do |prod_ship|  ## muestra todas las ordenes por despachar del stock location
-				      	prod_ship.inventory_units.where(variant: variant, state: "on_hand").each do |iu|
-				      		por_despachar += iu.quantity - iu.shipped_quantity
-				      	end
+				      stock_location.shipments.each do |prod_ship|  ## muestra todas las ordenes por despachar del stock location
+				      	if prod_ship.order.completed?  ## solo si esta completado (no se dejo la compra a medio camino)
+					      	prod_ship.inventory_units.where(variant: variant, state: "on_hand").each do |iu|
+					      		por_despachar += iu.quantity - iu.shipped_quantity
+					      	end
+					      end
 				      end
 
 				      diferencia = prod_api['total'].to_i - (stock_item.count_on_hand + por_despachar)

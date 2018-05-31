@@ -19,8 +19,10 @@ ActiveRecord::Schema.define(version: 20180530161328) do
     t.datetime "disponible"
     t.integer "cantidad"
     t.boolean "aceptado"
+    t.integer "sftp_order_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["sftp_order_id"], name: "index_fabricar_requests_on_sftp_order_id"
   end
 
   create_table "friendly_id_slugs", force: :cascade do |t|
@@ -357,8 +359,6 @@ ActiveRecord::Schema.define(version: 20180530161328) do
     t.integer "state_lock_version", default: 0, null: false
     t.decimal "taxable_adjustment_total", precision: 10, scale: 2, default: "0.0", null: false
     t.decimal "non_taxable_adjustment_total", precision: 10, scale: 2, default: "0.0", null: false
-    t.datetime "fechaEntrega"
-    t.integer "atencion", default: 0
     t.index ["approver_id"], name: "index_spree_orders_on_approver_id"
     t.index ["bill_address_id"], name: "index_spree_orders_on_bill_address_id"
     t.index ["canceler_id"], name: "index_spree_orders_on_canceler_id"
@@ -366,7 +366,6 @@ ActiveRecord::Schema.define(version: 20180530161328) do
     t.index ["confirmation_delivered"], name: "index_spree_orders_on_confirmation_delivered"
     t.index ["considered_risky"], name: "index_spree_orders_on_considered_risky"
     t.index ["created_by_id"], name: "index_spree_orders_on_created_by_id"
-    t.index ["fechaEntrega"], name: "index_spree_orders_on_fechaEntrega"
     t.index ["guest_token"], name: "index_spree_orders_on_guest_token"
     t.index ["number"], name: "index_spree_orders_on_number", unique: true
     t.index ["ship_address_id"], name: "index_spree_orders_on_ship_address_id"
