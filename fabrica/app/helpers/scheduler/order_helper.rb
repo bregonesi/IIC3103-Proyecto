@@ -289,13 +289,16 @@ module Scheduler::OrderHelper
 
 	def cambiar_items_a_despacho(variant, cantidad)  ## siempre vamos a mover para mantener con un stock
 		puts "Ejecutando cambiar items a despacho"
+
 		despachos = Spree::StockLocation.where(proposito: "Despacho")
 		stock_item = despacho.stock_items.find_by(variant: variant)
 
+=begin
 		Scheduler::ProductosHelper.cargar_nuevos
 		variant.stock_items.where(backorderable: false).each do |stock_item_detalle|
 			Scheduler::ProductosHelper.cargar_detalles(stock_item_detalle)
 		end
+=end
 
     q = cantidad
     while q > 0

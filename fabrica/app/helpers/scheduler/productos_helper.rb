@@ -29,8 +29,6 @@ module Scheduler::ProductosHelper
 		Spree::StockMovement.where("originator_type = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
 
 			movement.with_lock do
-				puts "Ejecutando movement id " + movement.id.to_s
-
 	      almacen_id_dest = nil
 	      stock_item_dest = nil
 			  Spree::StockMovement.where("originator_type = ? AND originator_id = ? AND quantity > 0", movement.originator_type, movement.originator_id).each do |movement_dest|
