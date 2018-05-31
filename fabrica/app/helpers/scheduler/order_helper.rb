@@ -120,6 +120,7 @@ module Scheduler::OrderHelper
 			variant = Spree::Variant.find_by!(sku: sftp_order.sku)
 			cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
 			cantidad_despachar = [cantidad_restante, variant.total_on_hand].min
+			cantidad_despachar = 10
 			recien_creada = false
 
 			spree_order = Spree::Order.where(number: sftp_order.oc,
@@ -181,6 +182,13 @@ module Scheduler::OrderHelper
 
 					spree_order.contents.add(variant, new_shipment[1].to_i, {shipment: shipment})  ## variant, quantity, options
 				end
+
+				if !new_shipments.empty?
+					# nuevo payment ya que se agrego producto
+					payment = spree_order.payments.build(amount: BigDecimal(spree_order.outstanding_balance, 4),
+																							 payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first)
+					payment.save!
+				end
 				
 				sftp_order.myCantidadDespachada += cantidad_despachar.to_i
 				sftp_order.save!
@@ -199,7 +207,7 @@ module Scheduler::OrderHelper
 		##
 		puts "Chequeando si hay stock"
 
-		(SftpOrder.aceptadas + SftpOrder.preaceptadas).each do |sftp_order|
+		SftpOrder.where(id: (SftpOrder.aceptadas + SftpOrder.preaceptadas)).vigentes.each do |sftp_order|
 			variant = Spree::Variant.find_by(sku: sftp_order.sku)
 			cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
 

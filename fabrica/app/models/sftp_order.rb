@@ -28,4 +28,12 @@ class SftpOrder < ApplicationRecord
 	def self.vencida?(order)
 		order.fechaEntrega < DateTime.now
 	end
+
+	def self.vigentes
+		SftpOrder.where(fechaEntrega: DateTime.now..Float::INFINITY)
+	end
+
+	def self.vigente?(order)
+		order.fechaEntrega >= DateTime.now
+	end
 end

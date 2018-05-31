@@ -8,21 +8,23 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 
 	job = Rufus::Scheduler.new(:max_work_threads => 1)
 	job.every '35' do
-	  puts "Ejecutando update."
+		puts "Ejecutando update."
 
-    # Marcamos ordenes vencidas y las finalizadas
-    Scheduler::OrderHelper.marcar_vencidas
+		# Marcamos ordenes vencidas y las finalizadas
+		Scheduler::OrderHelper.marcar_vencidas
 
-		# Aca pagamos las ordenes #
-		#Scheduler::PaymentHelper.pagar_ordenes
-
-		# Vemos que ordenes aceptar y cual ignorar (despues las rechazamos) #
+		# Vemos que ordenes aceptar #
 		Scheduler::OrderHelper.aceptar_ordenes
+
+		# Chequeo de si alguna de las aceptadas tiene stock #
 		Scheduler::OrderHelper.chequear_si_hay_stock
 		#Scheduler::OrderHelper.fabricar_api
 
-    # Cambiamos las ordenes de almacen #
-    #Scheduler::OrderHelper.cambiar_almacen
+		# Aca pagamos las ordenes #
+		Scheduler::PaymentHelper.pagar_ordenes
+
+		# Cambiamos las ordenes de almacen #
+		#Scheduler::OrderHelper.cambiar_almacen
 
 		# Aca despachamos lo pagado #
 		#Scheduler::ShipmentHelper.despachar_ordenes
@@ -34,24 +36,24 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		# Aca movemos los items de almacen #
 		Scheduler::ProductosHelper.hacer_movimientos
 
-	  # Cargamos nuevos stocks y stock de almacenes nuevos #
-	  Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
+		# Cargamos nuevos stocks y stock de almacenes nuevos #
+		Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
 
-	  # Tratamos de que se mantenga los optimos de cada almacen #
+		# Tratamos de que se mantenga los optimos de cada almacen #
 		Scheduler::AlmacenesHelper.mantener_consistencia
 
-	  puts "Termina update."
+		puts "Termina update."
 	end # end del scheduler
 
 
   job_sftp = Rufus::Scheduler.new(:max_work_threads => 1)
   job_sftp.every '10m' do
-    puts "Ejecutando chequeo de ordenes nuevas ftp"
-    
-    # Descargamos nuevas ordenes
-    Scheduler::SftpHelper.agregar_nuevas_ordenes
+		puts "Ejecutando chequeo de ordenes nuevas ftp"
 
-    puts "Termina chequeo de ordenes nuevas ftp"
+		# Descargamos nuevas ordenes
+		Scheduler::SftpHelper.agregar_nuevas_ordenes
+
+		puts "Termina chequeo de ordenes nuevas ftp"
   end
 
 end
