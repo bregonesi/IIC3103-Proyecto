@@ -17,7 +17,8 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		#Scheduler::PaymentHelper.pagar_ordenes
 
 		# Vemos que ordenes aceptar y cual ignorar (despues las rechazamos) #
-		#Scheduler::OrderHelper.aceptar_ordenes
+		Scheduler::OrderHelper.aceptar_ordenes
+		Scheduler::OrderHelper.chequear_si_hay_stock
 		#Scheduler::OrderHelper.fabricar_api
 
     # Cambiamos las ordenes de almacen #
@@ -27,14 +28,14 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		#Scheduler::ShipmentHelper.despachar_ordenes
 
 		# Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
-		#Scheduler::AlmacenesHelper.nuevos_almacenes
-		#Scheduler::AlmacenesHelper.eliminar_extras
+		Scheduler::AlmacenesHelper.nuevos_almacenes
+		Scheduler::AlmacenesHelper.eliminar_extras
 
 		# Aca movemos los items de almacen #
 		Scheduler::ProductosHelper.hacer_movimientos
 
 	  # Cargamos nuevos stocks y stock de almacenes nuevos #
-	  #Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
+	  Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
 
 	  # Tratamos de que se mantenga los optimos de cada almacen #
 		Scheduler::AlmacenesHelper.mantener_consistencia

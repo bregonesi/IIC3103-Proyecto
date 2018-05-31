@@ -69,6 +69,8 @@ module Scheduler::AlmacenesHelper
 	end
 
 	def nuevos_almacenes
+		puts "Chequeando si hay nuevos almacenes"
+
 		url = ENV['api_url'] + "bodega/almacenes"
 
 		base = 'GET'
@@ -112,6 +114,8 @@ module Scheduler::AlmacenesHelper
 	end
 
 	def eliminar_extras
+		puts "Chequeando si eliminaron almacenes"
+
 		url = ENV['api_url'] + "bodega/almacenes"
 
 		base = 'GET'

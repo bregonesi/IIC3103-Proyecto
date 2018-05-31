@@ -147,6 +147,8 @@ module Scheduler::ProductosHelper
 	end
 
 	def cargar_nuevos  ## y elimina vencidos
+		puts "Cargando nuevos productos y eliminando vencidos"
+		
 		url = ENV['api_url'] + "bodega/skusWithStock"
 
 		Spree::StockLocation.where.not(proposito: "Backorderable").each do |stock_location|
