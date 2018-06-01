@@ -58,6 +58,11 @@ module Scheduler::ProductosHelper
 					productos_mover = obtener_lote_antiguo(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
 				end
 
+				if stock_item_dest.stock_location.available_capacity == 0
+					puts "No queda capacidad en destino. Nos saltanmos movement"
+					next
+				end
+				
 	      j = 0
 				productos_mover.each do |prod|  ## hay que mover producto por producto (si, ineficiente)
 					prod.with_lock do 
