@@ -18,7 +18,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 
 		# Chequeo de si alguna de las aceptadas tiene stock #
 		Scheduler::OrderHelper.chequear_si_hay_stock
-		#Scheduler::OrderHelper.fabricar_api
+		Scheduler::OrderHelper.fabricar_api
 
 		# Aca pagamos las ordenes #
 		Scheduler::PaymentHelper.pagar_ordenes

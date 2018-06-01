@@ -28,22 +28,23 @@ module Scheduler::OrderHelper
 		SftpOrder.where(myEstado: "finalizada").where.not(serverEstado: "finalizada").each do |sftp_order|
 			puts "Viendo si hay que marcar " + sftp_order.oc.to_s + " como finalizada"
 
-			r = HTTParty.post(ENV['api_oc_url'] + "obtener/" + sftp_order.oc.to_s,
-												body: { }.to_json,
-												headers: { 'Content-type': 'application/json' })
+			r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + sftp_order.oc.to_s,
+											 body: { }.to_json,
+											 headers: { 'Content-type': 'application/json' })
 
 			if r.code == 200
 				body = JSON.parse(r.body)[0]
 				serverEstado = body['estado']
 
+				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
 				if serverEstado == "finalizada"
 					sftp_order.serverEstado = serverEstado
-					sftp_order.save!
 				else
 					puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-					puts "ATENCION: OC " + sftp_order.oc.to_s + " NO ESTA COMO FINALIZADA EN EL SERVIDOR PERO SI EN NUESTRA APP"
+					puts "!! ATENCION: OC " + sftp_order.oc.to_s + " NO ESTA COMO FINALIZADA EN EL SERVIDOR PERO SI EN NUESTRA APP !!"
 					puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 				end
+				sftp_order.save!
 			else
 				puts r
 			end
