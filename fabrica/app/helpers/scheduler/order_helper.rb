@@ -285,7 +285,7 @@ module Scheduler::OrderHelper
 				puts "Mandamos a fabricar"
 
 				variant = Spree::Variant.find_by(sku: request.sku)
-				Scheduler::ProductosHelper.cargar_nuevos
+				#Scheduler::ProductosHelper.cargar_nuevos
 
 				if !variant.can_produce?  ## por si me robaron el stock
 					puts "Se destruye orden de fabricacion ya que no se cuenta con los productos disponibles"
@@ -293,15 +293,32 @@ module Scheduler::OrderHelper
 					return fabricar_api
 				end
 
+				a_cambiar = []
 				variant.recipe.each do |ingredient|
 					disponible_en_despacho = variant.stock_items.where(stock_location: Spree::StockLocation.where(proposito: "Despacho")).map(&:count_on_hand).reduce(:+)
 					if disponible_en_despacho.to_i < ingredient.amount.to_i
 						puts "Hay que mover stock antes de fabricar"
-						cambiar_items_a_despacho(ingredient.variant_ingredient, ingredient.amount.to_i - disponible_en_despacho.to_i)
+						a_cambiar << [ingredient.variant_ingredient, ingredient.amount.to_i - disponible_en_despacho.to_i]
+						#cambiar_items_a_despacho(ingredient.variant_ingredient, ingredient.amount.to_i - disponible_en_despacho.to_i)
 					end
 				end
 
+				capacidad_requerida = a_cambiar.map{|e| e[1]}.sum
+				almacen_despacho = Spree::StockLocation.despachos.order(capacidad_maxima: :desc).first
+				if capacidad_requerida > almacen_despacho.available_capacity
+					puts "Se requiere cambiar a despacho mas del espacio que hay. Saltamos fabricacion"
+					puts a_cambiar.inspect
+					next
+				end
+
+				a_cambiar.each do |e|
+					puts "Cambiando a despacho " + e.inspect
+					cambiar_items_a_despacho(e[0], e[1])
+				end
+
 				puts "Terminamos de mover stock"
+
+				next
 
 				url = ENV['api_url'] + "bodega/fabrica/fabricarSinPago"
 				base = 'PUT' + variant.sku + variant.lote_minimo.to_s
@@ -348,6 +365,10 @@ module Scheduler::OrderHelper
     end
     if despacho_escogido.nil?
     	raise "Error en escoger despacho para cambiar item a despacho"
+    end
+
+    if cantidad > despacho_escogido.available_capacity
+    	raise "Se esta intentando mover a despacho mas de la capacidad que se tiene"
     end
 
 		#stock_item = despacho_escogido.stock_items.find_by(variant: variant)
@@ -412,13 +433,20 @@ module Scheduler::OrderHelper
 		Spree::Order.where(state: "complete", shipment_state: "ready", payment_state: "paid").each do |orden|
 			orden.with_lock do
 				a_mover = {}
+				almacen_despacho = Spree::StockLocation.despachos.order(capacidad_maxima: :desc).first
+
 				orden.shipments.each do |shipment|
+					capacidad_disponible = almacen_despacho.available_capacity
+
 					shipment.with_lock do
 						if shipment.stock_location.proposito != "Despacho"
 							shipment.line_items.each do |li|
 								li.with_lock do
 									variant_li = li.variant
-									cantidad = shipment.inventory_units_for(variant_li).sum(:quantity)
+
+									cantidad_en_despachos = variant_li.stock_items.where(stock_location: almacen_despacho).map(&:count_on_hand).reduce(:+).to_i
+
+									cantidad = [shipment.inventory_units_for(variant_li).sum(:quantity), capacidad_disponible + cantidad_en_despachos].min
 
 									puts "Eliminando " + variant_li.sku + " de ship " + shipment.number + " y unidades " + cantidad.to_s
 									# Sacamos del shipment original
@@ -428,27 +456,30 @@ module Scheduler::OrderHelper
 										a_mover[variant_li] = []
 									end
 									a_mover[variant_li] << cantidad
+									capacidad_disponible = capacidad_disponible - cantidad + cantidad_en_despachos
 								end
 							end
 
-							shipment.destroy!  ## destruimos el otro
+							if !shipment.inventory_units.any?
+								shipment.destroy!  ## destruimos el shipment
+							end
 						end
 					end
 				end
 
 				if !a_mover.empty?
-					shipment_despacho = orden.shipments.find_by(stock_location: Spree::StockLocation.despachos)
+					shipment_despacho = orden.shipments.find_by(stock_location: almacen_despacho)
 					if shipment_despacho.nil?
 						puts "Reutilizando shipment"
 						## si no hay shipment de despacho lo creamos
-						shipment_despacho = orden.shipments.create(stock_location: Spree::StockLocation.despachos.order(capacidad_maxima: :desc).first)
+						shipment_despacho = orden.shipments.create(stock_location: almacen_despacho)
 					else
 						puts "Shipment ya existia"
 					end
 
 					a_mover.each do |key, array|
 						cantidad_mover = array.sum.to_i
-						cantidad_en_despachos = key.stock_items.where(stock_location: Spree::StockLocation.despachos).map(&:count_on_hand).reduce(:+).to_i
+						cantidad_en_despachos = key.stock_items.where(stock_location: almacen_despacho).map(&:count_on_hand).reduce(:+).to_i
 						cantidad_mover_a_despacho = [cantidad_mover - cantidad_en_despachos, 0].max
 
 						puts "Moviendo " + key.sku + " unidades: " + cantidad_mover_a_despacho.to_s
@@ -456,7 +487,7 @@ module Scheduler::OrderHelper
 						if cantidad_mover_a_despacho > 0
 							cambiar_items_a_despacho(key, cantidad_mover_a_despacho)
 						end
-							
+
 						# Agregamos al shipment de despacho
 						orden.contents.add(key, cantidad_mover, shipment: shipment_despacho)  ## variant, quantity, options
 					end

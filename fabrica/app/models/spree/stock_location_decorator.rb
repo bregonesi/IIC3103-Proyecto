@@ -1,16 +1,22 @@
 Spree::StockLocation.class_eval do
   def used_capacity
-  	used = 0
-    
-    self.stock_items.each do |item|
-    	used += item.count_on_hand
-    end
+    self.stock_items.sum(:count_on_hand)
+  end
 
-    return used
+  def shipment_capacity
+    items_por_despachar = 0
+    self.shipments.each do |shipment|
+      if shipment.order.completed?
+        shipment.inventory_units.each do |iu|
+          items_por_despachar = iu.quantity - iu.shipped_quantity
+        end
+      end
+    end
+    items_por_despachar
   end
 
   def available_capacity
-  	self.capacidad_maxima - used_capacity
+  	self.capacidad_maxima - used_capacity - shipment_capacity
   end
 
   def self.almacenes
