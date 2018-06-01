@@ -285,6 +285,7 @@ module Scheduler::OrderHelper
 				Scheduler::ProductosHelper.cargar_nuevos
 
 				if !variant.can_produce?  ## por si me robaron el stock
+					puts "Se destruye orden de fabricacion ya que no se cuenta con los productos disponibles"
 					request.destroy
 					return fabricar_api
 				end
@@ -293,7 +294,7 @@ module Scheduler::OrderHelper
 					disponible_en_despacho = variant.stock_items.where(stock_location: Spree::StockLocation.where(proposito: "Despacho")).map(&:count_on_hand).reduce(:+)
 					if disponible_en_despacho.to_i < ingredient.amount.to_i
 						puts "Hay que mover stock antes de fabricar"
-						cambiar_items_a_despacho(Spree::Variant.find(ingredient.variant_ingredient.id), ingredient.amount.to_i - disponible_en_despacho.to_i)
+						cambiar_items_a_despacho(ingredient.variant_ingredient, ingredient.amount.to_i - disponible_en_despacho.to_i)
 					end
 				end
 
@@ -313,6 +314,7 @@ module Scheduler::OrderHelper
 				
 				if r.code == 200
 					variant.recipe.each do |ingredient|
+						stock_location = ingredient.variant_ingredient.stock_items.where(stock_location: Spree::StockLocation.generales).order(count_on_hand: :desc).first.stock_location
 						stock_movement = stock_location.stock_movements.build(quantity: -ingredient.amount.to_i)
 						stock_movement.action = "Mandamos a fabricar."
 						stock_movement.stock_item = stock_location.set_up_stock_item(ingredient.variant_ingredient)
