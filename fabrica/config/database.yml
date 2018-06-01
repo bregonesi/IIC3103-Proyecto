@@ -33,3 +33,17 @@ production:  ## Heroku es production
 
 #  password: fabrica_password  ## Heroku sabe que password nos asigna
   password: spree123
+
+development_psql:  ## Heroku es production
+  adapter: postgresql  ## Le decimos a heroku que use postgress
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+#  database: fabrica_development  ## Da lo mismo que ponemos aqui por que heroku reemplaza esto con la bdd que el nos crea
+  database: rails
+
+#  username: fabrica_username  ## Heroku sabe que username nos asigna
+  username: iic3103_project
+
+#  password: fabrica_password  ## Heroku sabe que password nos asigna
+  password: project

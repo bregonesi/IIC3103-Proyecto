@@ -14,25 +14,25 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		Scheduler::OrderHelper.marcar_finalizadas
 
 		# Vemos que ordenes aceptar #
-		Scheduler::OrderHelper.aceptar_ordenes
+		#Scheduler::OrderHelper.aceptar_ordenes
 
 		# Chequeo de si alguna de las aceptadas tiene stock #
-		Scheduler::OrderHelper.chequear_si_hay_stock
+		#Scheduler::OrderHelper.chequear_si_hay_stock
 
 		# Aca pagamos las ordenes #
-		Scheduler::PaymentHelper.pagar_ordenes
+		#Scheduler::PaymentHelper.pagar_ordenes
 
 		# Aca despachamos lo pagado #
-		Scheduler::ShipmentHelper.despachar_ordenes
+		#Scheduler::ShipmentHelper.despachar_ordenes
 
 		# Cambiamos las ordenes de almacen #
-		Scheduler::OrderHelper.cambiar_almacen
+		#Scheduler::OrderHelper.cambiar_almacen
 
 		# Aca despachamos lo pagado #
-		Scheduler::ShipmentHelper.despachar_ordenes
+		#Scheduler::ShipmentHelper.despachar_ordenes
 		
 		# Fabricamos las pedidas #
-		Scheduler::OrderHelper.fabricar_api
+		#Scheduler::OrderHelper.fabricar_api
 		
 		# Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
 		Scheduler::AlmacenesHelper.nuevos_almacenes
