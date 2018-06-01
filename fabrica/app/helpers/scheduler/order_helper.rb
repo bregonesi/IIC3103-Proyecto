@@ -443,13 +443,13 @@ module Scheduler::OrderHelper
 
 							a_mover.each do |key, array|
 								cantidad_mover = array.sum.to_i
-								cantidad_en_despachos = variant_li.stock_items.where(stock_location: Spree::StockLocation.despachos).map(&:count_on_hand).reduce(:+).to_i
+								cantidad_en_despachos = key.stock_items.where(stock_location: Spree::StockLocation.despachos).map(&:count_on_hand).reduce(:+).to_i
 								cantidad_mover_a_despacho = [cantidad_mover - cantidad_en_despachos, 0].max
 
 								puts "Moviendo " + key.sku + " unidades: " + cantidad_mover_a_despacho.to_s
 								# Movemos al almacen de despacho
 								if cantidad_mover_a_despacho > 0
-									cambiar_items_a_despacho(variant_li, cantidad_mover_a_despacho)
+									cambiar_items_a_despacho(key, cantidad_mover_a_despacho)
 								end
 									
 								# Agregamos al shipment de despacho
