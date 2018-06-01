@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180530161328) do
+ActiveRecord::Schema.define(version: 20180601044736) do
 
   create_table "fabricar_requests", force: :cascade do |t|
     t.string "id_prod"
@@ -359,6 +359,7 @@ ActiveRecord::Schema.define(version: 20180530161328) do
     t.integer "state_lock_version", default: 0, null: false
     t.decimal "taxable_adjustment_total", precision: 10, scale: 2, default: "0.0", null: false
     t.decimal "non_taxable_adjustment_total", precision: 10, scale: 2, default: "0.0", null: false
+    t.integer "sftp_order_id"
     t.index ["approver_id"], name: "index_spree_orders_on_approver_id"
     t.index ["bill_address_id"], name: "index_spree_orders_on_bill_address_id"
     t.index ["canceler_id"], name: "index_spree_orders_on_canceler_id"
@@ -368,6 +369,7 @@ ActiveRecord::Schema.define(version: 20180530161328) do
     t.index ["created_by_id"], name: "index_spree_orders_on_created_by_id"
     t.index ["guest_token"], name: "index_spree_orders_on_guest_token"
     t.index ["number"], name: "index_spree_orders_on_number", unique: true
+    t.index ["sftp_order_id"], name: "index_spree_orders_on_sftp_order_id"
     t.index ["ship_address_id"], name: "index_spree_orders_on_ship_address_id"
     t.index ["store_id"], name: "index_spree_orders_on_store_id"
     t.index ["user_id", "created_by_id"], name: "index_spree_orders_on_user_id_and_created_by_id"

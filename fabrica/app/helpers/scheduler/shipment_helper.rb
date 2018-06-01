@@ -10,10 +10,9 @@ module Scheduler::ShipmentHelper
           shipment.inventory_units.each do |iu|
             iu.with_lock do
               cantidad_despachar = iu.quantity.to_i - iu.shipped_quantity.to_i
-              Scheduler::ProductosHelper.cargar_detalles(Spree::StockItem.find_by(variant: iu.variant, stock_location: shipment.stock_location))
-              productos_despachar = Scheduler::ProductosHelper.obtener_lote_antiguo(
-                                      Spree::StockItem.find_by(variant: iu.variant, stock_location: shipment.stock_location),
-                                      cantidad=cantidad_despachar)
+              stock_item_despachar = iu.variant.stock_items.find_by(stock_location: shipment.stock_location)
+              Scheduler::ProductosHelper.cargar_detalles(stock_item_despachar)  ## cargamos detalles para ver si se vencieron/aparecieron nuevos
+              productos_despachar = Scheduler::ProductosHelper.obtener_lote_antiguo(stock_item_despachar, cantidad=cantidad_despachar)
 
               j = 0  # contador de cuantos productos han sido despachados
               if productos_despachar.empty?
@@ -34,7 +33,7 @@ module Scheduler::ShipmentHelper
                                            precio: iu.line_item.price.to_i,
                                            oc: shipment.order.number.to_s}.to_json,
                                     headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
-                #puts r
+                puts r
 
                 if r.code == 200
                   j += 1
@@ -60,10 +59,12 @@ module Scheduler::ShipmentHelper
               if iu.shipped_quantity >= iu.quantity
                 iu.shipment.ship!
 
-		            iu.order.with_lock do
-	                iu.order.atencion = 2
-        	        iu.order.save!
-		            end
+                if !shipment.order.sftp_order.nil?
+                  if shipment.order.sftp_order.cantidad >= iu.shipped_quantity
+                    shipment.order.sftp_order.myEstado = "finalizada"
+                    shipment.order.sftp_order.save!
+                  end
+                end
                 puts "Orden despachada"
               else
                 stop_scheduler = true

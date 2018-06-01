@@ -22,6 +22,34 @@ module Scheduler::OrderHelper
 		end
 	end
 
+	def marcar_finalizadas
+		puts "Viendo si hay que marcar finalizadas"
+
+		SftpOrder.where(myEstado: "finalizada").where.not(serverEstado: "finalizada").each do |sftp_order|
+			puts "Viendo si hay que marcar " + sftp_order.oc.to_s + " como finalizada"
+
+			r = HTTParty.post(ENV['api_oc_url'] + "obtener/" + sftp_order.oc.to_s,
+												body: { }.to_json,
+												headers: { 'Content-type': 'application/json' })
+
+			if r.code == 200
+				body = JSON.parse(r.body)[0]
+				serverEstado = body['estado']
+
+				if serverEstado == "finalizada"
+					sftp_order.serverEstado = serverEstado
+					sftp_order.save!
+				else
+					puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+					puts "ATENCION: OC " + sftp_order.oc.to_s + " NO ESTA COMO FINALIZADA EN EL SERVIDOR PERO SI EN NUESTRA APP"
+					puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+				end
+			else
+				puts r
+			end
+		end
+	end
+
 	def aceptar_ordenes
 		##
 		## Una orden tiene mas o menos 24 horas para ser acepta. Voy a analizar si
@@ -125,31 +153,35 @@ module Scheduler::OrderHelper
 				#cantidad_despachar = 10  ## solo para testeo
 				recien_creada = false
 
-				spree_order = Spree::Order.where(number: sftp_order.oc,
-																				 email: 'spree@example.com').first_or_create! do |o|
-					puts "Creando spree order " + sftp_order.oc
-					recien_creada = true
+				spree_order = sftp_order.order
+				if spree_order.nil?
+					sftp_order.build_order(number: sftp_order.oc,
+																 email: 'spree@example.com') do |o|
+						puts "Creando spree order " + sftp_order.oc
+						recien_creada = true
 
-					o.contents.add(variant, cantidad_despachar.to_i, {})  ## variant, quantity, options
-					o.update_line_item_prices!
-					o.create_tax_charge!
-					o.next!  # pasamos a address
+						o.contents.add(variant, cantidad_despachar.to_i, {})  ## variant, quantity, options
+						o.update_line_item_prices!
+						o.create_tax_charge!
+						o.next!  # pasamos a address
 
-					o.bill_address = Spree::Address.first
-					o.ship_address = Spree::Address.first
-					o.next!  # pasamos a delivery
+						o.bill_address = Spree::Address.first
+						o.ship_address = Spree::Address.first
+						o.next!  # pasamos a delivery
 
-					o.create_proposed_shipments
-					o.next!  # pasamos a payment
+						o.create_proposed_shipments
+						o.next!  # pasamos a payment
 
-					payment = o.payments.where(amount: BigDecimal(o.total, 4),
-																		 payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first).first_or_create!
-					payment.update_columns(state: 'checkout')
+						payment = o.payments.where(amount: BigDecimal(o.total, 4),
+																			 payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first).first_or_create!
+						payment.update_columns(state: 'checkout')
 
-					o.confirmation_delivered = true  ## forzamos para que no se envie mail
-					o.next!  # pasamos a complete
+						o.confirmation_delivered = true  ## forzamos para que no se envie mail
+						o.next!  # pasamos a complete
 
-					o.channel = "ftp"
+						o.channel = "ftp"
+					end
+					sftp_order.save!
 				end
 
 				if !recien_creada && spree_order
