@@ -14,10 +14,10 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		Scheduler::OrderHelper.marcar_finalizadas
 
 		# Vemos que ordenes aceptar #
-		Scheduler::OrderHelper.aceptar_ordenes
+		#Scheduler::OrderHelper.aceptar_ordenes
 
 		# Chequeo de si alguna de las aceptadas tiene stock #
-		Scheduler::OrderHelper.chequear_si_hay_stock
+		#Scheduler::OrderHelper.chequear_si_hay_stock
 		Scheduler::OrderHelper.fabricar_api
 
 		# Aca pagamos las ordenes #
@@ -40,7 +40,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
 
 		# Tratamos de que se mantenga los optimos de cada almacen #
-		#Scheduler::AlmacenesHelper.mantener_consistencia
+		Scheduler::AlmacenesHelper.mantener_consistencia
 
 		puts "Termina update."
 	end # end del scheduler

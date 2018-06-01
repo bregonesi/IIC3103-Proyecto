@@ -3,7 +3,7 @@ module Scheduler::OrderHelper
 	def marcar_vencidas
 		puts "Viendo si hay que marcar vencidas"
 
-		SftpOrder.vencidas.where(myEstado: "creada", serverEstado: "creada").each do |sftp_order|
+		SftpOrder.vencidas.where(serverEstado: "creada").each do |sftp_order|
 			puts "Marcando " + sftp_order.oc.to_s + " como rechazada"
 			sftp_order.rechazo = "Orden se encuentra fuera de plazo"
 
