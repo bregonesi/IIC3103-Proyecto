@@ -29,6 +29,8 @@ module Scheduler::ProductosHelper
 		Spree::StockMovement.where("originator_type = 'Spree::StockTransfer' AND quantity < 0 AND (-quantity > moved_quantity OR moved_quantity IS NULL)").each do |movement|
 
 			movement.with_lock do
+				puts "Moveremos desde " + movement.stock_item.stock_location.name
+
 	      almacen_id_dest = nil
 	      stock_item_dest = nil
 			  Spree::StockMovement.where("originator_type = ? AND originator_id = ? AND quantity > 0", movement.originator_type, movement.originator_id).each do |movement_dest|
@@ -38,8 +40,13 @@ module Scheduler::ProductosHelper
 			  end
 
 			  if !almacen_id_dest || !stock_item_dest
-			  	raise "No hay destino de transferencia"
+			  	movement.destroy!
+			  	puts "Destruyendo movement ya que no hay destino"
+			  	return hacer_movimientos
+			  	#raise "No hay destino de transferencia"
 			  end
+
+			  puts "hacia desde " + stock_item_dest.stock_location.name
 
 				cargar_detalles(movement.stock_item)  ## por si aparecen nuevos stocks q agregar
 				cargar_detalles(stock_item_dest)  ## por si aparecen nuevos stocks q agregar

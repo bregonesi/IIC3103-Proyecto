@@ -2,7 +2,6 @@ require 'rufus-scheduler'
 
 include SchedulerHelper
 
-
 if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	puts "Partiendo scheduler"
 
@@ -24,7 +23,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		Scheduler::PaymentHelper.pagar_ordenes
 
 		# Cambiamos las ordenes de almacen #
-		#Scheduler::OrderHelper.cambiar_almacen
+		Scheduler::OrderHelper.cambiar_almacen
 
 		# Aca despachamos lo pagado #
 		#Scheduler::ShipmentHelper.despachar_ordenes
@@ -40,7 +39,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
 
 		# Tratamos de que se mantenga los optimos de cada almacen #
-		Scheduler::AlmacenesHelper.mantener_consistencia
+		#Scheduler::AlmacenesHelper.mantener_consistencia
 
 		puts "Termina update."
 	end # end del scheduler

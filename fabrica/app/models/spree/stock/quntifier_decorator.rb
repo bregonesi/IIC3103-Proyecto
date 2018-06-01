@@ -1,4 +1,5 @@
 Spree::Stock::Quantifier.class_eval do
+=begin
   def total_on_hand
     if variant.should_track_inventory?
       stock_items.where(backorderable: false).sum(:count_on_hand)
@@ -6,4 +7,5 @@ Spree::Stock::Quantifier.class_eval do
       Float::INFINITY
     end
   end
+=end
 end

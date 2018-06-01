@@ -103,99 +103,101 @@ module Scheduler::OrderHelper
 	def create_spree_from_sftp_order(sftp_order)
 		puts "Creando spree order from sftp order"
 
-		if sftp_order.myEstado != "aceptada"
-			r = HTTParty.post(ENV['api_oc_url'] + "recepcionar/" + sftp_order.oc.to_s,
-													body: { }.to_json,
-													headers: { 'Content-type': 'application/json' })
-			puts r
-		end
+		sftp_order.with_lock do
 
-		if sftp_order.myEstado == "aceptada" || r.code == 200
 			if sftp_order.myEstado != "aceptada"
-				sftp_order.myEstado = "aceptada"
-				sftp_order.serverEstado = "aceptada"
-				sftp_order.save!
+				r = HTTParty.post(ENV['api_oc_url'] + "recepcionar/" + sftp_order.oc.to_s,
+														body: { }.to_json,
+														headers: { 'Content-type': 'application/json' })
+				puts r
 			end
 
-			variant = Spree::Variant.find_by!(sku: sftp_order.sku)
-			cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
-			cantidad_despachar = [cantidad_restante, variant.total_on_hand].min
-			cantidad_despachar = 10
-			recien_creada = false
+			if sftp_order.myEstado == "aceptada" || r.code == 200
+				if sftp_order.myEstado != "aceptada"
+					sftp_order.myEstado = "aceptada"
+					sftp_order.serverEstado = "aceptada"
+					sftp_order.save!
+				end
 
-			spree_order = Spree::Order.where(number: sftp_order.oc,
-																			 email: 'spree@example.com').first_or_create! do |o|
-				puts "Creando spree order " + sftp_order.oc
-				recien_creada = true
+				variant = Spree::Variant.find_by!(sku: sftp_order.sku)
+				cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
+				cantidad_despachar = [cantidad_restante, variant.total_on_hand].min
+				#cantidad_despachar = 10  ## solo para testeo
+				recien_creada = false
 
-				o.contents.add(variant, cantidad_despachar.to_i, {})  ## variant, quantity, options
-				o.update_line_item_prices!
-				o.create_tax_charge!
-				o.next!  # pasamos a address
+				spree_order = Spree::Order.where(number: sftp_order.oc,
+																				 email: 'spree@example.com').first_or_create! do |o|
+					puts "Creando spree order " + sftp_order.oc
+					recien_creada = true
 
-				o.bill_address = Spree::Address.first
-				o.ship_address = Spree::Address.first
-				o.next!  # pasamos a delivery
+					o.contents.add(variant, cantidad_despachar.to_i, {})  ## variant, quantity, options
+					o.update_line_item_prices!
+					o.create_tax_charge!
+					o.next!  # pasamos a address
 
-				o.create_proposed_shipments
-				o.next!  # pasamos a payment
+					o.bill_address = Spree::Address.first
+					o.ship_address = Spree::Address.first
+					o.next!  # pasamos a delivery
 
-				payment = o.payments.where(amount: BigDecimal(o.total, 4),
-																	 payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first).first_or_create!
-				payment.update_columns(state: 'checkout')
+					o.create_proposed_shipments
+					o.next!  # pasamos a payment
 
-				o.confirmation_delivered = true  ## forzamos para que no se envie mail
-				o.next!  # pasamos a complete
+					payment = o.payments.where(amount: BigDecimal(o.total, 4),
+																		 payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first).first_or_create!
+					payment.update_columns(state: 'checkout')
 
-				o.channel = "ftp"
-			end
+					o.confirmation_delivered = true  ## forzamos para que no se envie mail
+					o.next!  # pasamos a complete
 
-			if !recien_creada && spree_order
-				puts "Agregando stock a orden ya creada. Number: " + spree_order.number
+					o.channel = "ftp"
+				end
 
-				shipment_quantity_left = cantidad_despachar
-				new_shipments = []
-				while shipment_quantity_left > 0
-					Spree::StockLocation.almacenes.each do |almacen|
-						stock_item = almacen.stock_items.find_by(variant: variant, count_on_hand: 1..Float::INFINITY)
-						if !stock_item.nil?
-							cantidad_despachar_shipment = [stock_item.count_on_hand, shipment_quantity_left].min
-							new_shipments << [almacen, cantidad_despachar_shipment]
-							shipment_quantity_left -= cantidad_despachar_shipment
+				if !recien_creada && spree_order
+					puts "Agregando stock a orden ya creada. Number: " + spree_order.number
+
+					spree_order.with_lock do
+
+						shipment_quantity_left = cantidad_despachar
+						new_shipments = []
+						while shipment_quantity_left > 0
+							Spree::StockLocation.almacenes.each do |almacen|
+								stock_item = almacen.stock_items.find_by(variant: variant, count_on_hand: 1..Float::INFINITY)
+								if !stock_item.nil?
+									cantidad_despachar_shipment = [stock_item.count_on_hand, shipment_quantity_left].min
+									new_shipments << [almacen, cantidad_despachar_shipment]
+									shipment_quantity_left -= cantidad_despachar_shipment
+								end
+
+								if shipment_quantity_left == 0
+									break
+								end
+							end
+
+							if shipment_quantity_left > 0
+								raise "Error en generar nuevo shipment para orden ya creada. Faltan " + shipment_quantity_left.to_s + " unidades"
+							end
 						end
 
-						if shipment_quantity_left == 0
-							break
+						new_shipments.each do |new_shipment|
+							shipment = spree_order.shipments.find_by(stock_location: new_shipment[0])
+							if shipment.nil?
+								shipment = spree_order.shipments.create(stock_location: new_shipment[0])
+							end
+
+							spree_order.contents.add(variant, new_shipment[1].to_i, shipment: shipment)  ## variant, quantity, options
 						end
-					end
 
-					if shipment_quantity_left > 0
-						raise "Error en generar nuevo shipment para orden ya creada. Faltan " + shipment_quantity_left.to_s + " unidades"
+						if !new_shipments.empty?
+							# nuevo payment ya que se agrego producto
+							payment = spree_order.payments.build(amount: BigDecimal(spree_order.outstanding_balance, 4),
+																									 payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first)
+							payment.save!
+						end
+						
+						sftp_order.myCantidadDespachada += cantidad_despachar.to_i
+						sftp_order.save!
 					end
 				end
-
-				new_shipments.each do |new_shipment|
-					shipment = spree_order.shipments.find_by(stock_location: new_shipment[0])
-					if shipment.nil?
-						shipment = spree_order.shipments.create(stock_location: new_shipment[0])
-					end
-
-					spree_order.contents.add(variant, new_shipment[1].to_i, {shipment: shipment})  ## variant, quantity, options
-				end
-
-				if !new_shipments.empty?
-					# nuevo payment ya que se agrego producto
-					payment = spree_order.payments.build(amount: BigDecimal(spree_order.outstanding_balance, 4),
-																							 payment_method: Spree::PaymentMethod.where(name: 'Gratis', active: true).first)
-					payment.save!
-				end
-				
-				sftp_order.myCantidadDespachada += cantidad_despachar.to_i
-				sftp_order.save!
-
-				#spree_order.update_line_item_prices!
-				#spree_order.create_tax_charge!
-				#while spree_order.next; end
 			end
 		end
 	end
@@ -298,38 +300,36 @@ module Scheduler::OrderHelper
 	def cambiar_items_a_despacho(variant, cantidad)  ## siempre vamos a mover para mantener con un stock
 		puts "Ejecutando cambiar items a despacho"
 
-		despachos = Spree::StockLocation.where(proposito: "Despacho")
-		stock_item = despacho.stock_items.find_by(variant: variant)
+		despachos = Spree::StockLocation.despachos.order(capacidad_maxima: :desc)
+    despacho_escogido = nil
+    despachos.each do |despacho_entry|
+    	if despacho_entry.available_capacity >= cantidad
+    		despacho_escogido = despacho_entry
+    		break
+    	end
+    end
+    if despacho_escogido.nil?
+    	raise "Error en escoger despacho para cambiar item a despacho"
+    end
 
-=begin
-		Scheduler::ProductosHelper.cargar_nuevos
-		variant.stock_items.where(backorderable: false).each do |stock_item_detalle|
-			Scheduler::ProductosHelper.cargar_detalles(stock_item_detalle)
+		#stock_item = despacho_escogido.stock_items.find_by(variant: variant)
+		candidatos = variant.stock_items.where(id: (Spree::StockLocation.almacenes - despachos).map(&:stock_items).flatten)
+
+		candidatos.each do |c|
+			cargar_detalles(c)  ## por si aparecen nuevos stocks q agregar
 		end
-=end
 
     q = cantidad
     while q > 0
 			productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
-			a_mover = productos_ordenados.where(stock_item: (Spree::StockLocation.almacenes - despachos).map(&:stock_items).flatten)
+			a_mover = productos_ordenados.where(stock_item: candidatos)
 			a_mover_groupped = a_mover.group(:stock_item_id, :vencimiento).count(:id)  # todo hay groups y where denuevo ya que postgres tira error
 			
       if a_mover.empty?
       	break
       end
 
-      despacho_escogido = nil
-      despachos.each do |despacho_entry|
-      	if despacho_entry.available_capacity >= q
-      		despacho_escogido = despacho_entry
-      	end
-      end
-
-      if despacho_escogido.nil?
-      	raise "Error en escoger despacho para cambiar item a despacho"
-      end
-
-			puts "Cambiando a " + despacho_escogido.proposito + " (" + despacho_escogido.name + "), q " + q.to_s
+			puts "Cambiando a " + despacho_escogido.proposito + " (" + despacho_escogido.name + ") q " + q.to_s + " y queremos sku " + variant.sku
 
 			a_mover_datos = a_mover_groupped.each.next
 
@@ -354,9 +354,10 @@ module Scheduler::OrderHelper
     		puts e
     		stock_transfer.destroy
 				prods.destroy_all
-    		prod.stock_item.stock_location.stock_items.each do |x|
-    			Scheduler::ProductosHelper::cargar_detalles(x)
-    		end
+    		#prod.stock_item.stock_location.stock_items.each do |x|
+    		#	Scheduler::ProductosHelper::cargar_detalles(x)
+    		#end
+    		return cambiar_items_a_despacho(variant, cantidad)
     		break
     	end
 
@@ -368,60 +369,58 @@ module Scheduler::OrderHelper
 	end
 
 	def cambiar_almacen
-		# primero las que compramos por spree
-		Spree::Order.where(channel: "spree", shipment_state: "backorder").where.not(completed_at: nil).each do |orden|  ## estas son las que se compran por ecomerce, hay que si o si atenderlas asap
+		puts "Cambiando de almacen las ordenes listas"
+
+		Spree::Order.where(state: "complete", shipment_state: "ready", payment_state: "paid").each do |orden|
 			orden.with_lock do
 				orden.shipments.each do |shipment|
 					shipment.with_lock do
-						shipment.inventory_units.each do |iu|
-							iu.with_lock do
-								puts "Cambiamos de almacen una orden por spree"
+						if shipment.stock_location.proposito != "Despacho"
+							a_mover = {}
+							shipment.line_items.each do |li|
+								li.with_lock do
+									variant_li = li.variant
 
-								# cambiamos los prod al almacen de despacho
-								cambiar_items_a_despacho(Spree::Variant.find(iu.variant.id), iu.quantity.to_i)
+									cantidad_en_despachos = variant_li.stock_items.where(stock_location: Spree::StockLocation.despachos).map(&:count_on_hand).reduce(:+).to_i
+									cantidad_mover_a_despacho = [li.quantity - cantidad_en_despachos, 0].max
 
-								# cambiamos el shipment de backorder a almacen de despacho
-								Spree::Shipment.find(shipment.id).transfer_to_location(
-																										Spree::Variant.find(iu.variant.id),
-																										iu.quantity.to_i,
-																										Spree::StockLocation.where(proposito: "Despacho").first)
-							end
-						end
-					end
-				end
-			end
-		end
+									puts "Moviendo " + variant_li.sku + " unidades: " + cantidad_mover_a_despacho.to_s
+									# Sacamos del shipment original
+									orden.contents.remove(variant_li, li.quantity, shipment: shipment)
 
-		# ahora vemos las mayoristas
-		Spree::Order.where(state: "complete", channel: "ftp", shipment_state: "backorder", atencion: 1).where.not(completed_at: nil).each do |orden|
-			orden.with_lock do
-				orden.shipments.each do |shipment|
-					shipment.with_lock do
-						shipment.inventory_units.each do |iu|
-							iu.with_lock do
-								variant = Spree::Variant.find(iu.variant.id)
-								if variant.total_on_hand > 0
-									puts "Cambiamos de almacen una orden por ftp"
+									if a_mover[variant_li].nil?
+										a_mover[variant_li] = []
+									end
+									a_mover[variant_li] << li.quantity
+									puts a_mover
 
-									cantidad = [iu.quantity.to_i, variant.total_on_hand].min
-									puts "cantidad" + cantidad.to_s
-									# cambiamos los prod al almacen de despacho
-									cambiar_items_a_despacho(variant, cantidad)
-									puts "cambiamos sku a despacho"+variant.sku.to_s
-									# cambiamos el shipment de backorder a almacen de despacho
-									Spree::Shipment.find(shipment.id).transfer_to_location(
-																											variant,
-																											cantidad.to_i,
-																											Spree::StockLocation.where(proposito: "Despacho").first)
-									puts "hacemos shipment sku "+variant.sku
+									# Movemos al almacen de despacho
+									if cantidad_mover_a_despacho > 0
+										cambiar_items_a_despacho(variant_li, cantidad_mover_a_despacho)
+									end
 								end
 							end
+
+							shipment.destroy!  ## destruimos el otro
+							shipment_despacho = orden.shipments.find_by(stock_location: Spree::StockLocation.despachos)
+							if shipment_despacho.nil?
+								puts "Reutilizando shipment"
+								## si no hay shipment de despacho lo creamos
+								shipment_despacho = orden.shipments.create(stock_location: Spree::StockLocation.despachos.order(capacidad_maxima: :desc).first)
+							else
+								puts "Shipment ya existia"
+							end
+
+							a_mover.each do |key, array|
+								# Agregamos al shipment de despacho
+								orden.contents.add(key, array.sum.to_i, shipment: shipment_despacho)  ## variant, quantity, options
+							end
+
 						end
 					end
 				end
 			end
 		end
-
 	end
 
 end
