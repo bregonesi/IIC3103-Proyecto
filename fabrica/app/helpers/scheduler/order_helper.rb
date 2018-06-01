@@ -418,15 +418,16 @@ module Scheduler::OrderHelper
 							shipment.line_items.each do |li|
 								li.with_lock do
 									variant_li = li.variant
+									cantidad = shipment.inventory_units_for(variant_li).sum(:quantity)
 
-									puts "Eliminando " + variant_li.sku + " de ship y unidades: " + li.quantity.to_s
+									puts "Eliminando " + variant_li.sku + " de ship y unidades: " + cantidad.to_s
 									# Sacamos del shipment original
-									orden.contents.remove(variant_li, li.quantity, shipment: shipment)## no esta pasando nda aqui
+									orden.contents.remove(variant_li, cantidad, shipment: shipment)
 
 									if a_mover[variant_li].nil?
 										a_mover[variant_li] = []
 									end
-									a_mover[variant_li] << li.quantity
+									a_mover[variant_li] << cantidad
 									puts a_mover
 								end
 							end
