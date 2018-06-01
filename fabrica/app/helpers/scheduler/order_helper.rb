@@ -419,23 +419,15 @@ module Scheduler::OrderHelper
 								li.with_lock do
 									variant_li = li.variant
 
-									cantidad_en_despachos = variant_li.stock_items.where(stock_location: Spree::StockLocation.despachos).map(&:count_on_hand).reduce(:+).to_i
-									cantidad_mover_a_despacho = [li.quantity - cantidad_en_despachos, 0].max
-
-									puts "Moviendo " + variant_li.sku + " unidades: " + cantidad_mover_a_despacho.to_s
+									puts "Eliminando " + variant_li.sku + " de ship y unidades: " + li.quantity.to_s
 									# Sacamos del shipment original
-									orden.contents.remove(variant_li, li.quantity, shipment: shipment)
+									orden.contents.remove(variant_li, li.quantity, shipment: shipment)## no esta pasando nda aqui
 
 									if a_mover[variant_li].nil?
 										a_mover[variant_li] = []
 									end
 									a_mover[variant_li] << li.quantity
 									puts a_mover
-
-									# Movemos al almacen de despacho
-									if cantidad_mover_a_despacho > 0
-										cambiar_items_a_despacho(variant_li, cantidad_mover_a_despacho)
-									end
 								end
 							end
 
@@ -450,8 +442,18 @@ module Scheduler::OrderHelper
 							end
 
 							a_mover.each do |key, array|
+								cantidad_mover = array.sum.to_i
+								cantidad_en_despachos = variant_li.stock_items.where(stock_location: Spree::StockLocation.despachos).map(&:count_on_hand).reduce(:+).to_i
+								cantidad_mover_a_despacho = [cantidad_mover - cantidad_en_despachos, 0].max
+
+								puts "Moviendo " + key.sku + " unidades: " + cantidad_mover_a_despacho.to_s
+								# Movemos al almacen de despacho
+								if cantidad_mover_a_despacho > 0
+									cambiar_items_a_despacho(variant_li, cantidad_mover_a_despacho)
+								end
+									
 								# Agregamos al shipment de despacho
-								orden.contents.add(key, array.sum.to_i, shipment: shipment_despacho)  ## variant, quantity, options
+								orden.contents.add(key, cantidad_mover, shipment: shipment_despacho)  ## variant, quantity, options
 							end
 
 						end
