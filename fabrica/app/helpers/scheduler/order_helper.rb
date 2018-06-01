@@ -151,7 +151,7 @@ module Scheduler::OrderHelper
 				variant = Spree::Variant.find_by!(sku: sftp_order.sku)
 				cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
 				cantidad_despachar = [cantidad_restante, variant.total_on_hand].min
-				#cantidad_despachar = 10  ## solo para testeo
+				puts "create sftp order con cantidad despachar " + cantidad_despachar.to_s
 				recien_creada = false
 
 				spree_order = sftp_order.order
@@ -182,6 +182,7 @@ module Scheduler::OrderHelper
 
 						o.channel = "ftp"
 					end
+					sftp_order.myCantidadDespachada += cantidad_despachar.to_i
 					sftp_order.save!
 				end
 
@@ -199,6 +200,7 @@ module Scheduler::OrderHelper
 									cantidad_despachar_shipment = [stock_item.count_on_hand, shipment_quantity_left].min
 									new_shipments << [almacen, cantidad_despachar_shipment]
 									shipment_quantity_left -= cantidad_despachar_shipment
+									puts "creando shipment con cantidad despachar " + cantidad_despachar_shipment.to_s
 								end
 
 								if shipment_quantity_left == 0
@@ -218,6 +220,7 @@ module Scheduler::OrderHelper
 							end
 
 							spree_order.contents.add(variant, new_shipment[1].to_i, shipment: shipment)  ## variant, quantity, options
+							puts "agreganodo shipment con cantidad de prods " + new_shipment[1].to_s
 						end
 
 						if !new_shipments.empty?
