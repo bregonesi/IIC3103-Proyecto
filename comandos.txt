@@ -16,6 +16,9 @@ sudo service nginx start
 # Reiniciar webserver
 sudo service nginx restart
 
+# Reiniciar bdd local psql
+RAILS_ENV=development_psql rake db:reset
+
 
 # Varios en uno  (para reiniciar db seedearla y partir)
 sudo service nginx stop  &&  bundle exec rake db:drop RAILS_ENV=production DISABLE_DATABASE_ENVIRONMENT_CHECK=1  &&  bundle exec rake db:setup RAILS_ENV=production  &&  sudo service nginx start
