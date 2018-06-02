@@ -137,7 +137,7 @@ module Scheduler::OrderHelper
 				orden = orden_entry[0]
 				variant = Spree::Variant.find_by(sku: orden.sku)
 
-				if ( (variant.can_produce? && orden.fechaEntrega - DateTime.now() >= 6.hours.seconds) || variant.can_ship? ) || (variant.primary? && variant.can_ship?)  ## sino no alcanzamos a fabricar
+				if ( (variant.can_produce? && orden.fechaEntrega - DateTime.now.utc >= 6.hours.seconds) || variant.can_ship? ) || (variant.primary? && variant.can_ship?)  ## sino no alcanzamos a fabricar
 					puts "Acepto oc " + orden.oc.to_s
 					if !variant.primary?  ## hay que fabricar
 						puts "No es materia prima"
@@ -297,7 +297,7 @@ module Scheduler::OrderHelper
 					create_spree_from_sftp_order(sftp_order)
 				end
 
-				cantidad_en_fabricacion = sftp_order.fabricar_requests.where(aceptado: false).or(sftp_order.fabricar_requests.where(aceptado: true, disponible: Time.at(0)..DateTime.now())).map(&:cantidad).reduce(:+).to_i
+				cantidad_en_fabricacion = sftp_order.fabricar_requests.where(aceptado: false).or(sftp_order.fabricar_requests.where(aceptado: true, disponible: Time.at(0)..DateTime.now.utc)).map(&:cantidad).reduce(:+).to_i
 				if cantidad_restante - cantidad_en_fabricacion > 0
 					puts "Falta para fabricar"
 					if variant.can_produce?
@@ -360,7 +360,7 @@ module Scheduler::OrderHelper
 
 				capacidad_requerida = a_cambiar.map{|e| e[1]}.sum
 				almacen_despacho = Spree::StockLocation.despachos.order(capacidad_maxima: :desc).first
-				if capacidad_requerida > almacen_despacho.available_capacity
+				if capacidad_requerida + 100 > almacen_despacho.available_capacity  # dejaremos un gap de 100
 					puts "Se requiere cambiar a despacho mas del espacio que hay. Saltamos fabricacion"
 					puts a_cambiar.inspect
 					next

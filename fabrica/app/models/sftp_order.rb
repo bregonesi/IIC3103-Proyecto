@@ -27,18 +27,18 @@ class SftpOrder < ApplicationRecord
 	end
 
 	def self.vencidas
-		SftpOrder.where(fechaEntrega: Time.at(0)..DateTime.now)
+		SftpOrder.where(fechaEntrega: Time.at(0)..DateTime.now.utc)
 	end
 
-	def self.vencida?(order)
-		order.fechaEntrega < DateTime.now
+	def vencida?
+		self.fechaEntrega < DateTime.now.utc
 	end
 
 	def self.vigentes
-		SftpOrder.where(fechaEntrega: DateTime.now..Float::INFINITY)
+		SftpOrder.where(fechaEntrega: DateTime.now.utc..Float::INFINITY)
 	end
 
-	def self.vigente?(order)
-		order.fechaEntrega >= DateTime.now
+	def vigente?
+		self.fechaEntrega >= DateTime.now.utc
 	end
 end
