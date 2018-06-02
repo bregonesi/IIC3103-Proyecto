@@ -576,6 +576,7 @@ module Scheduler::OrderHelper
 								if orden.shipments.empty?
 									orden.destroy
 								end
+								Scheduler::ProductosHelper.cargar_nuevos
 							end
 						end
 					end
