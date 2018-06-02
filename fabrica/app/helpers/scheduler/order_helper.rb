@@ -446,6 +446,12 @@ module Scheduler::OrderHelper
 			a_mover_stock_item = a_mover_datos[0][0]
 			a_mover_fecha = a_mover_datos[0][1]
 			a_mover_prods_count = a_mover_datos[1]
+			a_mover_prods_count = [a_mover_prods_count, a_mover_stock_item.count_on_hand].min
+
+			if a_mover_prods_count == 0
+				prods.destroy_all
+				return cambiar_items_a_despacho(variant, q)
+			end
 
 			prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
 			prod = prods.first	
@@ -467,7 +473,8 @@ module Scheduler::OrderHelper
     		#prod.stock_item.stock_location.stock_items.each do |x|
     		#	Scheduler::ProductosHelper::cargar_detalles(x)
     		#end
-    		return cambiar_items_a_despacho(variant, cantidad)
+    		#Scheduler::ProductosHelper::cargar_nuevos
+    		return cambiar_items_a_despacho(variant, q)
     		break
     	end
 
