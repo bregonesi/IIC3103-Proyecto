@@ -196,10 +196,10 @@ module Scheduler::ProductosHelper
 					      	end
 					      end
 				      end
-				      #puts "Por despachar " + por_despachar.to_s
+				      puts "Por despachar " + por_despachar.to_s
 
 				      diferencia = prod_api['total'].to_i - (stock_item.count_on_hand + por_despachar)
-				      #puts "Diferencia total " + diferencia.to_s
+				      puts "Diferencia total " + diferencia.to_s
 				      if diferencia != 0  # si no calza el stock, ie, se fabrico mas
 								stock_movement = stock_location.stock_movements.build(quantity: diferencia.to_i)
 								stock_movement.action = "Diferencia de stock con bodega."

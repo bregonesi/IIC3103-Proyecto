@@ -22,6 +22,37 @@ module Scheduler::OrderHelper
 		end
 	end
 
+	def sincronizar_informacion
+		puts "Viendo si hay que sincronizar ocs"
+
+		SftpOrder.where('"sftp_orders"."myCantidadDespachada" != "sftp_orders"."serverCantidadDespachada"').each do |sftp_order|
+			puts "Viendo si hay que actualizar las unidades despachadas de " + sftp_order.oc.to_s
+
+			r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + sftp_order.oc.to_s,
+											 body: { }.to_json,
+											 headers: { 'Content-type': 'application/json' })
+
+			if r.code == 200
+				body = JSON.parse(r.body)[0]
+				sftp_order.serverEstado = body['estado']
+				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
+
+				if sftp_order.myCantidadDespachada > sftp_order.serverCantidadDespachada && !sftp_order.order.nil? && sftp_order.order.shipped?
+					puts "Hay un error en cantidades despachadas"
+					sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada
+				end
+
+				if sftp_order.myCantidadDespachada >= sftp_order.cantidad
+					sftp_order.myEstado = "finalizada"
+				end
+
+				sftp_order.save!
+			else
+				puts r
+			end
+		end
+	end
+
 	def marcar_finalizadas
 		puts "Viendo si hay que marcar finalizadas"
 
@@ -254,7 +285,7 @@ module Scheduler::OrderHelper
 			cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
 
 			if cantidad_restante > 0
-				if variant.total_on_hand > 0  ## si tengo stock creo shipments
+				if variant.cantidad_disponible > 0  ## si tengo stock creo shipments
 					puts "Llego stock para una orden aun no finalizada"
 
 					create_spree_from_sftp_order(sftp_order)
@@ -376,6 +407,7 @@ module Scheduler::OrderHelper
     		break
     	end
     end
+
     if despacho_escogido.nil?
     	raise "Error en escoger despacho para cambiar item a despacho"
     end

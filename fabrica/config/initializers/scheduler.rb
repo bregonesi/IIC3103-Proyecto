@@ -11,6 +11,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 
 		# Marcamos ordenes vencidas y las finalizadas
 		Scheduler::OrderHelper.marcar_vencidas
+		Scheduler::OrderHelper.sincronizar_informacion
 		Scheduler::OrderHelper.marcar_finalizadas
 
 		# Vemos que ordenes aceptar #
@@ -30,9 +31,12 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 
 		# Aca despachamos lo pagado #
 		Scheduler::ShipmentHelper.despachar_ordenes
+
+		# Volvemos a sincronizar ya que pudimos haber despachado #
+		Scheduler::OrderHelper.sincronizar_informacion
 		
 		# Fabricamos las pedidas #
-		Scheduler::OrderHelper.fabricar_api
+		#Scheduler::OrderHelper.fabricar_api
 		
 		# Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
 		Scheduler::AlmacenesHelper.nuevos_almacenes
