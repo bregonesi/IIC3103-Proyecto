@@ -446,7 +446,7 @@ module Scheduler::OrderHelper
 			a_mover_stock_item = a_mover_datos[0][0]
 			a_mover_fecha = a_mover_datos[0][1]
 			a_mover_prods_count = a_mover_datos[1]
-			a_mover_prods_count = [a_mover_prods_count, a_mover_stock_item.count_on_hand].min
+			a_mover_prods_count = [a_mover_prods_count, Spree::StockItem.find(a_mover_stock_item).count_on_hand].min
 
 			if a_mover_prods_count == 0
 				prods.destroy_all
