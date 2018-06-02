@@ -36,7 +36,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		Scheduler::OrderHelper.sincronizar_informacion
 		
 		# Fabricamos las pedidas #
-		Scheduler::OrderHelper.fabricar_api
+		#Scheduler::OrderHelper.fabricar_api
 		
 		# Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
 		Scheduler::AlmacenesHelper.nuevos_almacenes

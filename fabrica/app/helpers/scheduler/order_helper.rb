@@ -37,9 +37,12 @@ module Scheduler::OrderHelper
 				sftp_order.serverEstado = body['estado']
 				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
 
-				if sftp_order.myCantidadDespachada > sftp_order.serverCantidadDespachada && !sftp_order.order.nil? && sftp_order.order.shipped?
+				cantidad_no_despachada = sftp_order.orders.where.not(shipment_state: "shipped").map(&:quantity).reduce(:+).to_i  ## en realidad esta por despachar
+				if sftp_order.myCantidadDespachada - cantidad_no_despachada > sftp_order.serverCantidadDespachada
 					puts "Hay un error en cantidades despachadas"
-					sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada
+					sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada + cantidad_no_despachada
+					#sftp_order.myEstado = "creada"
+					sftp_order.myEstado = sftp_order.serverEstado  ## la linea de arriba funciona, pero esta es mejor
 				end
 
 				if sftp_order.myCantidadDespachada >= sftp_order.cantidad
@@ -189,11 +192,13 @@ module Scheduler::OrderHelper
 				puts "create sftp order con cantidad despachar " + cantidad_despachar.to_s
 				recien_creada = false
 
-				spree_order = sftp_order.order
+				spree_orders = sftp_order.orders.where.not(shipment_state: "shipped")
+				spree_order = spree_orders.empty? ? nil : sftp_orders.first
 				if spree_order.nil?
-					sftp_order.build_order(number: sftp_order.oc,
-																 email: 'spree@example.com') do |o|
-						puts "Creando spree order " + sftp_order.oc
+					n_orden = sftp_order.orders.count + 1
+					new_order = sftp_order.orders.build(number: sftp_order.oc + " - " + n_orden.to_s,
+																							email: 'spree@example.com') do |o|
+						puts "Creando spree order " + sftp_order.oc + " - " + n_orden.to_s
 						recien_creada = true
 
 						o.contents.add(variant, cantidad_despachar.to_i, {})  ## variant, quantity, options
@@ -217,6 +222,7 @@ module Scheduler::OrderHelper
 
 						o.channel = "ftp"
 					end
+					new_order.save!
 					sftp_order.myCantidadDespachada += cantidad_despachar.to_i
 					sftp_order.save!
 				end

@@ -1,5 +1,5 @@
 class SftpOrder < ApplicationRecord
-	has_one :order, class_name: 'Spree::Order'
+	has_many :orders, class_name: 'Spree::Order'
 	has_many :fabricar_requests
 
 	def self.creadas
