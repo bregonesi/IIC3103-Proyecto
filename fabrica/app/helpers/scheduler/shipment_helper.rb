@@ -38,6 +38,7 @@ module Scheduler::ShipmentHelper
                 if r.code == 200
                   j += 1
                   productos_shipped << prod
+                  prod.destroy!
                   puts "Despacho de un producto exitoso. Van " + j.to_s + " productos despachados."
                 else
                   puts "Error despachando orden. Error en response code de api. Responde code " + r.code.to_s + "."
@@ -73,10 +74,6 @@ module Scheduler::ShipmentHelper
           end # end iteracion iu
         end # end if paid
       end  # end lock shipment
-      
-      productos_shipped.each do |p|
-        p.destroy!
-      end
 
       if stop_scheduler
         despachar
