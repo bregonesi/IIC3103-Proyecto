@@ -14,8 +14,12 @@ class SftpOrder < ApplicationRecord
 		SftpOrder.where(myEstado: 'preaceptada')
 	end
 
+	def self.finalizadas
+		SftpOrder.where(myEstado: 'finalizadas')
+	end
+
 	def self.tasa_aceptadas
-		((SftpOrder.aceptadas.count + SftpOrder.preaceptadas.count).to_f / SftpOrder.count.to_f).to_f
+		((SftpOrder.aceptadas.count + SftpOrder.preaceptadas.count + SftpOrder.finalizadas.count).to_f / SftpOrder.count.to_f).to_f
 	end
 
 	def self.acepto?(tasa_min=0.6)

@@ -47,6 +47,7 @@ module Scheduler::ShipmentHelper
                   end
                 end
               end  # end prod
+              productos_shipped.destroy_all
               iu.shipped_quantity += j
               iu.save!  ## actualizamos lo despachado
 

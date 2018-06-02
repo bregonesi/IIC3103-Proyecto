@@ -23,13 +23,13 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		Scheduler::PaymentHelper.pagar_ordenes
 
 		# Aca despachamos lo pagado #
-		#Scheduler::ShipmentHelper.despachar_ordenes
+		Scheduler::ShipmentHelper.despachar_ordenes
 
 		# Cambiamos las ordenes de almacen #
 		Scheduler::OrderHelper.cambiar_almacen
 
 		# Aca despachamos lo pagado #
-		#Scheduler::ShipmentHelper.despachar_ordenes
+		Scheduler::ShipmentHelper.despachar_ordenes
 		
 		# Fabricamos las pedidas #
 		Scheduler::OrderHelper.fabricar_api

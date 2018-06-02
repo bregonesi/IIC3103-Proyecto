@@ -1,5 +1,5 @@
 Spree::StockLocation.class_eval do
-  def used_capacity
+  def items_capacity
     self.stock_items.sum(:count_on_hand)
   end
 
@@ -15,8 +15,17 @@ Spree::StockLocation.class_eval do
     items_por_despachar
   end
 
+  def in_factory
+    self.stock_items.sum(&:waiting_factory_units)
+    #FabricarRequest.por_recibir.count * 100
+  end
+
+  def used_capacity
+    items_capacity + shipment_capacity + in_factory
+  end
+
   def available_capacity
-  	self.capacidad_maxima - used_capacity - shipment_capacity
+  	self.capacidad_maxima - used_capacity
   end
 
   def self.almacenes

@@ -21,6 +21,10 @@ Spree::Variant.class_eval do
   end
 
   def can_ship?(cantidad_minima = 1)
+    return cantidad_disponible >= cantidad_minima
+  end
+
+  def cantidad_disponible
     cantidad_disponible = self.total_on_hand
     FabricarRequest.where(aceptado: false).each do |request|
       ingrediente = Spree::Variant.find_by(sku: request.sku).recipe.find_by(variant_ingredient_id: self)
@@ -29,6 +33,6 @@ Spree::Variant.class_eval do
       end
     end
 
-    return cantidad_disponible >= cantidad_minima
+    return cantidad_disponible
   end
 end
