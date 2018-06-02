@@ -1,70 +1,70 @@
-﻿SKU,Producto,Ingrediente 1,Ingrediente 2,Ingrediente 3,Ingrediente 4,Ingrediente 5,Ingrediente 6
-20,Manzana,20,,,,,
-30,Naranja,30,,,,,
-40,Frutilla,40,,,,,
-50,Frambuesa,50,,,,,
-60,Durazno,60,,,,,
-70,Arándano,70,,,,,
-200000000,Jugo Manzana,Manzana,,,,,
-230000000,Jugo Manzana-Naranja,Manzana,Naranja,,,,
-234000000,Jugo Manzana-Naranja-Frutilla,Manzana,Naranja,Frutilla,,,
-234500000,Jugo Manzana-Naranja-Frutilla-Frambuesa,Manzana,Naranja,Frutilla,Frambuesa,,
-234560000,Jugo Manzana-Naranja-Frutilla-Frambuesa-Durazno,Manzana,Naranja,Frutilla,Frambuesa,Durazno,
-234567000,Jugo Fruit Super Punch,Manzana,Naranja,Frutilla,Frambuesa,Durazno,Arándano
-234570000,Jugo Manzana-Naranja-Frutilla-Frambuesa-Arándano,Manzana,Naranja,Frutilla,Frambuesa,Arándano,
-234600000,Jugo Manzana-Naranja-Frutilla-Durazno,Manzana,Naranja,Frutilla,Durazno,,
-234670000,Jugo Manzana-Naranja-Frutilla-Durazno-Arándano,Manzana,Naranja,Frutilla,Durazno,Arándano,
-234700000,Jugo Manzana-Naranja-Frutilla-Arándano,Manzana,Naranja,Frutilla,Arándano,,
-235000000,Jugo Manzana-Naranja-Frambuesa,Manzana,Naranja,Frambuesa,,,
-235600000,Jugo Manzana-Naranja-Frambuesa-Durazno,Manzana,Naranja,Frambuesa,Durazno,,
-235670000,Jugo Manzana-Naranja-Frambuesa-Durazno-Arándano,Manzana,Naranja,Frambuesa,Durazno,Arándano,
-235700000,Jugo Manzana-Naranja-Frambuesa-Arándano,Manzana,Naranja,Frambuesa,Arándano,,
-236000000,Jugo Manzana-Naranja-Durazno,Manzana,Naranja,Durazno,,,
-236700000,Jugo Manzana-Naranja-Durazno-Arándano,Manzana,Naranja,Durazno,Arándano,,
-237000000,Jugo Manzana-Naranja-Arándano,Manzana,Naranja,Arándano,,,
-240000000,Jugo Manzana-Frutilla,Manzana,Frutilla,,,,
-245000000,Jugo Manzana-Frutilla-Frambuesa,Manzana,Frutilla,Frambuesa,,,
-245600000,Jugo Manzana-Frutilla-Frambuesa-Durazno,Manzana,Frutilla,Frambuesa,Durazno,,
-245670000,Jugo Manzana-Frutilla-Frambuesa-Durazno-Arándano,Manzana,Frutilla,Frambuesa,Durazno,Arándano,
-245700000,Jugo Manzana-Frutilla-Frambuesa-Arándano,Manzana,Frutilla,Frambuesa,Arándano,,
-246000000,Jugo Manzana-Frutilla-Durazno,Manzana,Frutilla,Durazno,,,
-246700000,Jugo Manzana-Frutilla-Durazno-Arándano,Manzana,Frutilla,Durazno,Arándano,,
-247000000,Jugo Manzana-Frutilla-Arándano,Manzana,Frutilla,Arándano,,,
-250000000,Jugo Manzana-Frambuesa,Manzana,Frambuesa,,,,
-256000000,Jugo Manzana-Frambuesa-Durazno,Manzana,Frambuesa,Durazno,,,
-256700000,Jugo Manzana-Frambuesa-Durazno-Arándano,Manzana,Frambuesa,Durazno,Arándano,,
-257000000,Jugo Manzana-Frambuesa-Arándano,Manzana,Frambuesa,Arándano,,,
-260000000,Jugo Manzana-Durazno,Manzana,Durazno,,,,
-267000000,Jugo Manzana-Durazno-Arándano,Manzana,Durazno,Arándano,,,
-270000000,Jugo Manzana-Arándano,Manzana,Arándano,,,,
-300000000,Jugo Vitamina Naranja,Naranja,,,,,
-340000000,Jugo Naranja-Frutilla,Naranja,Frutilla,,,,
-345000000,Jugo Naranja-Frutilla-Frambuesa,Naranja,Frutilla,Frambuesa,,,
-345600000,Jugo Naranja-Frutilla-Frambuesa-Durazno,Naranja,Frutilla,Frambuesa,Durazno,,
-345670000,Jugo Naranja-Frutilla-Frambuesa-Durazno-Arándano,Naranja,Frutilla,Frambuesa,Durazno,Arándano,
-345700000,Jugo Mix Tropical,Naranja,Frutilla,Frambuesa,Arándano,,
-346000000,Jugo Naranja-Frutilla-Durazno,Naranja,Frutilla,Durazno,,,
-346700000,Jugo Naranja-Frutilla-Durazno-Arándano,Naranja,Frutilla,Durazno,Arándano,,
-347000000,Jugo Naranja-Frutilla-Arándano,Naranja,Frutilla,Arándano,,,
-350000000,Jugo Naranja-Frambuesa,Naranja,Frambuesa,,,,
-356000000,Jugo Naranja-Frambuesa-Durazno,Naranja,Frambuesa,Durazno,,,
-356700000,Jugo Naranja-Frambuesa-Durazno-Arándano,Naranja,Frambuesa,Durazno,Arándano,,
-357000000,Jugo Naranja-Frambuesa-Arándano,Naranja,Frambuesa,Arándano,,,
-360000000,Jugo Naranja-Durazno,Naranja,Durazno,,,,
-367000000,Jugo Naranja-Durazno-Arándano,Naranja,Durazno,Arándano,,,
-370000000,Jugo Naranja-Arándano,Naranja,Arándano,,,,
-400000000,Jugo Frutilla,Frutilla,,,,,
-450000000,Jugo Frutilla-Frambuesa,Frutilla,Frambuesa,,,,
-456000000,Jugo Frutilla-Frambuesa-Durazno,Frutilla,Frambuesa,Durazno,,,
-456700000,Jugo Frutilla-Frambuesa-Durazno-Arándano,Frutilla,Frambuesa,Durazno,Arándano,,
-457000000,Jugo Berries,Frutilla,Frambuesa,Arándano,,,
-460000000,Jugo Frutilla-Durazno,Frutilla,Durazno,,,,
-467000000,Jugo Frutilla-Durazno-Arándano,Frutilla,Durazno,Arándano,,,
-470000000,Jugo Frutilla-Arándano,Frutilla,Arándano,,,,
-500000000,Jugo Frambuesa,Frambuesa,,,,,
-560000000,Jugo Frambuesa-Durazno,Frambuesa,Durazno,,,,
-567000000,Jugo Frambuesa-Durazno-Arándano,Frambuesa,Durazno,Arándano,,,
-570000000,Jugo Frambuesa-Arándano,Frambuesa,Arándano,,,,
-600000000,Jugo Durazno,Durazno,,,,,
-670000000,Jugo Durazno-Arándano,Durazno,Arándano,,,,
-700000000,Jugo Arándano,Arándano,,,,,
+SKU,Producto,Ingrediente 1,Ingrediente 2,Ingrediente 3,Ingrediente 4,Ingrediente 5,Ingrediente 6,# Ingredientes,Lote,Costo,Costo fabricación lote
+20,Manzana,,,,,,,$0 ,260,80,20800
+30,Naranja,,,,,,,$0 ,290,70,20300
+40,Frutilla,,,,,,,$0 ,200,110,22000
+50,Frambuesa,,,,,,,$0 ,250,120,30000
+60,Durazno,,,,,,,$0 ,200,90,18000
+70,Arándano,,,,,,,$0 ,290,130,37700
+200000000,Jugo Manzana,Manzana,,,,,,$1 ,170,70,11900
+230000000,Jugo Manzana-Naranja,Manzana,Naranja,,,,,$2 ,290,90,26100
+234000000,Jugo Manzana-Naranja-Frutilla,Manzana,Naranja,Frutilla,,,,$3 ,250,110,27500
+234500000,Jugo Manzana-Naranja-Frutilla-Frambuesa,Manzana,Naranja,Frutilla,Frambuesa,,,$4 ,300,130,39000
+234560000,Jugo Manzana-Naranja-Frutilla-Frambuesa-Durazno,Manzana,Naranja,Frutilla,Frambuesa,Durazno,,$5 ,290,150,43500
+234567000,Jugo Fruit Super Punch,Manzana,Naranja,Frutilla,Frambuesa,Durazno,Arándano,$6 ,250,170,42500
+234570000,Jugo Manzana-Naranja-Frutilla-Frambuesa-Arándano,Manzana,Naranja,Frutilla,Frambuesa,Arándano,,$5 ,150,150,22500
+234600000,Jugo Manzana-Naranja-Frutilla-Durazno,Manzana,Naranja,Frutilla,Durazno,,,$4 ,270,130,35100
+234670000,Jugo Manzana-Naranja-Frutilla-Durazno-Arándano,Manzana,Naranja,Frutilla,Durazno,Arándano,,$5 ,140,150,21000
+234700000,Jugo Manzana-Naranja-Frutilla-Arándano,Manzana,Naranja,Frutilla,Arándano,,,$4 ,240,130,31200
+235000000,Jugo Manzana-Naranja-Frambuesa,Manzana,Naranja,Frambuesa,,,,$3 ,270,110,29700
+235600000,Jugo Manzana-Naranja-Frambuesa-Durazno,Manzana,Naranja,Frambuesa,Durazno,,,$4 ,220,130,28600
+235670000,Jugo Manzana-Naranja-Frambuesa-Durazno-Arándano,Manzana,Naranja,Frambuesa,Durazno,Arándano,,$5 ,100,150,15000
+235700000,Jugo Manzana-Naranja-Frambuesa-Arándano,Manzana,Naranja,Frambuesa,Arándano,,,$4 ,130,130,16900
+236000000,Jugo Manzana-Naranja-Durazno,Manzana,Naranja,Durazno,,,,$3 ,140,110,15400
+236700000,Jugo Manzana-Naranja-Durazno-Arándano,Manzana,Naranja,Durazno,Arándano,,,$4 ,190,130,24700
+237000000,Jugo Manzana-Naranja-Arándano,Manzana,Naranja,Arándano,,,,$3 ,270,110,29700
+240000000,Jugo Manzana-Frutilla,Manzana,Frutilla,,,,,$2 ,120,90,10800
+245000000,Jugo Manzana-Frutilla-Frambuesa,Manzana,Frutilla,Frambuesa,,,,$3 ,230,110,25300
+245600000,Jugo Manzana-Frutilla-Frambuesa-Durazno,Manzana,Frutilla,Frambuesa,Durazno,,,$4 ,270,130,35100
+245670000,Jugo Manzana-Frutilla-Frambuesa-Durazno-Arándano,Manzana,Frutilla,Frambuesa,Durazno,Arándano,,$5 ,180,150,27000
+245700000,Jugo Manzana-Frutilla-Frambuesa-Arándano,Manzana,Frutilla,Frambuesa,Arándano,,,$4 ,140,130,18200
+246000000,Jugo Manzana-Frutilla-Durazno,Manzana,Frutilla,Durazno,,,,$3 ,210,110,23100
+246700000,Jugo Manzana-Frutilla-Durazno-Arándano,Manzana,Frutilla,Durazno,Arándano,,,$4 ,120,130,15600
+247000000,Jugo Manzana-Frutilla-Arándano,Manzana,Frutilla,Arándano,,,,$3 ,220,110,24200
+250000000,Jugo Manzana-Frambuesa,Manzana,Frambuesa,,,,,$2 ,240,90,21600
+256000000,Jugo Manzana-Frambuesa-Durazno,Manzana,Frambuesa,Durazno,,,,$3 ,190,110,20900
+256700000,Jugo Manzana-Frambuesa-Durazno-Arándano,Manzana,Frambuesa,Durazno,Arándano,,,$4 ,270,130,35100
+257000000,Jugo Manzana-Frambuesa-Arándano,Manzana,Frambuesa,Arándano,,,,$3 ,170,110,18700
+260000000,Jugo Manzana-Durazno,Manzana,Durazno,,,,,$2 ,160,90,14400
+267000000,Jugo Manzana-Durazno-Arándano,Manzana,Durazno,Arándano,,,,$3 ,240,110,26400
+270000000,Jugo Manzana-Arándano,Manzana,Arándano,,,,,$2 ,280,90,25200
+300000000,Jugo Vitamina Naranja,Naranja,,,,,,$1 ,150,70,10500
+340000000,Jugo Naranja-Frutilla,Naranja,Frutilla,,,,,$2 ,170,90,15300
+345000000,Jugo Naranja-Frutilla-Frambuesa,Naranja,Frutilla,Frambuesa,,,,$3 ,200,110,22000
+345600000,Jugo Naranja-Frutilla-Frambuesa-Durazno,Naranja,Frutilla,Frambuesa,Durazno,,,$4 ,150,130,19500
+345670000,Jugo Naranja-Frutilla-Frambuesa-Durazno-Arándano,Naranja,Frutilla,Frambuesa,Durazno,Arándano,,$5 ,170,150,25500
+345700000,Jugo Mix Tropical,Naranja,Frutilla,Frambuesa,Arándano,,,$4 ,270,130,35100
+346000000,Jugo Naranja-Frutilla-Durazno,Naranja,Frutilla,Durazno,,,,$3 ,210,110,23100
+346700000,Jugo Naranja-Frutilla-Durazno-Arándano,Naranja,Frutilla,Durazno,Arándano,,,$4 ,240,130,31200
+347000000,Jugo Naranja-Frutilla-Arándano,Naranja,Frutilla,Arándano,,,,$3 ,170,110,18700
+350000000,Jugo Naranja-Frambuesa,Naranja,Frambuesa,,,,,$2 ,210,90,18900
+356000000,Jugo Naranja-Frambuesa-Durazno,Naranja,Frambuesa,Durazno,,,,$3 ,170,110,18700
+356700000,Jugo Naranja-Frambuesa-Durazno-Arándano,Naranja,Frambuesa,Durazno,Arándano,,,$4 ,100,130,13000
+357000000,Jugo Naranja-Frambuesa-Arándano,Naranja,Frambuesa,Arándano,,,,$3 ,190,110,20900
+360000000,Jugo Naranja-Durazno,Naranja,Durazno,,,,,$2 ,140,90,12600
+367000000,Jugo Naranja-Durazno-Arándano,Naranja,Durazno,Arándano,,,,$3 ,250,110,27500
+370000000,Jugo Naranja-Arándano,Naranja,Arándano,,,,,$2 ,110,90,9900
+400000000,Jugo Frutilla,Frutilla,,,,,,$1 ,240,70,16800
+450000000,Jugo Frutilla-Frambuesa,Frutilla,Frambuesa,,,,,$2 ,210,90,18900
+456000000,Jugo Frutilla-Frambuesa-Durazno,Frutilla,Frambuesa,Durazno,,,,$3 ,120,110,13200
+456700000,Jugo Frutilla-Frambuesa-Durazno-Arándano,Frutilla,Frambuesa,Durazno,Arándano,,,$4 ,140,130,18200
+457000000,Jugo Berries,Frutilla,Frambuesa,Arándano,,,,$3 ,290,110,31900
+460000000,Jugo Frutilla-Durazno,Frutilla,Durazno,,,,,$2 ,170,90,15300
+467000000,Jugo Frutilla-Durazno-Arándano,Frutilla,Durazno,Arándano,,,,$3 ,300,110,33000
+470000000,Jugo Frutilla-Arándano,Frutilla,Arándano,,,,,$2 ,180,90,16200
+500000000,Jugo Frambuesa,Frambuesa,,,,,,$1 ,250,70,17500
+560000000,Jugo Frambuesa-Durazno,Frambuesa,Durazno,,,,,$2 ,240,90,21600
+567000000,Jugo Frambuesa-Durazno-Arándano,Frambuesa,Durazno,Arándano,,,,$3 ,240,110,26400
+570000000,Jugo Frambuesa-Arándano,Frambuesa,Arándano,,,,,$2 ,280,90,25200
+600000000,Jugo Durazno,Durazno,,,,,,$1 ,250,70,17500
+670000000,Jugo Durazno-Arándano,Durazno,Arándano,,,,,$2 ,130,90,11700
+700000000,Jugo Arándano,Arándano,,,,,,$1 ,260,70,18200

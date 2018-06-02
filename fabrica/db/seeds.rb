@@ -101,8 +101,6 @@ productos_csv_text = File.read(Rails.root.join('lib', 'seeds', 'productos.csv'))
 productos_csv = CSV.parse(productos_csv_text, :headers => true, :encoding => 'ISO-8859-1')
 default_shipping_category = Spree::ShippingCategory.find_by!(name: "Default")
 productos_csv.each do |product_attrs|
-  puts product_attrs
-
   Spree::Config[:currency] = "CLP"
 
   new_product = Spree::Product.where(name: product_attrs['Producto'],
@@ -113,6 +111,14 @@ productos_csv.each do |product_attrs|
     product.available_on = Time.zone.now
     product.shipping_category = default_shipping_category
   end
+
+  sku = product_attrs['SKU'.to_i].to_s
+  variante = Spree::Variant.find_by(sku: sku)
+  costo_unitario = product_attrs['Costo']
+  puts "costo: " + costo_unitario
+  variante.costo = costo_unitario.to_i
+  variante.save!
+
   if new_product
     new_product.save
   end
@@ -130,8 +136,10 @@ formulas_csv.each do |formula_attrs|
   puts formula_attrs
 
   sku = formula_attrs['SKU'.to_i].to_s
+  puts "sku_formula: " + sku
 
   variante = Spree::Variant.find_by(sku: sku)
+
   variante.lote_minimo = formula_attrs['Lote']
   variante.save!
 
