@@ -455,13 +455,13 @@ module Scheduler::OrderHelper
 			a_mover_prods_count = a_mover_datos[1]
 			a_mover_prods_count = [a_mover_prods_count, Spree::StockItem.find(a_mover_stock_item).count_on_hand].min
 
+			prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
+			prod = prods.first
+
 			if a_mover_prods_count == 0
 				prods.destroy_all
 				return cambiar_items_a_despacho(variant, q)
 			end
-
-			prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
-			prod = prods.first	
 
       variants = Hash.new(0)
       variants[prod.stock_item.variant] = [a_mover_prods_count, q].min
