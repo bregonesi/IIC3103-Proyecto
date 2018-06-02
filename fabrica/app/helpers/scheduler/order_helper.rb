@@ -329,6 +329,12 @@ module Scheduler::OrderHelper
 
 				#Scheduler::ProductosHelper.cargar_nuevos
 
+				if variant.primary?  ## por si llega una materia prima aca
+					puts "Se destruye orden de fabricacion ya que no se pueden fabricar materias primas"
+					request.destroy
+					next
+				end
+
 				if !request.can_produce?  ## por si me robaron el stock
 					puts "Se destruye orden de fabricacion ya que no se cuenta con los productos disponibles"
 					request.destroy
@@ -561,7 +567,16 @@ module Scheduler::OrderHelper
 						# Agregamos al shipment de despacho
 						puts "Agregando " + key.sku + " a shipment " + shipment_despacho.number + " y unidades " + cantidad_agregar_a_shipment.to_s
 						if cantidad_agregar_a_shipment > 0
-							orden.contents.add(key, cantidad_agregar_a_shipment, shipment: shipment_despacho)  ## variant, quantity, options
+							begin
+								orden.contents.add(key, cantidad_agregar_a_shipment, shipment: shipment_despacho)  ## variant, quantity, options
+
+							rescue ActiveRecord::RecordInvalid => e  ## por si tira error, puede que se haya escogido la cantidad mal
+								puts e
+								shipment_despacho.destroy
+								if orden.shipments.empty?
+									orden.destroy
+								end
+							end
 						end
 					end
 				end
