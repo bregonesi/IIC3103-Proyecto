@@ -255,7 +255,7 @@ module Scheduler::OrderHelper
 							end
 
 							spree_order.contents.add(variant, new_shipment[1].to_i, shipment: shipment)  ## variant, quantity, options
-							puts "agreganodo shipment con cantidad de prods " + new_shipment[1].to_s
+							puts "Agregando a shipment number " + shipment.number + " con cantidad de prods " + new_shipment[1].to_s + " y stock location " + new_shipment[0].name
 						end
 
 						if !new_shipments.empty?

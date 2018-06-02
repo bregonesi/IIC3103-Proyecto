@@ -60,6 +60,10 @@ module Scheduler::ShipmentHelper
               if iu.shipped_quantity >= iu.quantity
                 iu.shipment.ship!
 
+                #if !iu.order.sftp_order.nil?
+                #  iu.order.sftp_order.myCantidadDespachada += shipped_quantity
+                #  iu.order.sftp_order.save!
+                #end
                 puts "Orden despachada"
               else
                 stop_scheduler = true
