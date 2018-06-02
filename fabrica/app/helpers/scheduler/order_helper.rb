@@ -504,7 +504,7 @@ module Scheduler::OrderHelper
 
 									cantidad_en_despachos = variant_li.stock_items.where(stock_location: almacen_despacho).map(&:count_on_hand).reduce(:+).to_i
 
-									cantidad = [shipment.inventory_units_for(variant_li).sum(:quantity), capacidad_disponible + cantidad_en_despachos].min
+									cantidad = [shipment.inventory_units_for(variant_li).sum(:quantity), capacidad_disponible + cantidad_en_despachos, 0].min
 
 									puts "Eliminando " + variant_li.sku + " de ship " + shipment.number + " y unidades " + cantidad.to_s
 									# Sacamos del shipment original
