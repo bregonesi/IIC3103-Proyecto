@@ -14,6 +14,9 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		Scheduler::OrderHelper.sincronizar_informacion
 		Scheduler::OrderHelper.marcar_finalizadas
 
+		# Aca movemos los items de almacen #
+		Scheduler::ProductosHelper.hacer_movimientos
+		
 		# Vemos que ordenes aceptar #
 		Scheduler::OrderHelper.aceptar_ordenes
 
