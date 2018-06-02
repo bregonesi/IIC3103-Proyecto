@@ -574,6 +574,9 @@ module Scheduler::OrderHelper
 								puts e
 								shipment_despacho.destroy
 								if orden.shipments.empty?
+									orden.line_items.each do |li|
+										li.delete
+									end
 									orden.destroy
 								end
 								Scheduler::ProductosHelper.cargar_nuevos
