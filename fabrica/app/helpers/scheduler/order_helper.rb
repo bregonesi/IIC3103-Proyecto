@@ -38,7 +38,7 @@ module Scheduler::OrderHelper
 				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
 
 				cantidad_no_despachada = sftp_order.orders.where.not(shipment_state: "shipped").map(&:quantity).reduce(:+).to_i  ## en realidad esta por despachar
-				if sftp_order.myCantidadDespachada - cantidad_no_despachada > sftp_order.serverCantidadDespachada
+				if sftp_order.myCantidadDespachada - cantidad_no_despachada != sftp_order.serverCantidadDespachada
 					puts "Hay un error en cantidades despachadas"
 					sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada + cantidad_no_despachada
 					#sftp_order.myEstado = "creada"
