@@ -47,7 +47,6 @@ module Scheduler::ShipmentHelper
                   end
                 end
               end  # end prod
-              productos_shipped.destroy_all
               iu.shipped_quantity += j
               iu.save!  ## actualizamos lo despachado
 
@@ -75,6 +74,10 @@ module Scheduler::ShipmentHelper
         end # end if paid
       end  # end lock shipment
       
+      productos_shipped.each do |p|
+        p.destroy!
+      end
+
       if stop_scheduler
         despachar
       end
