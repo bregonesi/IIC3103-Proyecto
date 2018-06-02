@@ -26,7 +26,7 @@ Spree::Variant.class_eval do
 
   def cantidad_disponible
     cantidad_disponible = self.total_on_hand
-    FabricarRequest.por_recibir.each do |request|
+    FabricarRequest.por_fabricar.each do |request|
       ingrediente = Spree::Variant.find_by(sku: request.sku).recipe.find_by(variant_ingredient_id: self)
       if ingrediente
         cantidad_disponible -= ingrediente.amount
