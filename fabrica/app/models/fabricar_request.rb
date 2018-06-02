@@ -16,6 +16,6 @@ class FabricarRequest < ApplicationRecord
 
   def self.por_recibir
     #FabricarRequest.where(aceptado: true, disponible: DateTime.now..Float::INFINITY)
-    FabricarRequest.where(aceptado: true, disponible: 1.hour.ago..Float::INFINITY)
+    FabricarRequest.where(aceptado: true, disponible: DateTime.now..Float::INFINITY)
   end
 end

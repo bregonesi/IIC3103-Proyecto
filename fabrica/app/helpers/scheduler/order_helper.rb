@@ -548,7 +548,9 @@ module Scheduler::OrderHelper
 						end
 
 						# Agregamos al shipment de despacho
-						orden.contents.add(key, cantidad_mover, shipment: shipment_despacho)  ## variant, quantity, options
+						if cantidad_mover > 0
+							orden.contents.add(key, cantidad_mover, shipment: shipment_despacho)  ## variant, quantity, options
+						end
 					end
 				end
 

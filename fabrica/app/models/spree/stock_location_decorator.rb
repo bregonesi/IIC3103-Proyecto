@@ -16,12 +16,27 @@ Spree::StockLocation.class_eval do
   end
 
   def in_factory
-    (self.stock_items.sum(&:waiting_factory_units) * 1.3).to_i
+    self.stock_items.sum(&:waiting_factory_units)
     #FabricarRequest.por_recibir.count * 100
   end
 
   def used_capacity
-    items_capacity + shipment_capacity + in_factory
+
+    url = ENV['api_url'] + "bodega/almacenes"
+
+    base = 'GET'
+    key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+    r = HTTParty.get(url, headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+    
+    if r.code == 200
+      JSON.parse(r.body).each do |almacen|
+        if almacen['_id'] == self.admin_name
+          return almacen['usedSpace'].to_i
+        end
+      end
+    else
+      items_capacity + shipment_capacity + in_factory
+    end
   end
 
   def available_capacity
