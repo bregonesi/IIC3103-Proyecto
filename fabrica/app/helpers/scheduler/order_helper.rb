@@ -350,7 +350,7 @@ module Scheduler::OrderHelper
 				
 				a_cambiar = []
 				variant.recipe.each do |ingredient|
-					disponible_en_despacho = variant_ingredient.stock_items.where(stock_location: Spree::StockLocation.where(proposito: "Despacho")).map(&:count_on_hand).reduce(:+)
+					disponible_en_despacho = ingredient.variant_ingredient.stock_items.where(stock_location: Spree::StockLocation.where(proposito: "Despacho")).map(&:count_on_hand).reduce(:+)
 					puts "Disponible de sku " + variant_ingredient.sku + " en despacho: " + disponible_en_despacho.to_i
 					if ingredient.amount.to_i > disponible_en_despacho.to_i
 						puts "Hay que mover stock antes de fabricar"
