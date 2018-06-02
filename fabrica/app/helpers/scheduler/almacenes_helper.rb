@@ -13,7 +13,8 @@ module Scheduler::AlmacenesHelper
 
 		# esperado = [mover a stock, gap, excluir]
 		# dejare un gap de 1500 en despacho por errores del profe
-		esperado = [[despacho, 1500, []], [general, 500, [despacho]]]
+		#esperado = [[despacho, 1500, []], [general, 500, [despacho]]]
+		esperado = [[general, 500, [despacho]]]
 
 		esperado.each do |entry|
 			cap_dis = entry[1]
