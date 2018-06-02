@@ -321,7 +321,7 @@ module Scheduler::OrderHelper
 
 
 	def fabricar_api
-		FabricarRequest.where(aceptado: false, razon: nil).each do |request|
+		FabricarRequest.por_fabricar.each do |request|
 			request.with_lock do
 				variant = Spree::Variant.find_by(sku: request.sku)
 

@@ -18,4 +18,8 @@ class FabricarRequest < ApplicationRecord
     #FabricarRequest.where(aceptado: true, disponible: DateTime.now..Float::INFINITY)
     FabricarRequest.where(aceptado: true, disponible: DateTime.now.utc..Float::INFINITY)
   end
+
+  def self.por_fabricar
+    FabricarRequest.where(aceptado: false, razon: nil)
+  end
 end
