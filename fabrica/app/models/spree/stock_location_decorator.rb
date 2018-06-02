@@ -16,7 +16,7 @@ Spree::StockLocation.class_eval do
   end
 
   def in_factory
-    self.stock_items.sum(&:waiting_factory_units)
+    (self.stock_items.sum(&:waiting_factory_units) * 1.3).to_i
     #FabricarRequest.por_recibir.count * 100
   end
 

@@ -10,7 +10,8 @@ Spree::StockItem.class_eval do
     retenido = 0
     #FabricarRequest.por_recibir.where(disponible: DateTime.now..5.minutes.from_now).each do |fr|
     #last_despacho_time = Spree::InventoryUnit.where(state: "shipped").order(updated_at: :desc).first.updated_at
-    FabricarRequest.por_recibir.where(disponible: DateTime.now..2.hours.from_now).each do |fr|
+    #FabricarRequest.por_recibir.where(disponible: DateTime.now..2.hours.from_now).each do |fr|
+    FabricarRequest.por_recibir.each do |fr|
       variant = Spree::Variant.find_by(sku: fr.sku)
       ingrediente = variant.recipe.find_by(variant_ingredient: self.variant)
       if !ingrediente.nil?
