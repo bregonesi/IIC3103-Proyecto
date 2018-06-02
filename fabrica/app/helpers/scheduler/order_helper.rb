@@ -341,7 +341,7 @@ module Scheduler::OrderHelper
 					next
 				end
 
-				if request.sftp_order.fechaEntrega < 6.hours.from_now  ## no voy a fabricar algo que vence dentro de 6 hrs
+				if request.sftp_order.fechaEntrega < 6.hours.from_now.utc  ## no voy a fabricar algo que vence dentro de 6 hrs
 					puts "Rechazando por que vence pronto"
 					request.razon = "Quedan menos de 6 horas para que caduque. No voy a fabricar"
 					request.save!
@@ -350,8 +350,9 @@ module Scheduler::OrderHelper
 				
 				a_cambiar = []
 				variant.recipe.each do |ingredient|
-					disponible_en_despacho = variant.stock_items.where(stock_location: Spree::StockLocation.where(proposito: "Despacho")).map(&:count_on_hand).reduce(:+)
-					if disponible_en_despacho.to_i < ingredient.amount.to_i
+					disponible_en_despacho = variant_ingredient.stock_items.where(stock_location: Spree::StockLocation.where(proposito: "Despacho")).map(&:count_on_hand).reduce(:+)
+					puts "Disponible de sku " + variant_ingredient.sku + " en despacho: " + disponible_en_despacho.to_i
+					if ingredient.amount.to_i > disponible_en_despacho.to_i
 						puts "Hay que mover stock antes de fabricar"
 						a_cambiar << [ingredient.variant_ingredient, ingredient.amount.to_i - disponible_en_despacho.to_i]
 						#cambiar_items_a_despacho(ingredient.variant_ingredient, ingredient.amount.to_i - disponible_en_despacho.to_i)

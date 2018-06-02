@@ -2,11 +2,12 @@ class ApiController < ApplicationController
 	def stock_publico
 		#HardWorker.perform_async()
 
-		productos = Spree::Product.all
+		productos = Spree::Variant.all
 
 		json_p = []
 		productos.each do |product|
-			json_p << {:sku => product.sku.to_s, :available => product.total_on_hand.to_i}
+			cantidad = [product.cantidad_disponible.to_i, 0].max
+			json_p << { :sku => product.sku.to_s, :available => product.cantidad_disponible.to_i }
 		end
 
 		render json: json_p, :status => 200
@@ -21,10 +22,11 @@ class ApiController < ApplicationController
 
     if(key == "hola")
 
-			productos = Spree::Product.all
+			productos = Spree::Variant.all
 
 			productos.each do |product|
-				json_p << {:sku => product.sku.to_s, :available => product.total_on_hand.to_i}
+				cantidad = [product.cantidad_disponible.to_i, 0].max
+				json_p << { :sku => product.sku.to_s, :available => product.cantidad_disponible.to_i }
 			end
 
 			render json: json_p, :status => 200
