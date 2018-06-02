@@ -62,6 +62,8 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 		# Descargamos nuevas ordenes
 		Scheduler::SftpHelper.agregar_nuevas_ordenes
 
+		# agregar chequeo de hook
+
 		puts "Termina chequeo de ordenes nuevas ftp"
   end
 

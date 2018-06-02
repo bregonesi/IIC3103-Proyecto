@@ -188,12 +188,12 @@ module Scheduler::OrderHelper
 
 				variant = Spree::Variant.find_by!(sku: sftp_order.sku)
 				cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
-				cantidad_despachar = [cantidad_restante, variant.total_on_hand].min
+				cantidad_despachar = [cantidad_restante, variant.cantidad_disponible].min
 				puts "create sftp order con cantidad despachar " + cantidad_despachar.to_s
 				recien_creada = false
 
-				spree_orders = sftp_order.orders.where.not(shipment_state: "shipped")
-				spree_order = spree_orders.empty? ? nil : sftp_orders.first
+				spree_orders = sftp_order.orders.where.not(shipment_state: "shipped").joins(:shipments).where.not('"spree_shipments"."stock_location_id" = ?', Spree::StockLocation.despachos.map(&:id))
+				spree_order = spree_orders.empty? ? nil : spree_orders.first
 				if spree_order.nil?
 					n_orden = sftp_order.orders.count + 1
 					new_order = sftp_order.orders.build(number: sftp_order.oc + " - " + n_orden.to_s,
@@ -488,8 +488,10 @@ module Scheduler::OrderHelper
 	def cambiar_almacen
 		puts "Cambiando de almacen las ordenes listas"
 
-		Spree::Order.where(state: "complete", payment_state: "paid").each do |orden|
+		Spree::Order.where(state: "complete", payment_state: "paid").where.not(shipment_state: "shipped").each do |orden|
 			orden.with_lock do
+				puts "Analizando order " + orden.number.to_s
+
 				a_mover = {}
 				almacen_despacho = Spree::StockLocation.despachos.order(capacidad_maxima: :desc).first
 
@@ -501,21 +503,29 @@ module Scheduler::OrderHelper
 							shipment.line_items.each do |li|
 								li.with_lock do
 									variant_li = li.variant
+									cantidad_en_shipment = shipment.inventory_units_for(variant_li).sum(:quantity)
 
 									cantidad_en_despachos = variant_li.stock_items.where(stock_location: almacen_despacho).map(&:count_on_hand).reduce(:+).to_i
+									cantidad_mover_a_despacho = [cantidad_en_shipment - cantidad_en_despachos, 0].max
 
-									cantidad = [shipment.inventory_units_for(variant_li).sum(:quantity), capacidad_disponible + cantidad_en_despachos].min
-									cantidad = [cantidad, 0].max  ## por bug en used capacity
+									cantidad_efectiva_a_despacho = [capacidad_disponible, cantidad_mover_a_despacho].min
+									capacidad_disponible -= cantidad_efectiva_a_despacho
+									
+									cantidad_efectiva_sacar_de_shipment = [cantidad_en_shipment, cantidad_efectiva_a_despacho + cantidad_en_despachos].min
 
-									puts "Eliminando " + variant_li.sku + " de ship " + shipment.number + " y unidades " + cantidad.to_s
+									puts "Eliminando " + variant_li.sku + " de ship " + shipment.number + " y unidades " + cantidad_efectiva_sacar_de_shipment.to_s
+									puts "Cantidad que hay en despacho " + cantidad_en_despachos.to_s + " y se moveran " + cantidad_efectiva_a_despacho.to_s + " a despacho"
+
 									# Sacamos del shipment original
-									orden.contents.remove(variant_li, cantidad, shipment: shipment)
+									if cantidad_efectiva_sacar_de_shipment > 0
+										orden.contents.remove(variant_li, cantidad_efectiva_sacar_de_shipment, shipment: shipment)
 
-									if a_mover[variant_li].nil?
-										a_mover[variant_li] = []
+										if a_mover[variant_li].nil?
+											a_mover[variant_li] = []
+										end
+										a_mover[variant_li] << [cantidad_efectiva_sacar_de_shipment, cantidad_efectiva_a_despacho]
 									end
-									a_mover[variant_li] << cantidad
-									capacidad_disponible = capacidad_disponible - cantidad + cantidad_en_despachos
+
 								end
 							end
 
@@ -529,7 +539,7 @@ module Scheduler::OrderHelper
 				if !a_mover.empty?
 					shipment_despacho = orden.shipments.where.not(state: "shipped").find_by(stock_location: almacen_despacho)
 					if shipment_despacho.nil?
-						puts "Reutilizando shipment"
+						puts "Creando shipment"
 						## si no hay shipment de despacho lo creamos
 						shipment_despacho = orden.shipments.create(stock_location: almacen_despacho, address: orden.ship_address)
 					else
@@ -537,9 +547,10 @@ module Scheduler::OrderHelper
 					end
 
 					a_mover.each do |key, array|
-						cantidad_mover = array.sum.to_i
-						cantidad_en_despachos = key.stock_items.where(stock_location: almacen_despacho).map(&:count_on_hand).reduce(:+).to_i
-						cantidad_mover_a_despacho = [cantidad_mover - cantidad_en_despachos, 0].max
+						acumulado = array.transpose.map(&:sum)
+						cantidad_agregar_a_shipment = acumulado[0]
+						cantidad_mover_a_despacho = acumulado[1]
+
 
 						puts "Moviendo " + key.sku + " unidades: " + cantidad_mover_a_despacho.to_s
 						# Movemos al almacen de despacho
@@ -548,8 +559,9 @@ module Scheduler::OrderHelper
 						end
 
 						# Agregamos al shipment de despacho
-						if cantidad_mover > 0
-							orden.contents.add(key, cantidad_mover, shipment: shipment_despacho)  ## variant, quantity, options
+						puts "Agregando " + key.sku + " a shipment " + shipment_despacho.number + " y unidades " + cantidad_agregar_a_shipment.to_s
+						if cantidad_agregar_a_shipment > 0
+							orden.contents.add(key, cantidad_agregar_a_shipment, shipment: shipment_despacho)  ## variant, quantity, options
 						end
 					end
 				end
