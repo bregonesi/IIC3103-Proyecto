@@ -462,6 +462,7 @@ module Scheduler::OrderHelper
 
 			if a_mover_prods_count == 0
 				prods.destroy_all
+				Scheduler::ProductosHelper.cargar_nuevos
 				return cambiar_items_a_despacho(variant, q, reference)
 			end
 
