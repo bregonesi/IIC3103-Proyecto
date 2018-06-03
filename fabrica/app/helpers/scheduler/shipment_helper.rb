@@ -3,7 +3,7 @@ module Scheduler::ShipmentHelper
 	def despachar
     url = ENV['api_url'] + "bodega/stock"
     stop_scheduler = false
-    
+
     Spree::Shipment.where(state: "ready", stock_location: Spree::StockLocation.where(proposito: "Despacho")).each do |shipment|  ## seleccionamos solo los que estan listos y en despacho
       shipment.with_lock do
         shipment.order.with_lock do
@@ -28,7 +28,7 @@ module Scheduler::ShipmentHelper
                   #base = 'DELETE' + prod['_id'].to_s + inventario_para_despachar.shipment.address.address1 + inventario_para_despachar.line_item.price.to_i.to_s + inventario_para_despachar.order.number.to_s
                   base = 'DELETE' + prod.id_api + shipment.address.address1 + iu.line_item.price.to_i.to_s + shipment.order.sftp_order.oc
                   key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-                  r = HTTParty.delete(url,
+                  r = HTTParty.delete(ENV['api_psswd'],
                                       body: {productoId: prod.id_api,
                                              direccion: shipment.address.address1,
                                              precio: iu.line_item.price.to_i,
@@ -56,7 +56,7 @@ module Scheduler::ShipmentHelper
                   Scheduler::ProductosHelper.cargar_detalles(Spree::StockItem.find_by(variant: iu.variant, stock_location: shipment.stock_location))
                 rescue NoMethodError => e
                   puts e
-                end 
+                end
 
                 if iu.shipped_quantity >= iu.quantity
                   iu.shipment.ship!

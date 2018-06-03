@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180603071624) do
+ActiveRecord::Schema.define(version: 20180603202846) do
 
   create_table "fabricar_requests", force: :cascade do |t|
     t.string "id_prod"
@@ -1138,6 +1138,19 @@ ActiveRecord::Schema.define(version: 20180603071624) do
     t.string "kind"
     t.index ["default_tax"], name: "index_spree_zones_on_default_tax"
     t.index ["kind"], name: "index_spree_zones_on_kind"
+  end
+
+  create_table "transferencia", force: :cascade do |t|
+    t.string "origen"
+    t.string "string"
+    t.string "destino"
+    t.integer "monto"
+    t.string "idtransferencia"
+    t.string "originator_type"
+    t.string "originator_id"
+    t.string "integer"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
 end

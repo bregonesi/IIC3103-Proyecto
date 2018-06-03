@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :transferencia
   resources :sftp_orders
   # This line mounts Spree's routes at the root of your application.
   # This means, any requests to URLs such as /products, will go to
