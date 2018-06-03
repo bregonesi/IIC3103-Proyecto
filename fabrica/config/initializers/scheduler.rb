@@ -7,7 +7,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 
 	job = Rufus::Scheduler.new(:max_work_threads => 1, :lockfile => ".rufus-scheduler.lock")
 
-	unless scheduler.down?
+	unless job.down?
 		job.every '35s' do
 			puts "Ejecutando update."
 
