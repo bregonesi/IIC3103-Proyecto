@@ -6,59 +6,62 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	puts "Partiendo scheduler"
 
 	job = Rufus::Scheduler.new(:max_work_threads => 1, :lockfile => ".rufus-scheduler.lock")
-	job.every '1s' do
-		puts "Ejecutando update."
 
-		# Marcamos ordenes vencidas y las finalizadas
-		Scheduler::OrderHelper.marcar_vencidas
-		Scheduler::OrderHelper.sincronizar_informacion
-		Scheduler::OrderHelper.marcar_finalizadas
+	unless scheduler.down?
+		job.every '35s' do
+			puts "Ejecutando update."
 
-		# Aca movemos los items de almacen #
-		Scheduler::ProductosHelper.hacer_movimientos
-		
-		# Cargamos nuevos stocks y stock de almacenes nuevos #
-		Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
-		
-		# Vemos que ordenes aceptar #
-		Scheduler::OrderHelper.aceptar_ordenes
+			# Marcamos ordenes vencidas y las finalizadas
+			Scheduler::OrderHelper.marcar_vencidas
+			Scheduler::OrderHelper.sincronizar_informacion
+			Scheduler::OrderHelper.marcar_finalizadas
 
-		# Chequeo de si alguna de las aceptadas tiene stock #
-		Scheduler::OrderHelper.chequear_si_hay_stock
+			# Aca movemos los items de almacen #
+			Scheduler::ProductosHelper.hacer_movimientos
+			
+			# Cargamos nuevos stocks y stock de almacenes nuevos #
+			Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
+			
+			# Vemos que ordenes aceptar #
+			Scheduler::OrderHelper.aceptar_ordenes
 
-		# Aca pagamos las ordenes #
-		Scheduler::PaymentHelper.pagar_ordenes
+			# Chequeo de si alguna de las aceptadas tiene stock #
+			Scheduler::OrderHelper.chequear_si_hay_stock
 
-		# Aca despachamos lo pagado #
-		Scheduler::ShipmentHelper.despachar_ordenes
+			# Aca pagamos las ordenes #
+			Scheduler::PaymentHelper.pagar_ordenes
 
-		# Cambiamos las ordenes de almacen #
-		Scheduler::OrderHelper.cambiar_almacen
+			# Aca despachamos lo pagado #
+			Scheduler::ShipmentHelper.despachar_ordenes
 
-		# Aca despachamos lo pagado #
-		Scheduler::ShipmentHelper.despachar_ordenes
+			# Cambiamos las ordenes de almacen #
+			Scheduler::OrderHelper.cambiar_almacen
 
-		# Volvemos a sincronizar ya que pudimos haber despachado #
-		Scheduler::OrderHelper.sincronizar_informacion
-		
-		# Fabricamos las pedidas #
-		Scheduler::OrderHelper.fabricar_api
-		
-		# Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
-		Scheduler::AlmacenesHelper.nuevos_almacenes
-		Scheduler::AlmacenesHelper.eliminar_extras
+			# Aca despachamos lo pagado #
+			Scheduler::ShipmentHelper.despachar_ordenes
 
-		# Aca movemos los items de almacen #
-		Scheduler::ProductosHelper.hacer_movimientos
+			# Volvemos a sincronizar ya que pudimos haber despachado #
+			Scheduler::OrderHelper.sincronizar_informacion
+			
+			# Fabricamos las pedidas #
+			Scheduler::OrderHelper.fabricar_api
+			
+			# Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
+			Scheduler::AlmacenesHelper.nuevos_almacenes
+			Scheduler::AlmacenesHelper.eliminar_extras
 
-		# Cargamos nuevos stocks y stock de almacenes nuevos #
-		Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
+			# Aca movemos los items de almacen #
+			Scheduler::ProductosHelper.hacer_movimientos
 
-		# Tratamos de que se mantenga los optimos de cada almacen #
-		Scheduler::AlmacenesHelper.mantener_consistencia
+			# Cargamos nuevos stocks y stock de almacenes nuevos #
+			Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
 
-		puts "Termina update."
-	end # end del scheduler
+			# Tratamos de que se mantenga los optimos de cada almacen #
+			Scheduler::AlmacenesHelper.mantener_consistencia
+
+			puts "Termina update."
+		end # end del scheduler
+	end
 
 
   job_sftp = Rufus::Scheduler.new(:max_work_threads => 1)

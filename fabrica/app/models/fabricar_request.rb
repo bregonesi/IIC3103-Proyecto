@@ -5,7 +5,7 @@ class FabricarRequest < ApplicationRecord
   def can_produce?(lotes = 1)
   	variant = Spree::Variant.find_by(sku: self.sku)
   	variant.recipe.each do |ingredient|
-  		cantidad_total = variant.cantidad_disponible + ingredient.amount
+  		cantidad_total = ingredient.variant_ingredient.cantidad_disponible + ingredient.amount
   		if cantidad_total < ingredient.amount * lotes
   			return false
   		end
