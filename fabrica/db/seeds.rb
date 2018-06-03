@@ -116,7 +116,7 @@ productos_csv.each do |product_attrs|
   variante = Spree::Variant.find_by(sku: sku)
   costo_unitario = product_attrs['Costo']
   puts "costo: " + costo_unitario
-  variante.costo = costo_unitario.to_i
+  variante.cost_price = costo_unitario.to_i
   variante.save!
 
   if new_product

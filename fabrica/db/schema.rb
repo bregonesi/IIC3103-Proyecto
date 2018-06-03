@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180601231538) do
+ActiveRecord::Schema.define(version: 20180601044736) do
 
   create_table "fabricar_requests", force: :cascade do |t|
     t.string "id_prod"
@@ -1106,7 +1106,6 @@ ActiveRecord::Schema.define(version: 20180601231538) do
     t.datetime "discontinue_on"
     t.datetime "created_at", null: false
     t.integer "lote_minimo", default: 0
-    t.integer "costo", default: 0
     t.index ["deleted_at"], name: "index_spree_variants_on_deleted_at"
     t.index ["discontinue_on"], name: "index_spree_variants_on_discontinue_on"
     t.index ["is_master"], name: "index_spree_variants_on_is_master"
