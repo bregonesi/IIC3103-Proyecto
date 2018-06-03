@@ -52,7 +52,7 @@ ActiveRecord::Schema.define(version: 20180603211334) do
   end
 
   create_table "orden_compras", force: :cascade do |t|
-    t.integer "_id"
+    t.string "_id"
     t.string "cliente"
     t.string "proveedor"
     t.string "sku"

@@ -4,17 +4,17 @@ class EndpointController < ApplicationController
 	def recibir_oc
 
 		id_order = params[:id]
-		puts "recibo nueva oc " + id_order.to_s
+		puts "Recibo nueva oc " + id_order.to_s
 
-		orden_nueva = OrdenCompra.where(_id: id_order).first_or_create! do |o|
+		r = HTTParty.get(ENV['api_oc_url'] + "obtener/" +
+			id_order.to_s, headers: { 'Content-type': 'application/json' })
+		if r.code != 200
+			render json: {:error => r.body}, :status => 400
+			return
+		end
+
+		orden_nueva = OrdenCompra.where(_id: id_order.to_s).first_or_create! do |o|
 			puts "Cargando orden " + id_order.to_s
-
-			r = HTTParty.get(ENV['api_oc_url'] + "obtener/" +
-				id_order.to_s, headers: { 'Content-type': 'application/json' })
-			if r.code != 200
-				json_p << {:error => "Error get api"}
-				render json: json_p, :status => 400
-			end
 
 			body = JSON.parse(r.body)[0]
 
@@ -28,17 +28,38 @@ class EndpointController < ApplicationController
 			o.precioUnitario = body['precioUnitario']
 			o.canal = body['canal']
 			o.estado = body['estado']
-			o.notas = body['notas']
-			o.rechazo = body['rechazo']
-			o.anulacion = body['anulacion']
-			o.urlNotificacion = body['urlNotificacion']
+			o.notas = body['notas'] || ""
+			o.rechazo = body['rechazo'] || ""
+			o.anulacion = body['anulacion'] || ""
+			o.urlNotificacion = body['urlNotificacion'] || ""
 			o.created_at = body['created_at']
 			o.updated_at = body['updated_at']
 		end
 
-		producto = Spree::Product.find_by(sku: orden_nueva.sku)
+		if orden_nueva.estado != "creada"
+			orden_nueva.notas += "No se acepta ya que no se encuentra en estado creada"
+			orden_nueva.save!
+			render json: {:error => "Orden " + orden_nueva._id + " no esta en estado creada. Estado " + orden_nueva.estado.to_s}, :status => 400
+			return
+		end
 
-		if producto.cantidad_disponible >= orden_nueva.cantidad && orden_nueva.estado == "creada"
+		if orden_nueva.canal != "b2b"
+			orden_nueva.notas += "No se acepta ya que no es orden b2b"
+			orden_nueva.save!
+			render json: {:error => "Orden " + orden_nueva._id + " no es b2b. Canal " + orden_nueva.canal.to_s}, :status => 400
+			return
+		end
+
+		if orden_nueva.urlNotificacion.empty?
+			orden_nueva.notas += "No se acepta ya que no hay url notificacion"
+			orden_nueva.save!
+			render json: {:error => "Orden " + orden_nueva._id + " no tiene url notificacion"}, :status => 400
+			return
+		end
+
+		producto = Spree::Variant.find_by(sku: orden_nueva.sku)
+
+		if producto.cantidad_disponible >= orden_nueva.cantidad
 			#acepto
 			puts "Marcando " + orden_nueva._id.to_s + " como aceptada"
 
@@ -54,6 +75,7 @@ class EndpointController < ApplicationController
 			else
 				orden_nueva.notas = "No funciono aceptar al compañero. "
 				orden_nueva.save!
+				render json: {:error => "Orden no esta en estado creada. Estado " + orden_nueva.estado.to_s}, :status => 400
 				return
 			end
 
@@ -94,6 +116,7 @@ class EndpointController < ApplicationController
 			end
 			orden_nueva.save!
 		end
+		render json: orden_nueva, :status => 200
 
 	end
 
