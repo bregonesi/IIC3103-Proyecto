@@ -297,7 +297,7 @@ module Scheduler::OrderHelper
 					create_spree_from_sftp_order(sftp_order)
 				end
 
-				cantidad_en_fabricacion = sftp_order.fabricar_requests.where(aceptado: false).or(sftp_order.fabricar_requests.where(aceptado: true, disponible: Time.at(0)..DateTime.now.utc)).map(&:cantidad).reduce(:+).to_i
+				cantidad_en_fabricacion = sftp_order.fabricar_requests.por_fabricar.or(sftp_order.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
 				if cantidad_restante - cantidad_en_fabricacion > 0
 					puts "Falta para fabricar"
 					if variant.can_produce?
