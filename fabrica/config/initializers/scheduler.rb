@@ -5,7 +5,7 @@ include SchedulerHelper
 if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	puts "Partiendo scheduler"
 
-	job = Rufus::Scheduler.new(:max_work_threads => 10, :lockfile => ".rufus-scheduler.lock")
+	job = Rufus::Scheduler.new(:max_work_threads => 1, :lockfile => ".rufus-scheduler.lock")
 	job.every '1s' do
 		puts "Ejecutando update."
 
