@@ -15,11 +15,10 @@ class FabricarRequest < ApplicationRecord
   end
 
   def self.por_recibir
-    #FabricarRequest.where(aceptado: true, disponible: DateTime.now..Float::INFINITY)
-    FabricarRequest.where(aceptado: true, disponible: DateTime.now.utc..Float::INFINITY)
+    self.where(aceptado: true, disponible: DateTime.now..Float::INFINITY)
   end
 
   def self.por_fabricar
-    FabricarRequest.where(aceptado: false, razon: nil)
+    self.where(aceptado: false, razon: nil)
   end
 end

@@ -15,14 +15,14 @@ class SftpOrder < ApplicationRecord
 	end
 
 	def self.finalizadas
-		SftpOrder.where(myEstado: 'finalizadas')
+		SftpOrder.where(myEstado: 'finalizada')
 	end
 
 	def self.tasa_aceptadas
 		((SftpOrder.aceptadas.count + SftpOrder.preaceptadas.count + SftpOrder.finalizadas.count).to_f / SftpOrder.count.to_f).to_f
 	end
 
-	def self.acepto?(tasa_min=0.6)
+	def self.acepto?(tasa_min=0.65)
 		SftpOrder.count == 0 || SftpOrder.tasa_aceptadas < tasa_min
 	end
 
