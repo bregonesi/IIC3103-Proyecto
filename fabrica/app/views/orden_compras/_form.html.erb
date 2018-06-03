@@ -1,0 +1,97 @@
+<%= form_with(model: orden_compra, local: true) do |form| %>
+  <% if orden_compra.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(orden_compra.errors.count, "error") %> prohibited this orden_compra from being saved:</h2>
+
+      <ul>
+      <% orden_compra.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :_id %>
+    <%= form.number_field :_id, id: :orden_compra__id %>
+  </div>
+
+  <div class="field">
+    <%= form.label :cliente %>
+    <%= form.text_field :cliente, id: :orden_compra_cliente %>
+  </div>
+
+  <div class="field">
+    <%= form.label :proveedor %>
+    <%= form.text_field :proveedor, id: :orden_compra_proveedor %>
+  </div>
+
+  <div class="field">
+    <%= form.label :sku %>
+    <%= form.text_field :sku, id: :orden_compra_sku %>
+  </div>
+
+  <div class="field">
+    <%= form.label :fechaEntrega %>
+    <%= form.datetime_select :fechaEntrega, id: :orden_compra_fechaEntrega %>
+  </div>
+
+  <div class="field">
+    <%= form.label :cantidad %>
+    <%= form.number_field :cantidad, id: :orden_compra_cantidad %>
+  </div>
+
+  <div class="field">
+    <%= form.label :cantidadDespachada %>
+    <%= form.number_field :cantidadDespachada, id: :orden_compra_cantidadDespachada %>
+  </div>
+
+  <div class="field">
+    <%= form.label :precioUnitario %>
+    <%= form.number_field :precioUnitario, id: :orden_compra_precioUnitario %>
+  </div>
+
+  <div class="field">
+    <%= form.label :canal %>
+    <%= form.text_field :canal, id: :orden_compra_canal %>
+  </div>
+
+  <div class="field">
+    <%= form.label :estado %>
+    <%= form.text_field :estado, id: :orden_compra_estado %>
+  </div>
+
+  <div class="field">
+    <%= form.label :notas %>
+    <%= form.text_field :notas, id: :orden_compra_notas %>
+  </div>
+
+  <div class="field">
+    <%= form.label :rechazo %>
+    <%= form.text_field :rechazo, id: :orden_compra_rechazo %>
+  </div>
+
+  <div class="field">
+    <%= form.label :anulacion %>
+    <%= form.text_field :anulacion, id: :orden_compra_anulacion %>
+  </div>
+
+  <div class="field">
+    <%= form.label :urlNotificacion %>
+    <%= form.text_field :urlNotificacion, id: :orden_compra_urlNotificacion %>
+  </div>
+
+  <div class="field">
+    <%= form.label :created_at %>
+    <%= form.datetime_select :created_at, id: :orden_compra_created_at %>
+  </div>
+
+  <div class="field">
+    <%= form.label :updated_at %>
+    <%= form.datetime_select :updated_at, id: :orden_compra_updated_at %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

@@ -1,0 +1,84 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Id:</strong>
+  <%= @orden_compra._id %>
+</p>
+
+<p>
+  <strong>Cliente:</strong>
+  <%= @orden_compra.cliente %>
+</p>
+
+<p>
+  <strong>Proveedor:</strong>
+  <%= @orden_compra.proveedor %>
+</p>
+
+<p>
+  <strong>Sku:</strong>
+  <%= @orden_compra.sku %>
+</p>
+
+<p>
+  <strong>Fechaentrega:</strong>
+  <%= @orden_compra.fechaEntrega %>
+</p>
+
+<p>
+  <strong>Cantidad:</strong>
+  <%= @orden_compra.cantidad %>
+</p>
+
+<p>
+  <strong>Cantidaddespachada:</strong>
+  <%= @orden_compra.cantidadDespachada %>
+</p>
+
+<p>
+  <strong>Preciounitario:</strong>
+  <%= @orden_compra.precioUnitario %>
+</p>
+
+<p>
+  <strong>Canal:</strong>
+  <%= @orden_compra.canal %>
+</p>
+
+<p>
+  <strong>Estado:</strong>
+  <%= @orden_compra.estado %>
+</p>
+
+<p>
+  <strong>Notas:</strong>
+  <%= @orden_compra.notas %>
+</p>
+
+<p>
+  <strong>Rechazo:</strong>
+  <%= @orden_compra.rechazo %>
+</p>
+
+<p>
+  <strong>Anulacion:</strong>
+  <%= @orden_compra.anulacion %>
+</p>
+
+<p>
+  <strong>Urlnotificacion:</strong>
+  <%= @orden_compra.urlNotificacion %>
+</p>
+
+<p>
+  <strong>Created at:</strong>
+  <%= @orden_compra.created_at %>
+</p>
+
+<p>
+  <strong>Updated at:</strong>
+  <%= @orden_compra.updated_at %>
+</p>
+
+<%= link_to 'Edit', edit_orden_compra_path(@orden_compra) %> |
+<%= link_to 'Back', orden_compras_path %>

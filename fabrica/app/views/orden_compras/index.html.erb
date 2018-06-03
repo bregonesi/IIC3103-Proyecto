@@ -1,0 +1,57 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Orden Compras</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Cliente</th>
+      <th>Proveedor</th>
+      <th>Sku</th>
+      <th>Fechaentrega</th>
+      <th>Cantidad</th>
+      <th>Cantidaddespachada</th>
+      <th>Preciounitario</th>
+      <th>Canal</th>
+      <th>Estado</th>
+      <th>Notas</th>
+      <th>Rechazo</th>
+      <th>Anulacion</th>
+      <th>Urlnotificacion</th>
+      <th>Created at</th>
+      <th>Updated at</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @orden_compras.each do |orden_compra| %>
+      <tr>
+        <td><%= orden_compra._id %></td>
+        <td><%= orden_compra.cliente %></td>
+        <td><%= orden_compra.proveedor %></td>
+        <td><%= orden_compra.sku %></td>
+        <td><%= orden_compra.fechaEntrega %></td>
+        <td><%= orden_compra.cantidad %></td>
+        <td><%= orden_compra.cantidadDespachada %></td>
+        <td><%= orden_compra.precioUnitario %></td>
+        <td><%= orden_compra.canal %></td>
+        <td><%= orden_compra.estado %></td>
+        <td><%= orden_compra.notas %></td>
+        <td><%= orden_compra.rechazo %></td>
+        <td><%= orden_compra.anulacion %></td>
+        <td><%= orden_compra.urlNotificacion %></td>
+        <td><%= orden_compra.created_at %></td>
+        <td><%= orden_compra.updated_at %></td>
+        <td><%= link_to 'Show', orden_compra %></td>
+        <td><%= link_to 'Edit', edit_orden_compra_path(orden_compra) %></td>
+        <td><%= link_to 'Destroy', orden_compra, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Orden Compra', new_orden_compra_path %>

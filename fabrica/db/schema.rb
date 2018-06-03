@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180603071624) do
+ActiveRecord::Schema.define(version: 20180603211334) do
 
   create_table "fabricar_requests", force: :cascade do |t|
     t.string "id_prod"
@@ -47,6 +47,25 @@ ActiveRecord::Schema.define(version: 20180603071624) do
     t.integer "ip"
     t.boolean "aceptado"
     t.text "razon"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "orden_compras", force: :cascade do |t|
+    t.integer "_id"
+    t.string "cliente"
+    t.string "proveedor"
+    t.string "sku"
+    t.datetime "fechaEntrega"
+    t.integer "cantidad"
+    t.integer "cantidadDespachada"
+    t.integer "precioUnitario"
+    t.string "canal"
+    t.string "estado"
+    t.string "notas"
+    t.string "rechazo"
+    t.string "anulacion"
+    t.string "urlNotificacion"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
