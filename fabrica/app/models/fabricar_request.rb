@@ -14,11 +14,11 @@ class FabricarRequest < ApplicationRecord
   	return true
   end
 
-  def por_recibir
+  def self.por_recibir
     self.where(aceptado: true, disponible: DateTime.now..Float::INFINITY)
   end
 
-  def por_fabricar
+  def self.por_fabricar
     self.where(aceptado: false, razon: nil)
   end
 end
