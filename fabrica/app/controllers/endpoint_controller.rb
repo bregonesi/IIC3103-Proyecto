@@ -20,8 +20,10 @@ class EndpointController < ApplicationController
 		#marcarla como aceptada y a considerar fabrique
 	end
 
-  private
-    def endpoint_params
-      params.require(:endpoint).permit(:status)
-    end
+
+	private
+		def endpoint_params
+			params.require(:endpoint).permit(:status)
+		end
+
 end
