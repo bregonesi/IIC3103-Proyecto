@@ -6,5 +6,6 @@ module SchedulerHelper
 	include Scheduler::ProductosHelper
 
 	include Scheduler::SftpHelper
+	include Scheduler::ConstantesHelper
 
 end

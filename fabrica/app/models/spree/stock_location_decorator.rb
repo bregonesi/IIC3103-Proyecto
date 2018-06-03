@@ -1,12 +1,44 @@
 Spree::StockLocation.class_eval do
-  def used_capacity
-  	used = 0
-    
-    self.stock_items.each do |item|
-    	used += item.count_on_hand
-    end
+  def items_capacity
+    self.stock_items.sum(:count_on_hand)
+  end
 
-    return used
+  def shipment_capacity
+    items_por_despachar = 0
+    self.shipments.each do |shipment|
+      if shipment.order.completed?
+        shipment.inventory_units.each do |iu|
+          items_por_despachar = iu.quantity - iu.shipped_quantity
+        end
+      end
+    end
+    items_por_despachar
+  end
+
+  def in_factory
+    self.stock_items.sum(&:waiting_factory_units)
+    #FabricarRequest.por_recibir.count * 100
+  end
+
+  def used_capacity
+
+    if self.proposito == "Despacho"
+      url = ENV['api_url'] + "bodega/almacenes"
+
+      base = 'GET'
+      key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+      r = HTTParty.get(url, headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+      
+      if r.code == 200
+        JSON.parse(r.body).each do |almacen|
+          if almacen['_id'] == self.admin_name
+            return almacen['usedSpace'].to_i
+          end
+        end
+      end
+    else
+      items_capacity + shipment_capacity + in_factory
+    end
   end
 
   def available_capacity

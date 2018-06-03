@@ -58,6 +58,11 @@ module Scheduler::ProductosHelper
 					productos_mover = obtener_lote_antiguo(movement.stock_item, -movement.quantity.to_i - movement.moved_quantity.to_i)
 				end
 
+				if productos_mover.count > stock_item_dest.stock_location.available_capacity
+					puts "Nos saltamos movement. No queda capacidad en destino. Para mover todo. Capacidad restante " + stock_item_dest.stock_location.available_capacity.to_s + " y queremos mover " + productos_mover.count.to_s
+					next
+				end
+				
 	      j = 0
 				productos_mover.each do |prod|  ## hay que mover producto por producto (si, ineficiente)
 					prod.with_lock do 
@@ -191,8 +196,10 @@ module Scheduler::ProductosHelper
 					      	end
 					      end
 				      end
+				      puts "Por despachar " + por_despachar.to_s
 
 				      diferencia = prod_api['total'].to_i - (stock_item.count_on_hand + por_despachar)
+				      puts "Diferencia total " + diferencia.to_s
 				      if diferencia != 0  # si no calza el stock, ie, se fabrico mas
 								stock_movement = stock_location.stock_movements.build(quantity: diferencia.to_i)
 								stock_movement.action = "Diferencia de stock con bodega."

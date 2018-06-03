@@ -12,7 +12,9 @@ module Scheduler::AlmacenesHelper
 		pulmon = Spree::StockLocation.where(proposito: "Pulmon")
 
 		# esperado = [mover a stock, gap, excluir]
-		esperado = [[despacho, 1000, []], [general, 500, [despacho]]]
+		# dejare un gap de 1500 en despacho por errores del profe
+		#esperado = [[despacho, 1500, []], [general, 500, [despacho]]]
+		esperado = [[general, 500, [despacho]]]
 
 		esperado.each do |entry|
 			cap_dis = entry[1]

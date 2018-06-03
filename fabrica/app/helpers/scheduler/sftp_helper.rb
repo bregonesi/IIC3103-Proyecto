@@ -56,6 +56,10 @@ module Scheduler::SftpHelper
               o.myEstado = body['estado']
               o.serverEstado = body['estado']
               o.created_at = body['created_at']
+
+              if o.serverCantidadDespachada >= o.cantidad
+                o.myEstado = "finalizada"
+              end
             end
           end # end de inside file
         end # end de if.xml

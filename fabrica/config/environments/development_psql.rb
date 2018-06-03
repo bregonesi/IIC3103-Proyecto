@@ -54,7 +54,7 @@ Rails.application.configure do
 
   # Para que no salgan las queries en consola
   config.active_record.logger = nil
-
+  
   # API url
   ENV['api_url'] = "https://integracion-2018-dev.herokuapp.com/"  ## development
   #ENV['api_url'] = "https://integracion-2018-prod.herokuapp.com/"  ## production

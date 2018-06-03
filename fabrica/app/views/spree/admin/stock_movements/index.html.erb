@@ -22,6 +22,25 @@
     </tr>
   </thead>
   <tbody>
+    <!-- aqui sale el stock disponible -->
+    <% @stock_location.stock_items.order(:id).each do |si| %>
+      <tr id="<%= spree_dom_id si %>" data-hook="admin_stock_movements_index_rows">
+        <td>
+          <%= si.variant.name %> (<%= si.variant.sku %>)
+        </td>
+        <td><%= si.count_on_hand %></td>
+        <td></td>
+      </tr>
+    <% end %>
+
+    <tr id="---" data-hook="admin_stock_movements_index_rows">
+      <td>
+        ----
+      </td>
+      <td>---</td>
+      <td>---</td>
+    </tr>
+
     <% @stock_movements.each do |stock_movement|%>
       <tr id="<%= spree_dom_id stock_movement %>" data-hook="admin_stock_movements_index_rows">
         <td>

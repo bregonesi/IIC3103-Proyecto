@@ -21,3 +21,6 @@
 /yarn-error.log
 
 .byebug_history
+
+# Ignore rufus scheduler lock
+.rufus-scheduler.lock
