@@ -22,16 +22,18 @@ Spree::StockLocation.class_eval do
 
   def used_capacity
 
-    url = ENV['api_url'] + "bodega/almacenes"
+    if self.proposito == "Despacho"
+      url = ENV['api_url'] + "bodega/almacenes"
 
-    base = 'GET'
-    key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-    r = HTTParty.get(url, headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
-    
-    if r.code == 200
-      JSON.parse(r.body).each do |almacen|
-        if almacen['_id'] == self.admin_name
-          return almacen['usedSpace'].to_i
+      base = 'GET'
+      key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+      r = HTTParty.get(url, headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+      
+      if r.code == 200
+        JSON.parse(r.body).each do |almacen|
+          if almacen['_id'] == self.admin_name
+            return almacen['usedSpace'].to_i
+          end
         end
       end
     else
