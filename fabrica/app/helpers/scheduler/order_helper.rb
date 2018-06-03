@@ -390,10 +390,9 @@ module Scheduler::OrderHelper
 				
 				if r.code == 200
 					variant.recipe.each do |ingredient|
-						stock_location = ingredient.variant_ingredient.stock_items.where(stock_location: Spree::StockLocation.generales).order(count_on_hand: :desc).first.stock_location
-						stock_movement = stock_location.stock_movements.build(quantity: -ingredient.amount.to_i)
+						stock_movement = almacen_despacho.stock_movements.build(quantity: -ingredient.amount.to_i)
 						stock_movement.action = "Mandamos a fabricar."
-						stock_movement.stock_item = stock_location.set_up_stock_item(ingredient.variant_ingredient)
+						stock_movement.stock_item = almacen_despacho.set_up_stock_item(ingredient.variant_ingredient)
 						Scheduler::ProductosHelper.cargar_detalles(stock_location.stock_items.find_by(variant: ingredient.variant_ingredient))
 					end
 
@@ -460,7 +459,7 @@ module Scheduler::OrderHelper
 
 			if a_mover_prods_count == 0
 				prods.destroy_all
-				return cambiar_items_a_despacho(variant, q)
+				return cambiar_items_a_despacho(variant, q, reference)
 			end
 
       variants = Hash.new(0)
@@ -481,7 +480,7 @@ module Scheduler::OrderHelper
     		#	Scheduler::ProductosHelper::cargar_detalles(x)
     		#end
     		#Scheduler::ProductosHelper::cargar_nuevos
-    		return cambiar_items_a_despacho(variant, q)
+    		return cambiar_items_a_despacho(variant, q, reference)
     		break
     	end
 
@@ -562,7 +561,7 @@ module Scheduler::OrderHelper
 						puts "Moviendo " + key.sku + " unidades: " + cantidad_mover_a_despacho.to_s
 						# Movemos al almacen de despacho
 						if cantidad_mover_a_despacho > 0
-							cambiar_items_a_despacho(key, cantidad_mover_a_despacho)
+							cambiar_items_a_despacho(key, cantidad_mover_a_despacho, "Para crear shipment en almacen de despacho")
 						end
 
 						# Agregamos al shipment de despacho
