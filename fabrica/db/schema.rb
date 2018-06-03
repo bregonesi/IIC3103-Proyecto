@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180602015348) do
+ActiveRecord::Schema.define(version: 20180603071624) do
 
   create_table "fabricar_requests", force: :cascade do |t|
     t.string "id_prod"
@@ -949,6 +949,7 @@ ActiveRecord::Schema.define(version: 20180602015348) do
     t.boolean "default", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "cuenta_banco"
     t.index ["code"], name: "index_spree_stores_on_code", unique: true
     t.index ["default"], name: "index_spree_stores_on_default"
     t.index ["url"], name: "index_spree_stores_on_url"

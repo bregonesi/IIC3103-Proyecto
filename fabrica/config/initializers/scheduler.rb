@@ -68,10 +68,14 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
   job_sftp.every '10m' do
 		puts "Ejecutando chequeo de ordenes nuevas ftp"
 
-		# Descargamos nuevas ordenes
+		# Descargamos nuevas ordenes #
 		Scheduler::SftpHelper.agregar_nuevas_ordenes
 
-		# agregar chequeo de hook
+		# Vemos que todo este bien con el hook #
+		Scheduler::ConstantesHelper.set_hook
+
+		# Vemos que todo este bien con la cuenta banco api #
+		Scheduler::ConstantesHelper.api_cuenta_banco
 
 		puts "Termina chequeo de ordenes nuevas ftp"
   end

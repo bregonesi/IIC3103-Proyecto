@@ -205,35 +205,11 @@ Scheduler::ProductosHelper.cargar_nuevos
 
 # Set hook #
 print "Seteando hook.\n"
+Scheduler::ConstantesHelper.set_hook
 
-url = ENV['api_url'] + "bodega/hook"
-hook_url = 'http://integra4.ing.puc.cl/hook'
-
-base = 'GET'
-key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-r = HTTParty.get(url, headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})  # primero eliminamos hook
-
-if r.code == 200
-  if JSON.parse(r.body)["url"] != hook_url
-    print "Cambio hook.\n"
-
-    base = 'DELETE'
-    key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-    HTTParty.delete(url,
-                    body: {}.to_json,  # empty json
-                    headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})  # primero eliminamos hook
-
-    base = 'PUT' + hook_url
-    key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-    HTTParty.put(url,
-                 body: {url: hook_url}.to_json,
-                 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})  # primero eliminamos hook
-  else
-    print "Hook no cambio. No seteamos nuevo hook.\n"
-  end
-else
-  print "Error. Response code not 200.\n"
-end
+# Set cuenta banco api #
+print "Seteando cuenta banco api.\n"
+Scheduler::ConstantesHelper.api_cuenta_banco
 
 # Descargamos nuevas ordenes
 print "Descargando y agregando ordenes al por mayor.\n"
