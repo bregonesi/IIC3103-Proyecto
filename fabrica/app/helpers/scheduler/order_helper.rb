@@ -395,7 +395,7 @@ module Scheduler::OrderHelper
 						stock_movement.stock_item = almacen_despacho.set_up_stock_item(ingredient.variant_ingredient)
 
 						stock_item_ingrediente = almacen_despacho.stock_items.find_by(variant: ingredient.variant_ingredient)
-						obtener_lote_antiguo(stock_item_ingrediente, cantidad=ingredient.amount.to_i).destroy_all
+						Scheduler::ProductosHelper.obtener_lote_antiguo(stock_item_ingrediente, cantidad=ingredient.amount.to_i).destroy_all
 						Scheduler::ProductosHelper.cargar_detalles(stock_item_ingrediente)
 					end
 
