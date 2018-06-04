@@ -1,0 +1,39 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Oc Requests</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Sftp order</th>
+      <th>Sku</th>
+      <th>Cantidad</th>
+      <th>Por responder</th>
+      <th>Aceptado</th>
+      <th>Despachado</th>
+      <th>#oc generadas</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @oc_requests.each do |oc_request| %>
+      <tr>
+        <td><%= oc_request.sftp_order.oc %></td>
+        <td><%= oc_request.sku %></td>
+        <td><%= oc_request.cantidad %></td>
+        <td><%= oc_request.por_responder %></td>
+        <td><%= oc_request.aceptado %></td>
+        <td><%= oc_request.despachado %></td>
+        <td><%= oc_request.ocs_generadas.count %></td>
+        <td><%= link_to 'Show', oc_request %></td>
+        <td><%= link_to 'Edit', edit_oc_request_path(oc_request) %></td>
+        <td><%= link_to 'Destroy', oc_request, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Oc Request', new_oc_request_path %>

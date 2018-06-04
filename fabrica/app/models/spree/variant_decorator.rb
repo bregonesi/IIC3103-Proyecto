@@ -11,6 +11,10 @@ Spree::Variant.class_eval do
   end
 
   def can_produce?(lotes = 1)
+    if self.primary?
+      return false
+    end
+    
   	self.recipe.each do |ingredient|
   		if !ingredient.variant_ingredient.can_ship?(ingredient.amount * lotes)
   			return false

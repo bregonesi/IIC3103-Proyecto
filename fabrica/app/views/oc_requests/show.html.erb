@@ -1,0 +1,34 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Sftp order:</strong>
+  <%= @oc_request.sftp_order %>
+</p>
+
+<p>
+  <strong>Sku:</strong>
+  <%= @oc_request.sku %>
+</p>
+
+<p>
+  <strong>Cantidad:</strong>
+  <%= @oc_request.cantidad %>
+</p>
+
+<p>
+  <strong>Por responder:</strong>
+  <%= @oc_request.por_responder %>
+</p>
+
+<p>
+  <strong>Aceptado:</strong>
+  <%= @oc_request.aceptado %>
+</p>
+
+<p>
+  <strong>Despachado:</strong>
+  <%= @oc_request.despachado %>
+</p>
+
+<%= link_to 'Edit', edit_oc_request_path(@oc_request) %> |
+<%= link_to 'Back', oc_requests_path %>

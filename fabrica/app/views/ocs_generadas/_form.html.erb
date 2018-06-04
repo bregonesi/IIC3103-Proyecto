@@ -1,0 +1,77 @@
+<%= form_with(model: ocs_generada, local: true) do |form| %>
+  <% if ocs_generada.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(ocs_generada.errors.count, "error") %> prohibited this ocs_generada from being saved:</h2>
+
+      <ul>
+      <% ocs_generada.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :oc_request_id %>
+    <%= form.text_field :oc_request_id, id: :ocs_generada_oc_request_id %>
+  </div>
+
+  <div class="field">
+    <%= form.label :oc_id %>
+    <%= form.text_field :oc_id, id: :ocs_generada_oc_id %>
+  </div>
+
+  <div class="field">
+    <%= form.label :grupo %>
+    <%= form.number_field :grupo, id: :ocs_generada_grupo %>
+  </div>
+
+  <div class="field">
+    <%= form.label :cliente %>
+    <%= form.text_field :cliente, id: :ocs_generada_cliente %>
+  </div>
+
+  <div class="field">
+    <%= form.label :proveedor %>
+    <%= form.text_field :proveedor, id: :ocs_generada_proveedor %>
+  </div>
+
+  <div class="field">
+    <%= form.label :sku %>
+    <%= form.text_field :sku, id: :ocs_generada_sku %>
+  </div>
+
+  <div class="field">
+    <%= form.label :fechaEntrega %>
+    <%= form.datetime_select :fechaEntrega, id: :ocs_generada_fechaEntrega %>
+  </div>
+
+  <div class="field">
+    <%= form.label :cantidad %>
+    <%= form.number_field :cantidad, id: :ocs_generada_cantidad %>
+  </div>
+
+  <div class="field">
+    <%= form.label :precioUnitario %>
+    <%= form.number_field :precioUnitario, id: :ocs_generada_precioUnitario %>
+  </div>
+
+  <div class="field">
+    <%= form.label :canal %>
+    <%= form.text_field :canal, id: :ocs_generada_canal %>
+  </div>
+
+  <div class="field">
+    <%= form.label :notas %>
+    <%= form.text_field :notas, id: :ocs_generada_notas %>
+  </div>
+
+  <div class="field">
+    <%= form.label :urlNotificacion %>
+    <%= form.text_field :urlNotificacion, id: :ocs_generada_urlNotificacion %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

@@ -1,0 +1,47 @@
+<%= form_with(model: oc_request, local: true) do |form| %>
+  <% if oc_request.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(oc_request.errors.count, "error") %> prohibited this oc_request from being saved:</h2>
+
+      <ul>
+      <% oc_request.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :sftp_order_id %>
+    <%= form.text_field :sftp_order_id, id: :oc_request_sftp_order_id %>
+  </div>
+
+  <div class="field">
+    <%= form.label :sku %>
+    <%= form.text_field :sku, id: :oc_request_sku %>
+  </div>
+
+  <div class="field">
+    <%= form.label :cantidad %>
+    <%= form.number_field :cantidad, id: :oc_request_cantidad %>
+  </div>
+
+  <div class="field">
+    <%= form.label :por_responder %>
+    <%= form.check_box :por_responder, id: :oc_request_por_responder %>
+  </div>
+
+  <div class="field">
+    <%= form.label :aceptado %>
+    <%= form.check_box :aceptado, id: :oc_request_aceptado %>
+  </div>
+
+  <div class="field">
+    <%= form.label :despachado %>
+    <%= form.check_box :despachado, id: :oc_request_despachado %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

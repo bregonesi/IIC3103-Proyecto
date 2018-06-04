@@ -28,6 +28,18 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 			# Chequeo de si alguna de las aceptadas tiene stock #
 			Scheduler::OrderHelper.chequear_si_hay_stock
 
+			# Anulamos ocs que se demoren mas de 5 minutos #
+			Scheduler::OcHelper.rechazar_despues_de_5_mins
+
+			# Si todos nos rechazan se cambia a respondida #
+			Scheduler::OcHelper.actualizar_respuesta_oc_requests
+
+			# Volvemos a creadas las que no se respondieron en oc #
+			Scheduler::OcHelper.volver_a_estado_creada
+
+			# Generamos oc #
+			Scheduler::OcHelper.generar_oc_sistema
+
 			# Aca pagamos las ordenes #
 			Scheduler::PaymentHelper.pagar_ordenes
 
