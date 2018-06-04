@@ -137,9 +137,9 @@ module Scheduler::OcHelper
 			if DateTime.now.utc > oc.created_at + 7.minutes
 				puts "Anularemos " + oc.oc_id.to_s
 
-				r = HTTParty.post(ENV['api_oc_url'] + "anular/" + oc.oc_id.to_s,
-													body: { anulacion: "Se anula ya que pasaron mas de 7 minutos desde que se creo." }.to_json,
-													headers: { 'Content-type': 'application/json' })
+				r = HTTParty.delete(ENV['api_oc_url'] + "anular/" + oc.oc_id.to_s,
+														body: { anulacion: "Se anula ya que pasaron mas de 7 minutos desde que se creo." }.to_json,
+														headers: { 'Content-type': 'application/json' })
 				puts r
 				if r.code == 200
 					body = JSON.parse(r.body)[0]
