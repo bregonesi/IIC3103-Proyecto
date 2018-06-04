@@ -52,6 +52,11 @@
   </div>
 
   <div class="field">
+    <%= form.label :cantidadDespachada %>
+    <%= form.number_field :cantidadDespachada, id: :ocs_generada_cantidadDespachada %>
+  </div>
+
+  <div class="field">
     <%= form.label :precioUnitario %>
     <%= form.number_field :precioUnitario, id: :ocs_generada_precioUnitario %>
   </div>
@@ -69,6 +74,11 @@
   <div class="field">
     <%= form.label :urlNotificacion %>
     <%= form.text_field :urlNotificacion, id: :ocs_generada_urlNotificacion %>
+  </div>
+
+  <div class="field">
+    <%= form.label :estado %>
+    <%= form.text_field :estado, id: :ocs_generada_estado %>
   </div>
 
   <div class="actions">

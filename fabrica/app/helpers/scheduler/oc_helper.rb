@@ -24,9 +24,14 @@ module Scheduler::OcHelper
 				datos_grupo = $info_grupos[grupo]
 				variant = Spree::Variant.find_by(sku: oc.sku)
 
-				stock_request = HTTParty.get(datos_grupo[:stock_url].to_s,
-																		 body: { }.to_json,
-																		 headers: { 'Content-type': 'application/json' })
+				errores_stock_request = nil
+				begin
+					stock_request = HTTParty.get(datos_grupo[:stock_url].to_s,
+																			 body: { }.to_json,
+																			 headers: { 'Content-type': 'application/json' })
+				rescue Exception => e # Never do this!
+					errores_stock_request = e
+				end
 
 				oc_generada = oc.ocs_generadas.where(grupo: grupo).first_or_create! do |o|
 					o.cliente = $info_grupos[4][:id]
@@ -41,64 +46,81 @@ module Scheduler::OcHelper
 					o.estado = "creada"
 				end
 
-				if stock_request.code == 200
-					body = JSON.parse(stock_request.body)
-					hay_stock = false
-					body.each do |prod|
-						if prod["sku"] == oc.sku
-							if prod["available"].to_i >= oc.cantidad.to_i
-								puts "Grupo si tiene stock. Intento crear orden"
+				if errores_stock_request.nil?
+					if !datos_grupo[:oc_url].empty?
+						if stock_request.code == 200
+							body = JSON.parse(stock_request.body)
+							hay_stock = false
+							body.each do |prod|
+								if prod["sku"] == oc.sku
+									if prod["available"].to_i >= oc.cantidad.to_i
+										puts "Grupo si tiene stock. Intento crear orden"
 
-								hay_stock = true
+										hay_stock = true
 
 
-								## Mandamos oc
-								oc_request = HTTParty.put(ENV['api_oc_url'] + "crear",
-																					body: { cliente: oc_generada.cliente,
-																									proveedor: oc_generada.proveedor,
-																									sku: oc_generada.sku,
-																									fechaEntrega: oc_generada.fechaEntrega.to_i * 1000,
-																									cantidad: oc_generada.cantidad,
-																									precioUnitario: oc_generada.precioUnitario,
-																									canal: oc_generada.canal,
-																									urlNotificacion: oc_generada.urlNotificacion }.to_json,
-																					headers: { 'Content-type': 'application/json' })
+										## Mandamos oc
+										oc_request = HTTParty.put(ENV['api_oc_url'] + "crear",
+																							body: { cliente: oc_generada.cliente,
+																											proveedor: oc_generada.proveedor,
+																											sku: oc_generada.sku,
+																											fechaEntrega: oc_generada.fechaEntrega.to_i * 1000,
+																											cantidad: oc_generada.cantidad,
+																											precioUnitario: oc_generada.precioUnitario,
+																											canal: oc_generada.canal,
+																											urlNotificacion: oc_generada.urlNotificacion }.to_json,
+																							headers: { 'Content-type': 'application/json' })
 
-								puts oc_request
-								if oc_request.code == 200
-									puts "Orden creada"
+										puts oc_request
+										if oc_request.code == 200
+											puts "Orden creada"
 
-									# decirle al wn que cree una orden
+											body = JSON.parse(oc_request.body)
 
-									body = JSON.parse(oc_request.body)
+											# Le decimos que creamos una oc
+											HTTParty.put(datos_grupo[:oc_url] + body['_id'], body: { }.to_json, headers: { 'Content-type': 'application/json' })
 
-									oc_generada.oc_id = body['_id']
-									oc_generada.cantidadDespachada = body['cantidadDespachada'].to_i
-									oc_generada.urlNotificacion = body['urlNotificacion']
-									oc_generada.created_at = body['created_at']
-									oc_generada.notas = "Se acepta ya que se cuenta con stock"
+											oc_generada.oc_id = body['_id']
+											oc_generada.cantidadDespachada = body['cantidadDespachada'].to_i
+											oc_generada.urlNotificacion = body['urlNotificacion']
+											oc_generada.created_at = body['created_at']
+											oc_generada.notas = "Se acepta ya que se cuenta con stock"
 
-								else
-									oc_generada.estado = "anulada"
-									oc_generada.notas = "Se anula ya que no se retorno 200 al crear la oc. Codigo devuelto " + oc_request.code.to_s + " y error " + oc_request.body.to_s
+										else
+											oc_generada.estado = "anulada"
+											oc_generada.notas = "Se anula ya que no se retorno 200 al crear la oc. Codigo devuelto " + oc_request.code.to_s + " y error " + oc_request.body.to_s
+										end
+									end
+									break
 								end
 							end
-							break
-						end
-					end
-					oc_generada.save!
+							oc_generada.save!
 
-					if !hay_stock
-						puts "Grupo no tiene stock"
+							if !hay_stock
+								puts "Grupo no tiene stock"
+								oc_generada.estado = "anulada"
+								oc_generada.notas = "Se anula ya que grupo no tiene stock para satisfacer nuesta oc"
+								oc_generada.save!
+								return generar_oc_sistema
+							end
+						else
+							puts "Return code no es 200"
+							oc_generada.estado = "anulada"
+							oc_generada.notas = "Se anula ya que grupo no responde 200 en su request de stock"
+							oc_generada.save!
+							return generar_oc_sistema
+						end
+					else
+						puts "No tenemos la url para mandar oc"
 						oc_generada.estado = "anulada"
-						oc_generada.notas = "Se anula ya que grupo no tiene stock para satisfacer nuesta oc"
+						oc_generada.notas = "Se anula ya que no se tiene la url para mandar oc"
 						oc_generada.save!
 						return generar_oc_sistema
 					end
 				else
-					puts "Return code no es 200"
+					puts "Error en get stock (de conexion)"
 					oc_generada.estado = "anulada"
-					oc_generada.notas = "Se anula ya que grupo no responde 200 en su request de stock"
+					oc_generada.notas = "Se anula ya que grupo no se pudo conectar con get stock. Error " + errores_stock_request.to_s
 					oc_generada.save!
 					return generar_oc_sistema
 				end

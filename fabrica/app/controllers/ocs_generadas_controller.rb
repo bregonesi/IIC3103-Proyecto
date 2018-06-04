@@ -69,6 +69,6 @@ class OcsGeneradasController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def ocs_generada_params
-      params.require(:ocs_generada).permit(:oc_request_id, :oc_id, :grupo, :cliente, :proveedor, :sku, :fechaEntrega, :cantidad, :precioUnitario, :canal, :notas, :urlNotificacion)
+      params.require(:ocs_generada).permit(:oc_request_id, :oc_id, :grupo, :cliente, :proveedor, :sku, :fechaEntrega, :cantidad, :cantidadDespachada, :precioUnitario, :canal, :notas, :urlNotificacion, :estado)
     end
 end
