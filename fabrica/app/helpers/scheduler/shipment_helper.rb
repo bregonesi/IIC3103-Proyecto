@@ -26,6 +26,7 @@ module Scheduler::ShipmentHelper
                 productos_shipped = []
                 productos_despachar.each do |prod|  ## hay que eliminar producto por producto (si, ineficiente)
                   #base = 'DELETE' + prod['_id'].to_s + inventario_para_despachar.shipment.address.address1 + inventario_para_despachar.line_item.price.to_i.to_s + inventario_para_despachar.order.number.to_s
+                  
                   base = 'DELETE' + prod.id_api + shipment.address.address1 + iu.line_item.price.to_i.to_s + shipment.order.sftp_order.oc
                   key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
                   r = HTTParty.delete(url,
