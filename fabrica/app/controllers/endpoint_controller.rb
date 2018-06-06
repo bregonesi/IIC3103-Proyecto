@@ -59,7 +59,7 @@ class EndpointController < ApplicationController
 
 		producto = Spree::Variant.find_by(sku: orden_nueva.sku)
 
-		if producto.cantidad_api >= orden_nueva.cantidad
+		if producto.cantidad_api >= orden_nueva.cantidad && orden_nueva.acepto?
 			#acepto
 			puts "Marcando " + orden_nueva._id.to_s + " como aceptada"
 
@@ -70,7 +70,31 @@ class EndpointController < ApplicationController
 			if r.code == 200
 				body = JSON.parse(r.body)[0]
 				orden_nueva.notas += "Si funciono aceptar al profe. "
+				orden_nueva.estado = "aceptada"
 				orden_nueva.save!
+
+				SftpOrder.where(oc: orden_nueva._id).first_or_create! do |o|
+          o.cliente = body['cliente']
+          o.proveedor = body['proveedor']
+          o.sku = body['sku']
+          o.fechaEntrega = body['fechaEntrega']
+          o.cantidad = body['cantidad']
+          o.myCantidadDespachada = body['cantidadDespachada']
+          o.serverCantidadDespachada = body['cantidadDespachada']
+          o.precioUnitario = body['precioUnitario']
+          o.canal = body['canal']
+          o.notas = body['notas']
+          o.rechazo = body['rechazo']
+          o.anulacion = body['anulacion']
+          o.urlNotificacion = body['urlNotificacion']
+          o.myEstado = "aceptada"
+          o.serverEstado = "aceptada"
+          o.created_at = body['created_at']
+
+          if o.serverCantidadDespachada >= o.cantidad
+            o.myEstado = "finalizada"
+          end
+				end
 			else
 				orden_nueva.notas += "No funciono aceptar al profe. "
 				orden_nueva.save!
@@ -80,12 +104,12 @@ class EndpointController < ApplicationController
 
 			errores_notificacion_oc = ""
 			begin
-				r = HTTParty.post(orden_nueva.urlNotificacion, body: { status: "accept" }.to_json, headers: { 'Content-type': 'application/json' })
+				notification = HTTParty.post(orden_nueva.urlNotificacion, body: { status: "accept" }.to_json, headers: { 'Content-type': 'application/json' })
 			rescue Exception => e # Never do this!
 				errores_notificacion_oc = e
 			end
 
-			if errores_notificacion_oc.empty? && r.code == 204
+			if errores_notificacion_oc.empty? && notification.code == 204
 				body = JSON.parse(r.body)[0]
 				orden_nueva.notas = "Si funciono aceptar al compañero. "
 				orden_nueva.save!
@@ -100,7 +124,13 @@ class EndpointController < ApplicationController
 			#rechazo
 			puts "Marcando " + orden_nueva._id.to_s + " como rechazada"
 
-			orden_nueva.rechazo = "No tengo stock"
+			if !(producto.cantidad_api >= orden_nueva.cantidad)
+				orden_nueva.rechazo = "No tengo stock"
+			elsif !orden_nueva.acepto?
+				orden_nueva.rechazo = "Mas del 70% de mis ordenes aceptadas son tuyas. Tengo que rechazar."
+			else
+				orden_nueva.rechazo = "Se rechazo por error"
+			end
 
 			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + orden_nueva._id.to_s,
 												body: { rechazo: orden_nueva.rechazo }.to_json,
@@ -109,18 +139,19 @@ class EndpointController < ApplicationController
 			if r.code == 200
 				body = JSON.parse(r.body)[0]
 				orden_nueva.notas += "Si funciono rechazo profe. "
+				orden_nueva.estado = "rechazada"
 			else
 				orden_nueva.notas += "No funciono rechazo profe. "
 			end
 
 			errores_notificacion_oc = ""
 			begin
-				r = HTTParty.post(orden_nueva.urlNotificacion, body: { status: "reject" }.to_json, headers: { 'Content-type': 'application/json' })
+				notification = HTTParty.post(orden_nueva.urlNotificacion, body: { status: "reject" }.to_json, headers: { 'Content-type': 'application/json' })
 			rescue Exception => e # Never do this!
 				errores_notificacion_oc = e
 			end
 
-			if errores_notificacion_oc.empty? && r.code == 204
+			if errores_notificacion_oc.empty? && notification.code == 204
 				body = JSON.parse(r.body)[0]
 				orden_nueva.notas = "Si funciono el rechazo compañero. "
 			else
@@ -137,6 +168,9 @@ class EndpointController < ApplicationController
 	end
 
 	def respuesta_oc
+		render json: {}, status: 204
+		return
+
 		oc = params[:id]
 		status = params[:status]
 		oc_generada = OcsGenerada.find_by(oc_id: oc)
