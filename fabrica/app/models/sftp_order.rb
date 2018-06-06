@@ -43,8 +43,8 @@ class SftpOrder < ApplicationRecord
 		self.fechaEntrega >= DateTime.now.utc
 	end
 
-	def puedo_pedir_por_oc(cantidad)  ## si ya no pedi (independiente si me rechazaron o esta por llegar)
-		self.oc_requests.where(sku: self.sku, cantidad: cantidad, despachado: false).empty?
+	def puedo_pedir_por_oc(cantidad)  ## si ya pedi cantidad no puedo volver a pedir lo mismo aun que me rechazen, o si me estan despachando tampoco puedo pedir de ese sku
+		self.oc_requests.where(sku: self.sku, cantidad: cantidad, despachado: false).empty? && self.oc_requests.where(sku: self.sku, aceptado: true, despachado: false).empty?
 	end
 
 	def faltante
