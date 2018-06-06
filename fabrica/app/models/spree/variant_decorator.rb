@@ -32,11 +32,32 @@ Spree::Variant.class_eval do
     cantidad_disponible = self.total_on_hand
     FabricarRequest.por_fabricar.each do |request|
       ingrediente = Spree::Variant.find_by(sku: request.sku).recipe.find_by(variant_ingredient_id: self)
-      if ingrediente
+      if !ingrediente.nil?
         cantidad_disponible -= ingrediente.amount
       end
     end
 
     return cantidad_disponible
+  end
+
+  def por_necesitar
+    ## influye para materias prima
+    ## retorno cuanto necesitare de materia prima en las ordenes preaceptadas
+    a_necesitar = 0
+    SftpOrder.preaceptadas.each do |sftp_order|
+      variant = Spree::Variant.find_by(sku: sftp_order.sku)
+      cantidad_en_fabricacion = (sftp_order.fabricar_requests.por_recibir + sftp_order.fabricar_requests.por_fabricar).map(&:cantidad).reduce(:+).to_i
+      puts cantidad_en_fabricacion
+      cantidad_faltante = sftp_order.faltante - cantidad_en_fabricacion
+      puts cantidad_faltante
+      lotes_restantes = (cantidad_faltante.to_f / variant.lote_minimo.to_f).ceil
+      puts lotes_restantes
+      ingrediente = variant.recipe.find_by(variant_ingredient: self)
+      puts ingrediente.inspect
+      if !ingrediente.nil?
+        a_necesitar += ingrediente.amount * lotes_restantes
+      end
+    end
+    a_necesitar
   end
 end

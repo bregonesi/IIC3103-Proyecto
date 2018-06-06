@@ -180,24 +180,26 @@ module Scheduler::OcHelper
 	def volver_a_estado_creada
 		## es por si las que dejamos en preaceptadas tienen que volver a aceptadas ya que no pudimos satisfacer mediante ocs
 		SftpOrder.preaceptadas.each do |order|
-			if !order.oc_requests.empty?
-				cambiar = true
-				order.oc_requests.each do |ocr|
-					if ocr.por_responder != false || ocr.aceptado != false || ocr.despachado != false
-						cambiar = false
-						break
+			order.with_lock do
+				if !order.oc_requests.empty? && order.fabricar_requests.empty?
+					cambiar = true
+					order.oc_requests.each do |ocr|
+						if ocr.por_responder != false || ocr.aceptado != false || ocr.despachado != false
+							cambiar = false
+							break
+						end
 					end
-				end
-				if cambiar
-					puts "Cambiando estado de sftporder " + order.oc
-					order.myEstado = order.serverEstado
-					order.save!
-				end
-			else
-				if order.fabricar_requests.empty?
-					puts "Cambiando estado de sftporder " + order.oc
-					order.myEstado = order.serverEstado
-					order.save!
+					if cambiar
+						puts "Cambiando estado de sftporder " + order.oc
+						order.myEstado = order.serverEstado
+						order.save!
+					end
+				else
+					if order.fabricar_requests.empty?
+						puts "Cambiando estado de sftporder " + order.oc
+						order.myEstado = order.serverEstado
+						order.save!
+					end
 				end
 			end
 		end

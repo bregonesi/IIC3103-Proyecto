@@ -110,28 +110,45 @@ module Scheduler::OrderHelper
 			ordenes_creadas = SftpOrder.creadas.each do |sftp_order|
 				variant = Spree::Variant.find_by(sku: sftp_order.sku)
 
-				costo = variant.ingredients.sum(:lote_minimo)  ## llamamos costo a la cantidad de productos que hay que utilizar
+				ingreso = sftp_order.cantidad * sftp_order.precioUnitario
 
-				cantidad_efectiva = sftp_order.cantidad - variant.total_on_hand
+				cantidad_efectiva = sftp_order.cantidad - variant.cantidad_disponible
 
 				if !variant.primary?
-					costo_lote = variant.lote_minimo
+					costo_lote = variant.lote_minimo * variant.cost_price.to_i
+					costo = costo_lote.to_f
+
+					variant.recipe.each do |ingredient|
+						costo += ingredient.variant_ingredient.cost_price.to_i * ingredient.amount
+					end
+					lotes_solicitados = sftp_order.cantidad.to_f / variant.lote_minimo.to_f
+					costo = costo * lotes_solicitados
+
 					lotes = BigDecimal((cantidad_efectiva.to_f / variant.lote_minimo.to_f).to_s).ceil
 				else
-					costo_lote = 1
+					costo = variant.cost_price.to_i * cantidad_efectiva
 					lotes = cantidad_efectiva
 				end
 
+				ganancia = ingreso.to_f - costo.to_f
+				ganancia_por_producto = ganancia.to_f / sftp_order.cantidad.to_f
+
 				lotes = [lotes, 0].max  ## por si tengo mas de lo que me pide
 
-				ordenes << [sftp_order, costo_lote, lotes, costo_lote * lotes]
+				ordenes << [sftp_order, sftp_order.cantidad, lotes, ganancia_por_producto]
+				puts "sku " + sftp_order.sku.to_s
+				puts "cantidad " + sftp_order.cantidad.to_s
+				puts "lotes " + lotes.to_s
+				puts "ganancia_por_producto " + ganancia_por_producto.to_s
 			end
 
-			ordenes = ordenes.sort_by{ |i| i[1] }  ## primero ordeno por costo de un lote
-			ordenes = ordenes.sort_by{ |i| i[3] }  ## despues ordeno por costo total
+			ordenes = ordenes.sort_by{ |i| i[1] }  ## primero ordeno por cantidad de productos al reves
+			ordenes = ordenes.reverse!  ## doy vuelta para dejar los con menos productos al principio
+			ordenes = ordenes.sort_by{ |i| i[3] }  ## despues ordeno por ganancia por producto
 			# asi va a quedar mas importante costo total y luego el costo de un lote
 
 			ordenes.each do |orden_entry|
+				break
 				if !SftpOrder.acepto?  ## si ya cumpli mi cuota
 					break
 				end
@@ -190,12 +207,12 @@ module Scheduler::OrderHelper
 						puts "Es materia prima"
 						if variant.can_ship?
 							puts "Tengo para despachar"
-							create_spree_from_sftp_order(orden)
+							#create_spree_from_sftp_order(orden)
 						else
 							pedir = [variant.lote_minimo, orden.cantidad].min
 							puts "Genero oc por " + pedir.to_s + " unidades"
 							if orden.puedo_pedir_por_oc(pedir)
-								generar_oc(orden, pedir)
+								#generar_oc(orden, pedir)
 								orden.myEstado = "preaceptada"
 								orden.save!
 							end
@@ -338,7 +355,7 @@ module Scheduler::OrderHelper
 					create_spree_from_sftp_order(sftp_order)
 				end
 
-				cantidad_en_fabricacion = sftp_order.fabricar_requests.por_fabricar.or(sftp_order.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
+				cantidad_en_fabricacion = (sftp_order.fabricar_requests.por_fabricar + sftp_order.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
 				cantidad_en_ocs = sftp_order.oc_requests.por_recibir.map(&:cantidad).reduce(:+).to_i
 				cantidad_faltante = cantidad_restante - cantidad_en_fabricacion - cantidad_en_ocs
 				offset = cantidad_faltante % variant.lote_minimo  ## offset es lo que falta en el ultimo lote
