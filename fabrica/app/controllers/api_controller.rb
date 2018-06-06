@@ -1,13 +1,9 @@
 class ApiController < ApplicationController
+	# la api muestra menos de lo que hay :D para las materias primas
 	def stock_publico
-		#HardWorker.perform_async()
-
-		productos = Spree::Variant.all
-
 		json_p = []
-		productos.each do |product|
-			cantidad = [product.cantidad_disponible.to_i, 0].max
-			json_p << { :sku => product.sku.to_s, :available => product.cantidad_disponible.to_i }
+		Spree::Variant.all.each do |product|
+			json_p << { :sku => product.sku.to_s, :available => product.cantidad_api.to_i }
 		end
 
 		render json: json_p, :status => 200
@@ -22,11 +18,8 @@ class ApiController < ApplicationController
 
     if(key == "hola")
 
-			productos = Spree::Variant.all
-
-			productos.each do |product|
-				cantidad = [product.cantidad_disponible.to_i, 0].max
-				json_p << { :sku => product.sku.to_s, :available => product.cantidad_disponible.to_i }
+			Spree::Variant.all.each do |product|
+				json_p << { :sku => product.sku.to_s, :available => product.cantidad_api.to_i }
 			end
 
 			render json: json_p, :status => 200

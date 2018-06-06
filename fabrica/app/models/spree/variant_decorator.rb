@@ -47,17 +47,19 @@ Spree::Variant.class_eval do
     SftpOrder.preaceptadas.each do |sftp_order|
       variant = Spree::Variant.find_by(sku: sftp_order.sku)
       cantidad_en_fabricacion = (sftp_order.fabricar_requests.por_recibir + sftp_order.fabricar_requests.por_fabricar).map(&:cantidad).reduce(:+).to_i
-      puts cantidad_en_fabricacion
       cantidad_faltante = sftp_order.faltante - cantidad_en_fabricacion
-      puts cantidad_faltante
+      cantidad_faltante = [cantidad_faltante, 0].max
       lotes_restantes = (cantidad_faltante.to_f / variant.lote_minimo.to_f).ceil
-      puts lotes_restantes
       ingrediente = variant.recipe.find_by(variant_ingredient: self)
-      puts ingrediente.inspect
       if !ingrediente.nil?
         a_necesitar += ingrediente.amount * lotes_restantes
       end
     end
     a_necesitar
+  end
+
+  def cantidad_api
+    promedios = Recipe.promedios
+    [self.cantidad_disponible.to_i - self.por_necesitar.to_i - promedios[self.sku.to_s].to_i * 3, 0].max
   end
 end

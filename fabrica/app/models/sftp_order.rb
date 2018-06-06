@@ -20,7 +20,7 @@ class SftpOrder < ApplicationRecord
 	end
 
 	def self.tasa_aceptadas
-		((SftpOrder.aceptadas.count + SftpOrder.preaceptadas.count + SftpOrder.finalizadas.count).to_f / SftpOrder.count.to_f).to_f
+		((SftpOrder.aceptadas.where(canal: "ftp").count + SftpOrder.preaceptadas.where(canal: "ftp").count + SftpOrder.finalizadas.where(canal: "ftp").count).to_f / SftpOrder.count.to_f).to_f
 	end
 
 	def self.acepto?(tasa_min=0.65)

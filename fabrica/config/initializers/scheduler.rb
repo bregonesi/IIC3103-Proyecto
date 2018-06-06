@@ -23,10 +23,10 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 			Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
 			
 			# Vemos que ordenes aceptar #
-			#Scheduler::OrderHelper.aceptar_ordenes
+			Scheduler::OrderHelper.aceptar_ordenes
 
 			# Chequeo de si alguna de las aceptadas tiene stock #
-			#Scheduler::OrderHelper.chequear_si_hay_stock
+			Scheduler::OrderHelper.chequear_si_hay_stock
 
 			# Anulamos ocs que se demoren mas de 5 minutos #
 			Scheduler::OcHelper.rechazar_despues_de_5_mins
@@ -44,19 +44,19 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 			Scheduler::PaymentHelper.pagar_ordenes
 
 			# Aca despachamos lo pagado #
-			#Scheduler::ShipmentHelper.despachar_ordenes
+			Scheduler::ShipmentHelper.despachar_ordenes
 
 			# Cambiamos las ordenes de almacen #
-			#Scheduler::OrderHelper.cambiar_almacen
+			Scheduler::OrderHelper.cambiar_almacen
 
 			# Aca despachamos lo pagado #
-			#Scheduler::ShipmentHelper.despachar_ordenes
+			Scheduler::ShipmentHelper.despachar_ordenes
 
 			# Volvemos a sincronizar ya que pudimos haber despachado #
-			#Scheduler::OrderHelper.sincronizar_informacion
+			Scheduler::OrderHelper.sincronizar_informacion
 			
 			# Fabricamos las pedidas #
-			#Scheduler::OrderHelper.fabricar_api
+			Scheduler::OrderHelper.fabricar_api
 			
 			# Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
 			Scheduler::AlmacenesHelper.nuevos_almacenes

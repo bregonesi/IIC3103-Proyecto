@@ -121,6 +121,7 @@ module Scheduler::OrderHelper
 					variant.recipe.each do |ingredient|
 						costo += ingredient.variant_ingredient.cost_price.to_i * ingredient.amount
 					end
+
 					lotes_solicitados = sftp_order.cantidad.to_f / variant.lote_minimo.to_f
 					costo = costo * lotes_solicitados
 
@@ -135,20 +136,18 @@ module Scheduler::OrderHelper
 
 				lotes = [lotes, 0].max  ## por si tengo mas de lo que me pide
 
-				ordenes << [sftp_order, sftp_order.cantidad, lotes, ganancia_por_producto]
-				puts "sku " + sftp_order.sku.to_s
-				puts "cantidad " + sftp_order.cantidad.to_s
-				puts "lotes " + lotes.to_s
-				puts "ganancia_por_producto " + ganancia_por_producto.to_s
+				if SftpOrder.tasa_aceptadas < 0.5 || ganancia_por_producto >= 0
+					ordenes << [sftp_order, sftp_order.cantidad, lotes, ganancia_por_producto]
+				end
 			end
 
-			ordenes = ordenes.sort_by{ |i| i[1] }  ## primero ordeno por cantidad de productos al reves
-			ordenes = ordenes.reverse!  ## doy vuelta para dejar los con menos productos al principio
+			ordenes = ordenes.sort_by{ |i| i[1] }  ## primero ordeno por cantidad de productos
 			ordenes = ordenes.sort_by{ |i| i[3] }  ## despues ordeno por ganancia por producto
-			# asi va a quedar mas importante costo total y luego el costo de un lote
+			ordenes.reverse!  ## doy vuelta para que queden con mas ganancia al principio
+			# asi va a quedar mas importante la ganancia por producto y luego la cantidad de productos a despachar
+			#puts ordenes.to_yaml
 
 			ordenes.each do |orden_entry|
-				break
 				if !SftpOrder.acepto?  ## si ya cumpli mi cuota
 					break
 				end
@@ -158,7 +157,7 @@ module Scheduler::OrderHelper
 
 				if (1)  ## sino no alcanzamos a fabricar
 					puts "Veo si acepto oc " + orden.oc.to_s
-					if !variant.primary?  ## hay que fabricar
+					if !variant.primary?
 						puts "No es materia prima"
 						if variant.can_ship?
 							puts "Tengo para despachar"
@@ -203,16 +202,17 @@ module Scheduler::OrderHelper
 							end
 							orden.save!
 						end
-					else  ## acepto de inmediato
+					else
 						puts "Es materia prima"
-						if variant.can_ship?
+    				promedios = Recipe.promedios
+						if orden_entry[1] <= (variant.cantidad_disponible - promedios[variant.sku.to_s].to_i * 3) && variant.can_ship?
 							puts "Tengo para despachar"
-							#create_spree_from_sftp_order(orden)
+							create_spree_from_sftp_order(orden)
 						else
 							pedir = [variant.lote_minimo, orden.cantidad].min
 							puts "Genero oc por " + pedir.to_s + " unidades"
 							if orden.puedo_pedir_por_oc(pedir)
-								#generar_oc(orden, pedir)
+								generar_oc(orden, pedir)
 								orden.myEstado = "preaceptada"
 								orden.save!
 							end
@@ -246,7 +246,13 @@ module Scheduler::OrderHelper
 
 				variant = Spree::Variant.find_by!(sku: sftp_order.sku)
 				cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
-				cantidad_despachar = [cantidad_restante, variant.cantidad_disponible].min
+				cantidad_disponible = variant.cantidad_disponible
+				if variant.primary?
+    			promedios = Recipe.promedios
+					cantidad_disponible = cantidad_disponible - promedios[variant.sku.to_s].to_i * 3
+					cantidad_disponible = [cantidad_disponible, 0].max
+				end
+				cantidad_despachar = [cantidad_restante, cantidad_disponible].min
 				puts "create sftp order con cantidad despachar " + cantidad_despachar.to_s
 				recien_creada = false
 
@@ -349,7 +355,14 @@ module Scheduler::OrderHelper
 			cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
 
 			if cantidad_restante > 0
-				if variant.cantidad_disponible > 0  ## si tengo stock creo shipments
+				cantidad_disponible = variant.cantidad_disponible
+				if variant.primary?
+    			promedios = Recipe.promedios
+					cantidad_disponible = cantidad_disponible - promedios[variant.sku.to_s].to_i * 3
+					cantidad_disponible = [cantidad_disponible, 0].max
+				end
+
+				if cantidad_disponible > 0  ## si tengo stock creo shipments
 					puts "Llego stock para una orden aun no finalizada"
 
 					create_spree_from_sftp_order(sftp_order)
