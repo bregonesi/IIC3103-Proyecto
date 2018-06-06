@@ -27,6 +27,7 @@ module Scheduler::OcHelper
 				errores_stock_request = nil
 				begin
 					stock_request = HTTParty.get(datos_grupo[:stock_url].to_s,
+																			 timeout: 10,
 																			 body: { }.to_json,
 																			 headers: { 'Content-type': 'application/json' })
 				rescue Exception => e # Never do this!

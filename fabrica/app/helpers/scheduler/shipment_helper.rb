@@ -45,6 +45,10 @@ module Scheduler::ShipmentHelper
                     oc = orden.sftp_order.oc.to_s
                     info_grupo_despacho = $info_grupos.select{|key, hash| hash[:id] == orden.sftp_order.cliente }.first[1]
                     almacen_despacho = info_grupo_despacho[:almacen]
+                    if almacen_despacho.nil?
+                      puts "No tengo info del almacen de despacho para sftp order " + oc.to_s
+                      next
+                    end
                     base = 'POST' + prod.id_api + almacen_despacho
                     key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
                     r = HTTParty.post(ENV['api_url'] + "bodega/moveStockBodega",
