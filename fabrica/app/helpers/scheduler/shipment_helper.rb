@@ -3,7 +3,7 @@ module Scheduler::ShipmentHelper
 	def despachar
     url = ENV['api_url'] + "bodega/stock"
     stop_scheduler = false
-    
+
     Spree::Shipment.where(state: "ready", stock_location: Spree::StockLocation.where(proposito: "Despacho")).each do |shipment|  ## seleccionamos solo los que estan listos y en despacho
       shipment.with_lock do
         shipment.order.with_lock do
@@ -56,7 +56,7 @@ module Scheduler::ShipmentHelper
                   Scheduler::ProductosHelper.cargar_detalles(Spree::StockItem.find_by(variant: iu.variant, stock_location: shipment.stock_location))
                 rescue NoMethodError => e
                   puts e
-                end 
+                end
 
                 if iu.shipped_quantity >= iu.quantity
                   iu.shipment.ship!

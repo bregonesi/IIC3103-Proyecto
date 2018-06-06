@@ -1,0 +1,45 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Transferencia</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Origen</th>
+      <th>String</th>
+      <th>Destino</th>
+      <th>Monto</th>
+      <th>Idtransferencia</th>
+      <th>String</th>
+      <th>Originator type</th>
+      <th>String</th>
+      <th>Originator</th>
+      <th>Integer</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @transferencia.each do |transferencium| %>
+      <tr>
+        <td><%= transferencium.origen %></td>
+        <td><%= transferencium.string %></td>
+        <td><%= transferencium.destino %></td>
+        <td><%= transferencium.monto %></td>
+        <td><%= transferencium.idtransferencia %></td>
+        <td><%= transferencium.string %></td>
+        <td><%= transferencium.originator_type %></td>
+        <td><%= transferencium.string %></td>
+        <td><%= transferencium.originator_id %></td>
+        <td><%= transferencium.integer %></td>
+        <td><%= link_to 'Show', transferencium %></td>
+        <td><%= link_to 'Edit', edit_transferencium_path(transferencium) %></td>
+        <td><%= link_to 'Destroy', transferencium, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Transferencium', new_transferencium_path %>

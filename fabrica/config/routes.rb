@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :transferencia
   resources :ocs_generadas
   resources :oc_requests
   resources :sftp_orders

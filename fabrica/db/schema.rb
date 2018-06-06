@@ -1172,4 +1172,17 @@ ActiveRecord::Schema.define(version: 20180604072805) do
     t.index ["kind"], name: "index_spree_zones_on_kind"
   end
 
+  create_table "transferencia", force: :cascade do |t|
+    t.string "origen"
+    t.string "string"
+    t.string "destino"
+    t.integer "monto"
+    t.string "idtransferencia"
+    t.string "originator_type"
+    t.string "originator_id"
+    t.string "integer"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
 end

@@ -1,0 +1,2 @@
+class Transferencium < ApplicationRecord
+end
