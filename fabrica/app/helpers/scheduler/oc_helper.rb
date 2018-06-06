@@ -143,6 +143,19 @@ module Scheduler::OcHelper
 			if DateTime.now.utc > oc.created_at + 7.minutes
 				puts "Anularemos " + oc.oc_id.to_s
 
+				r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + oc.oc_id.to_s, headers: { 'Content-type': 'application/json' })
+				if r.code == 200
+					body = JSON.parse(r.body)[0]
+
+					if body['estado'] == "aceptada"  # por si nos aceptaron y no nos dijeron
+						oc.estado = "aceptada"
+						oc.oc_request.por_responder = false
+						oc.oc_request.aceptado = true
+						oc.oc_request.save!
+						next
+					end
+				end
+
 				if !oc.oc_id.nil?
 					r = HTTParty.delete(ENV['api_oc_url'] + "anular/" + oc.oc_id.to_s,
 															body: { anulacion: "Se anula ya que pasaron mas de 7 minutos desde que se creo." }.to_json,
@@ -201,6 +214,35 @@ module Scheduler::OcHelper
 						order.save!
 					end
 				end
+			end
+		end
+	end
+
+	def actualizar_aceptadas
+		OcsGenerada.where(estado: "aceptada").each do |oc|
+			if oc.fechaEntrega < DateTime.now.utc
+				oc.estado = "finalizada"
+				oc.oc_request.por_responder = false
+				oc.oc_request.aceptado = true
+				oc.oc_request.despachado = true
+				oc.oc_request.save!
+				oc.save!
+			end
+
+			r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + oc.oc_id.to_s, headers: { 'Content-type': 'application/json' })
+			if r.code == 200
+				body = JSON.parse(r.body)[0]
+
+				oc.cantidadDespachada = body['cantidadDespachada']
+
+				if oc.cantidadDespachada >= oc.cantidad
+					oc.estado = "finalizada"
+					oc.oc_request.por_responder = false
+					oc.oc_request.aceptado = true
+					oc.oc_request.despachado = true
+					oc.oc_request.save!
+				end
+				oc.save!
 			end
 		end
 	end

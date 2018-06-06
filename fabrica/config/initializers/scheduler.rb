@@ -22,6 +22,9 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 			# Cargamos nuevos stocks y stock de almacenes nuevos #
 			Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
 			
+			# Actualizo las oc aceptadas #
+			Scheduler::OcHelper.actualizar_aceptadas
+
 			# Vemos que ordenes aceptar #
 			Scheduler::OrderHelper.aceptar_ordenes
 
@@ -68,6 +71,9 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 			# Cargamos nuevos stocks y stock de almacenes nuevos #
 			Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
 
+			# Actualizo las oc aceptadas #
+			Scheduler::OcHelper.actualizar_aceptadas
+			
 			# Tratamos de que se mantenga los optimos de cada almacen #
 			Scheduler::AlmacenesHelper.mantener_consistencia
 
