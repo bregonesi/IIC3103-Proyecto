@@ -136,6 +136,9 @@ class EndpointController < ApplicationController
 			else
 				orden_nueva.rechazo = "Se rechazo por error"
 			end
+			orden_nueva.save!
+
+			puts "Razon del rechazo " + orden_nueva.rechazo
 
 			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + orden_nueva._id.to_s,
 												body: { rechazo: orden_nueva.rechazo }.to_json,
@@ -148,6 +151,7 @@ class EndpointController < ApplicationController
 			else
 				orden_nueva.notas += "No funciono rechazo profe. "
 			end
+			orden_nueva.save!
 
 			errores_notificacion_oc = ""
 			notification = ""
