@@ -38,7 +38,10 @@ module Scheduler::OcHelper
 					o.cliente = $info_grupos[4][:id]
 					o.proveedor = datos_grupo[:id]
 					o.sku = oc.sku
-					o.fechaEntrega = oc.sftp_order.fechaEntrega
+
+					delta = (oc.sftp_order.fechaEntrega - DateTime.now.utc) / 2.0
+					o.fechaEntrega = DateTime.now.utc + delta
+
 					o.cantidad = oc.cantidad
 					o.precioUnitario = variant.price.to_i
 					o.canal = "b2b"
