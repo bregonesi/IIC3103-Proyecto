@@ -1,10 +1,10 @@
 class TransferenciaController < ApplicationController
   before_action :set_transferencium, only: [:show, :edit, :update, :destroy]
 
-  # GET /transferencia
-  # GET /transferencia.json
+  # GET /transferencias
+  # GET /transferencias.json
   def index
-
+=begin
     r = HTTParty.put(ENV['api_banco_url'] + "trx",
                         body: {origen: "5ad36945d6ed1f00049becb4",
                                destino: "5ad36945d6ed1f00049becb1",
@@ -15,6 +15,7 @@ class TransferenciaController < ApplicationController
       body = JSON.parse(r.body)
       Transferencium.create(origen: body["origen"], destino: body["destino"], idtransferencia: body["_id"], monto: body["monto"], originator_type: "Prueba", originator_id: 1)
     end
+=end
     @transferencia = Transferencium.all
 
   end

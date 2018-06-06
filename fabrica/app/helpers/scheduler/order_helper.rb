@@ -410,22 +410,7 @@ module Scheduler::OrderHelper
 	end
 
 	def fabricar_api
-
-		# Transferencia antes de fabricar
-		# r = HTTParty.put(ENV['api_banco_url'] + "trx",
-        #                 body: {origen: "5ad36945d6ed1f00049becb4",
-        #                        destino: "5ad36945d6ed1f00049becb1",
-        #                        monto: 1}.to_json,
-		# 				headers: { 'Content-type': 'application/json'})
-		
-		# puts r
-		# if r.code == 200
-		# 	body = JSON.parse(r.body)
-		# 	Transferencium.create(origen: body["origen"], destino: body["destino"], idtransferencia: body["_id"], monto: body["monto"], originator_type: "Prueba", originator_id: 1)
-		# end
-				
-
-
+		pago_activado = true
 		FabricarRequest.por_fabricar.each do |request|
 			request.with_lock do
 				variant = Spree::Variant.find_by(sku: request.sku)
@@ -482,13 +467,47 @@ module Scheduler::OrderHelper
 
 				#next
 
-				url = ENV['api_url'] + "bodega/fabrica/fabricarSinPago"
-				base = 'PUT' + variant.sku + variant.lote_minimo.to_s
-				key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-				r = HTTParty.put(url,
-												 body: {sku: variant.sku.to_s,
-																cantidad: variant.lote_minimo.to_s}.to_json,
-												 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+				if pago_activado
+					# Transferencia antes de fabricar
+					transferencia = Transferencium.where(originator_type: request.class.name.to_s, originator_id: request.id.to_i).first_or_create! do |t|
+						t.origen = $info_grupos[4][:id_banco]
+						t.destino = Spree::Store.first.cuenta_banco
+						t.monto = request.cantidad.to_i * variant.cost_price.to_i
+
+						transferencia_request = HTTParty.put(ENV['api_banco_url'] + "trx",
+																								 body: {origen: t.origen,
+																								 				destino: t.destino,
+																								 				monto: t.monto}.to_json,
+																								 headers: { 'Content-type': 'application/json'})
+		
+						puts transferencia_request
+
+						if transferencia_request.code == 200
+							body = JSON.parse(transferencia_request.body)
+							t.idtransferencia = body["_id"]
+						else
+							puts "Error en transferencia"
+							puts transferencia_request
+						end
+					end
+
+					# Ahora mandamos a fabricar
+					base = 'PUT' + variant.sku + request.cantidad.to_s + transferencia.idtransferencia.to_s
+					key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+					r = HTTParty.put(ENV['api_url'] + "bodega/fabrica/fabricar",
+													 body: {trxId: transferencia.idtransferencia.to_s,
+													 				sku: variant.sku.to_s,
+																	cantidad: request.cantidad.to_s}.to_json,
+													 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+				else
+					base = 'PUT' + variant.sku + request.cantidad.to_s
+					key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+					r = HTTParty.put(ENV['api_url'] + "bodega/fabrica/fabricarSinPago",
+													 body: {sku: variant.sku.to_s,
+																	cantidad: request.cantidad.to_s}.to_json,
+													 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+				end
+
 				puts r
 				if r.code != 200
 					"Error en fabricar"
