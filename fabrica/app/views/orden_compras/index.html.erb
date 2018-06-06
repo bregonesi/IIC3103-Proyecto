@@ -38,7 +38,7 @@
         <td><%= orden_compra.precioUnitario %></td>
         <td><%= orden_compra.canal %></td>
         <td><%= orden_compra.estado %></td>
-        <td><%= orden_compra.notas %></td>
+        <td><%= orden_compra.notas.truncate(100) %></td>
         <td><%= orden_compra.rechazo %></td>
         <td><%= orden_compra.anulacion %></td>
         <td><%= orden_compra.urlNotificacion %></td>
