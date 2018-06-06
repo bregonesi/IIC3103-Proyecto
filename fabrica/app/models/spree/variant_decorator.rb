@@ -5,6 +5,8 @@ Spree::Variant.class_eval do
   has_many :passive_ingredient, class_name: 'Recipe', foreign_key: 'variant_ingredient_id'	
   has_many :variant_master, through: :passive_ingredient, source: :variant_product
 
+  $cache_variant = ActiveSupport::Cache::MemoryStore.new(expires_in: 10.seconds)
+
   def primary?
     #self.recipe.empty?  ## no es lo mas correcto, pero en este caso sirve
     ["20", "30", "40", "50", "60", "70"].include?(self.sku)
@@ -59,7 +61,15 @@ Spree::Variant.class_eval do
   end
 
   def cantidad_api
+    en_cache = $cache_variant.read(['cantidad_api', self.id])
+    if !en_cache.nil?
+      return en_cache
+    end
+
     promedios = Recipe.promedios
-    [self.cantidad_disponible.to_i - self.por_necesitar.to_i - promedios[self.sku.to_s].to_i * 3, 0].max
+    cantidad = [self.cantidad_disponible.to_i - self.por_necesitar.to_i - promedios[self.sku.to_s].to_i * 3, 0].max
+    
+    $cache_variant.write(['cantidad_api', self.id], cantidad)
+    return cantidad
   end
 end

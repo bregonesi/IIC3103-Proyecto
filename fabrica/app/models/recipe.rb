@@ -5,7 +5,13 @@ class Recipe < ApplicationRecord
   validates :variant_product, presence: true
   validates :variant_ingredient, presence: true
 
+  $cache_promedios_produccion = ActiveSupport::Cache::MemoryStore.new
+
   def self.promedios
+    en_cache = $cache_promedios_produccion.read('cantidades')
+    if !en_cache.nil?
+      return en_cache
+    end
   	cantidades = {}
   	Recipe.all.each do |r|
   		if cantidades[r.variant_ingredient.sku].nil?
@@ -17,6 +23,7 @@ class Recipe < ApplicationRecord
   	cantidades.each do |key, value|
   		cantidades[key] = value.to_f / cantidad_variants.to_f
   	end
+    $cache_promedios_produccion.write('cantidades', cantidades)
   	cantidades
   end
 end
