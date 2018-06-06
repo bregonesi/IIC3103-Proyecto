@@ -9,7 +9,7 @@ class OrdenCompra < ApplicationRecord
 	end
 
 	def self.aceptadas_de_cliente(cliente)
-		OcsGenerada.aceptadas.where(cliente: cliente) + OcsGenerada.finalizadas.where(cliente: cliente)
+		OrdenCompra.aceptadas.where(cliente: cliente) + OrdenCompra.finalizadas.where(cliente: cliente)
 	end
 
 	def self.cantidad_maxima_aceptar_de_cliente(cliente)
