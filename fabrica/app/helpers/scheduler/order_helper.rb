@@ -287,12 +287,8 @@ module Scheduler::OrderHelper
 						o.channel = sftp_order.canal
 					end
 					new_order.save!
-					puts "printeando cant despachada"
-					puts sftp_order.myCantidadDespachada
 					sftp_order.myCantidadDespachada += cantidad_despachar.to_i
-					puts sftp_order.myCantidadDespachada
 					sftp_order.save!
-					puts sftp_order.myCantidadDespachada
 				end
 
 				if !recien_creada && spree_order
