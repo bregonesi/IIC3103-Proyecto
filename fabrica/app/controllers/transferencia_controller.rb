@@ -16,7 +16,7 @@ class TransferenciaController < ApplicationController
       Transferencium.create(origen: body["origen"], destino: body["destino"], idtransferencia: body["_id"], monto: body["monto"], originator_type: "Prueba", originator_id: 1)
     end
 =end
-    @transferencia = Transferencium.all
+    @transferencia = Transferencium.all.order(id: :desc)
 
   end
 

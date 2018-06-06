@@ -103,6 +103,7 @@ class EndpointController < ApplicationController
 			end
 
 			errores_notificacion_oc = ""
+			notification = ""
 			begin
 				notification = HTTParty.post(orden_nueva.urlNotificacion, body: { status: "accept" }.to_json, headers: { 'Content-type': 'application/json' })
 			rescue Exception => e # Never do this!
@@ -114,9 +115,9 @@ class EndpointController < ApplicationController
 				orden_nueva.notas = "Si funciono aceptar al compañero. "
 				orden_nueva.save!
 			else
-				orden_nueva.notas = "No funciono aceptar al compañero. " + errores_notificacion_oc.to_s
+				orden_nueva.notas = "No funciono aceptar al compañero. " + errores_notificacion_oc.to_s + notification.to_s
 				orden_nueva.save!
-				render json: { error: "Fallo al enviar notificacion. Error: " + errores_notificacion_oc.to_s }, :status => 400
+				render json: { error: "Fallo al enviar notificacion. Error: " + errores_notificacion_oc.to_s + notification.to_s }, :status => 400
 				return
 			end
 
@@ -145,6 +146,7 @@ class EndpointController < ApplicationController
 			end
 
 			errores_notificacion_oc = ""
+			notification = ""
 			begin
 				notification = HTTParty.post(orden_nueva.urlNotificacion, body: { status: "reject" }.to_json, headers: { 'Content-type': 'application/json' })
 			rescue Exception => e # Never do this!
@@ -155,9 +157,9 @@ class EndpointController < ApplicationController
 				body = JSON.parse(r.body)[0]
 				orden_nueva.notas = "Si funciono el rechazo compañero. "
 			else
-				orden_nueva.notas = "No funciono el rechazo compañero. Error " + errores_notificacion_oc.to_s
+				orden_nueva.notas = "No funciono el rechazo compañero. Error " + errores_notificacion_oc.to_s + notification.to_s
 				orden_nueva.save!
-				render json: { error: "Fallo al enviar notificacion. Error: " + errores_notificacion_oc.to_s }, :status => 400
+				render json: { error: "Fallo al enviar notificacion. Error: " + errores_notificacion_oc.to_s + notification.to_s }, :status => 400
 				return
 			end
 
@@ -168,8 +170,8 @@ class EndpointController < ApplicationController
 	end
 
 	def respuesta_oc
-		render json: {}, status: 204
-		return
+		#render json: {}, status: 204
+		#return
 
 		oc = params[:id]
 		status = params[:status]
