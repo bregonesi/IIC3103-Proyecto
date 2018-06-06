@@ -33,7 +33,7 @@ module Scheduler::OrderHelper
 				shipments = ordenes.map(&:shipments).flatten
 				if !shipments.empty?
 					# si despache hace menos de 15 minutos no actualizo aun ya que puede no estar sincronizado
-					last_shipment = !shipments.map(&:shipped_at).empty? ? shipments.map(&:shipped_at).max : nil
+					last_shipment = shipments.select { |s| !s.shipped_at.nil? }.map(&:shipped_at).max
 					if !last_shipment.nil? && DateTime.now < last_shipment + 15.minutes
 						puts "Hice un shipment hace muy poco, no actualizo aun"
 						next  # me lo salto
