@@ -28,6 +28,19 @@ module Scheduler::OrderHelper
 		puts "Viendo si hay que sincronizar ocs"
 
 		SftpOrder.where('"sftp_orders"."myCantidadDespachada" != "sftp_orders"."serverCantidadDespachada"').each do |sftp_order|
+			ordenes = sftp_order.orders
+			if !sftp_order.orders.empty?
+				shipments = orders.map(&:shipments).flatten
+				if !shipments.empty?
+					# si despache hace menos de 15 minutos no actualizo aun ya que puede no estar sincronizado
+					last_shipment = shipments.map(&:shipped_at).max
+					if DateTime.now < last_shipment + 15.minutes
+						next  # me lo salto
+					end
+				end
+			end
+
+
 			puts "Viendo si hay que actualizar las unidades despachadas de " + sftp_order.oc.to_s
 
 			r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + sftp_order.oc.to_s,
