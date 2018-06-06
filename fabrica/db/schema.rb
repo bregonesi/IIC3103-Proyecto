@@ -51,20 +51,6 @@ ActiveRecord::Schema.define(version: 20180604072805) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "orden_compras", force: :cascade do |t|
-    t.string "_id"
-    t.integer "cantidadDespachada"
-    t.integer "precioUnitario"
-    t.string "canal"
-    t.string "estado"
-    t.string "notas"
-    t.string "rechazo"
-    t.string "anulacion"
-    t.string "urlNotificacion"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-    
   create_table "oc_requests", force: :cascade do |t|
     t.integer "sftp_order_id"
     t.string "sku"
@@ -95,6 +81,25 @@ ActiveRecord::Schema.define(version: 20180604072805) do
     t.string "estado"
     t.integer "cantidadDespachada"
     t.index ["oc_request_id"], name: "index_ocs_generadas_on_oc_request_id"
+  end
+
+  create_table "orden_compras", force: :cascade do |t|
+    t.string "_id"
+    t.string "cliente"
+    t.string "proveedor"
+    t.string "sku"
+    t.datetime "fechaEntrega"
+    t.integer "cantidad"
+    t.integer "cantidadDespachada"
+    t.integer "precioUnitario"
+    t.string "canal"
+    t.string "estado"
+    t.string "notas"
+    t.string "rechazo"
+    t.string "anulacion"
+    t.string "urlNotificacion"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "productos_apis", force: :cascade do |t|
