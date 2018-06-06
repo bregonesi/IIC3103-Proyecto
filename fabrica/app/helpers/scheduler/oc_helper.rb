@@ -181,7 +181,7 @@ module Scheduler::OcHelper
 
 	def actualizar_respuesta_oc_requests
 		OcRequest.por_responder.each do |ocr|
-			rechazadas = ocr.ocs_generadas.where('"ocs_generadas"."estado" = "anulada" OR "ocs_generadas"."estado" = "rechazada"').count
+			rechazadas = ocr.ocs_generadas.where('"ocs_generadas"."estado" = ? OR "ocs_generadas"."estado" = ?', "anulada", "rechazada").count
 			if rechazadas >= 8
 				puts "Cambiando por responder de orden " + ocr.sftp_order.to_s
 				ocr.por_responder = false

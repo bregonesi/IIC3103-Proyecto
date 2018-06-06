@@ -34,7 +34,7 @@ module Scheduler::OrderHelper
 				if !shipments.empty?
 					# si despache hace menos de 15 minutos no actualizo aun ya que puede no estar sincronizado
 					last_shipment = shipments.map(&:shipped_at).max
-					if DateTime.now < last_shipment + 15.minutes
+					if !last_shipment.nil? && DateTime.now < last_shipment + 15.minutes
 						puts "Hice un shipment hace muy poco, no actualizo aun"
 						next  # me lo salto
 					end
@@ -53,7 +53,12 @@ module Scheduler::OrderHelper
 				sftp_order.serverEstado = body['estado']
 				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
 
-				cantidad_no_despachada = sftp_order.orders.where.not(shipment_state: "shipped").map(&:quantity).reduce(:+).to_i  ## en realidad esta por despachar
+				cantidad_no_despachada = 0
+				cantidades = sftp_order.orders.where.not(shipment_state: "shipped").map(&:quantity)
+				if !cantidades.empty?
+					cantidad_no_despachada = cantidades.reduce(:+).to_i  ## en realidad esta por despachar
+				end
+
 				if sftp_order.myCantidadDespachada - cantidad_no_despachada != sftp_order.serverCantidadDespachada
 					puts "Hay un error en cantidades despachadas"
 					sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada + cantidad_no_despachada
