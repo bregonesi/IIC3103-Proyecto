@@ -4,8 +4,12 @@ class OrdenCompra < ApplicationRecord
 		self.where(estado: "aceptada")
 	end
 
+	def self.finalizadas
+		self.where(estado: "finalizada")
+	end
+
 	def self.aceptadas_de_cliente(cliente)
-		self.aceptadas.where(cliente: cliente)
+		self.aceptadas.where(cliente: cliente) + self.finalizadas.where(cliente: cliente)
 	end
 
 	def acepto?(critico=0.7)
