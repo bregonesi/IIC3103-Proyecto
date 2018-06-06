@@ -1,6 +1,7 @@
 class SftpOrder < ApplicationRecord
-	has_many :orders, class_name: 'Spree::Order'
-	has_many :fabricar_requests
+	has_many :orders, class_name: 'Spree::Order', dependent: :destroy
+	has_many :fabricar_requests, dependent: :destroy
+	has_many :oc_requests, dependent: :destroy
 
 	def self.creadas
 		SftpOrder.where(myEstado: 'creada')
@@ -19,7 +20,7 @@ class SftpOrder < ApplicationRecord
 	end
 
 	def self.tasa_aceptadas
-		((SftpOrder.aceptadas.count + SftpOrder.preaceptadas.count + SftpOrder.finalizadas.count).to_f / SftpOrder.count.to_f).to_f
+		((SftpOrder.aceptadas.where(canal: "ftp").count + SftpOrder.preaceptadas.where(canal: "ftp").count + SftpOrder.finalizadas.where(canal: "ftp").count).to_f / SftpOrder.count.to_f).to_f
 	end
 
 	def self.acepto?(tasa_min=0.65)
@@ -40,5 +41,13 @@ class SftpOrder < ApplicationRecord
 
 	def vigente?
 		self.fechaEntrega >= DateTime.now.utc
+	end
+
+	def puedo_pedir_por_oc(cantidad)  ## si ya no pedi (independiente si me rechazaron o esta por llegar)
+		self.oc_requests.where(sku: self.sku, cantidad: cantidad, despachado: false).empty?
+	end
+
+	def faltante
+		self.cantidad - self.myCantidadDespachada
 	end
 end

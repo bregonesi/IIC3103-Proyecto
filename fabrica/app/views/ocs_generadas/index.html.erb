@@ -1,0 +1,55 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Ocs Generadas</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Oc request</th>
+      <th>Oc</th>
+      <th>Grupo</th>
+      <th>Cliente</th>
+      <th>Proveedor</th>
+      <th>Sku</th>
+      <th>Fechaentrega</th>
+      <th>Cantidad</th>
+      <th>CantidadDespachada</th>
+      <th>Preciounitario</th>
+      <th>Canal</th>
+      <th>Notas</th>
+      <th>Urlnotificacion</th>
+      <th>Estado</th>
+      <th>Createdat</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @ocs_generadas.each do |ocs_generada| %>
+      <tr>
+        <td><%= ocs_generada.oc_request.id %></td>
+        <td><%= ocs_generada.oc_id %></td>
+        <td><%= ocs_generada.grupo %></td>
+        <td><%= ocs_generada.cliente %></td>
+        <td><%= ocs_generada.proveedor %></td>
+        <td><%= ocs_generada.sku %></td>
+        <td><%= ocs_generada.fechaEntrega %></td>
+        <td><%= ocs_generada.cantidad %></td>
+        <td><%= ocs_generada.cantidadDespachada %></td>
+        <td><%= ocs_generada.precioUnitario %></td>
+        <td><%= ocs_generada.canal %></td>
+        <td><%= ocs_generada.notas %></td>
+        <td><%= ocs_generada.urlNotificacion %></td>
+        <td><%= ocs_generada.estado %></td>
+        <td><%= ocs_generada.created_at %></td>
+        <td><%= link_to 'Show', ocs_generada %></td>
+        <td><%= link_to 'Edit', edit_ocs_generada_path(ocs_generada) %></td>
+        <td><%= link_to 'Destroy', ocs_generada, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Ocs Generada', new_ocs_generada_path %>

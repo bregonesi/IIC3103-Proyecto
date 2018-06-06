@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180603202846) do
+ActiveRecord::Schema.define(version: 20180604072805) do
 
   create_table "fabricar_requests", force: :cascade do |t|
     t.string "id_prod"
@@ -49,6 +49,38 @@ ActiveRecord::Schema.define(version: 20180603202846) do
     t.text "razon"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "oc_requests", force: :cascade do |t|
+    t.integer "sftp_order_id"
+    t.string "sku"
+    t.integer "cantidad"
+    t.boolean "por_responder", default: true
+    t.boolean "aceptado", default: false
+    t.boolean "despachado", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["sftp_order_id"], name: "index_oc_requests_on_sftp_order_id"
+  end
+
+  create_table "ocs_generadas", force: :cascade do |t|
+    t.integer "oc_request_id"
+    t.string "oc_id"
+    t.integer "grupo"
+    t.string "cliente"
+    t.string "proveedor"
+    t.string "sku"
+    t.datetime "fechaEntrega"
+    t.integer "cantidad"
+    t.integer "precioUnitario"
+    t.string "canal"
+    t.string "notas"
+    t.string "urlNotificacion"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "estado"
+    t.integer "cantidadDespachada"
+    t.index ["oc_request_id"], name: "index_ocs_generadas_on_oc_request_id"
   end
 
   create_table "productos_apis", force: :cascade do |t|
