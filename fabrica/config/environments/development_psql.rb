@@ -76,7 +76,7 @@ Rails.application.configure do
   ENV['api_banco_url'] = "https://integracion-2018-dev.herokuapp.com/banco/"  ## development
   #ENV['api_banco_url'] = "https://integracion-2018-prod.herokuapp.com/banco/"  ## production
 
-  # Informacion de los grupos
+  # Compras b2b
   ENV['url_notificacion_oc'] = "http://integra4.ing.puc.cl/public/oc/{_id}/notification" 
   $info_grupos = {  ## development
                    1 => { id: "5ad36945d6ed1f00049beca4", id_banco: "5ad36945d6ed1f00049becad", stock_url: "http://integra1.ing.puc.cl/public/stock", oc_url: "" },

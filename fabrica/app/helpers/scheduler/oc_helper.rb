@@ -78,19 +78,25 @@ module Scheduler::OcHelper
 											body = JSON.parse(oc_request.body)
 
 											# Le decimos que creamos una oc
-											HTTParty.put(datos_grupo[:oc_url] + body['_id'], body: { }.to_json, headers: { 'Content-type': 'application/json' })
+											errores_notificar_oc = ""
+											begin
+												HTTParty.put(datos_grupo[:oc_url] + body['_id'], body: { }.to_json, headers: { 'Content-type': 'application/json' })
+											rescue Exception => e # Never do this!
+												errores_notificar_oc = e
+											end
 
 											oc_generada.oc_id = body['_id']
 											oc_generada.cantidadDespachada = body['cantidadDespachada'].to_i
 											oc_generada.urlNotificacion = body['urlNotificacion']
 											oc_generada.created_at = body['created_at']
-											oc_generada.notas = "Se acepta ya que se cuenta con stock"
+											oc_generada.notas = "Se acepta ya que se cuenta con stock " + errores_notificar_oc
 
 										else
 											oc_generada.estado = "anulada"
 											oc_generada.notas = "Se anula ya que no se retorno 200 al crear la oc. Codigo devuelto " + oc_request.code.to_s + " y error " + oc_request.body.to_s
 										end
 									end
+
 									break
 								end
 							end
@@ -137,13 +143,18 @@ module Scheduler::OcHelper
 			if DateTime.now.utc > oc.created_at + 7.minutes
 				puts "Anularemos " + oc.oc_id.to_s
 
-				r = HTTParty.delete(ENV['api_oc_url'] + "anular/" + oc.oc_id.to_s,
-														body: { anulacion: "Se anula ya que pasaron mas de 7 minutos desde que se creo." }.to_json,
-														headers: { 'Content-type': 'application/json' })
-				puts r
-				if r.code == 200
-					body = JSON.parse(r.body)[0]
-					oc.cantidadDespachada = body['cantidadDespachada'].to_i
+				if !oc.oc_id.nil?
+					r = HTTParty.delete(ENV['api_oc_url'] + "anular/" + oc.oc_id.to_s,
+															body: { anulacion: "Se anula ya que pasaron mas de 7 minutos desde que se creo." }.to_json,
+															headers: { 'Content-type': 'application/json' })
+					puts r
+				end
+
+				if oc.oc_id.nil? || r.code == 200
+					if !oc.oc_id.nil?
+						body = JSON.parse(r.body)[0]
+						oc.cantidadDespachada = body['cantidadDespachada'].to_i
+					end
 					oc.estado = "anulada"
 					oc.notas += "Se anula ya que pasaron mas de 7 minutos desde que se creo. "
 					oc.save!

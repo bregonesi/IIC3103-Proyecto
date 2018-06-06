@@ -136,7 +136,7 @@ module Scheduler::ProductosHelper
 	  r = HTTParty.get(url,
 	                   query: {almacenId: almacen.admin_name.to_s,
 	                   				 sku: variant.sku,
-	                   				 limit: 200},
+	                   				 limit: 399},
 	                   headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
 	  #puts r
 			
