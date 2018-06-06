@@ -1,4 +1,6 @@
 module Scheduler::OrderHelper
+#linea 149 y cercnas
+#linea 298 y cercanas
 
 	def marcar_vencidas
 		puts "Viendo si hay que marcar vencidas"
@@ -108,26 +110,42 @@ module Scheduler::OrderHelper
 			ordenes_creadas = SftpOrder.creadas.each do |sftp_order|
 				variant = Spree::Variant.find_by(sku: sftp_order.sku)
 
-				costo = variant.ingredients.sum(:lote_minimo)  ## llamamos costo a la cantidad de productos que hay que utilizar
+				ingreso = sftp_order.cantidad * sftp_order.precioUnitario
 
-				cantidad_efectiva = sftp_order.cantidad - variant.total_on_hand
+				cantidad_efectiva = sftp_order.cantidad - variant.cantidad_disponible
 
 				if !variant.primary?
-					costo_lote = variant.lote_minimo
+					costo_lote = variant.lote_minimo * variant.cost_price.to_i
+					costo = costo_lote.to_f
+
+					variant.recipe.each do |ingredient|
+						costo += ingredient.variant_ingredient.cost_price.to_i * ingredient.amount
+					end
+
+					lotes_solicitados = sftp_order.cantidad.to_f / variant.lote_minimo.to_f
+					costo = costo * lotes_solicitados
+
 					lotes = BigDecimal((cantidad_efectiva.to_f / variant.lote_minimo.to_f).to_s).ceil
 				else
-					costo_lote = 1
+					costo = variant.cost_price.to_i * cantidad_efectiva
 					lotes = cantidad_efectiva
 				end
 
+				ganancia = ingreso.to_f - costo.to_f
+				ganancia_por_producto = ganancia.to_f / sftp_order.cantidad.to_f
+
 				lotes = [lotes, 0].max  ## por si tengo mas de lo que me pide
 
-				ordenes << [sftp_order, costo_lote, lotes, costo_lote * lotes]
+				if SftpOrder.tasa_aceptadas < 0.5 || ganancia_por_producto >= 0
+					ordenes << [sftp_order, sftp_order.cantidad, lotes, ganancia_por_producto]
+				end
 			end
 
-			ordenes = ordenes.sort_by{ |i| i[1] }  ## primero ordeno por costo de un lote
-			ordenes = ordenes.sort_by{ |i| i[3] }  ## despues ordeno por costo total
-			# asi va a quedar mas importante costo total y luego el costo de un lote
+			ordenes = ordenes.sort_by{ |i| i[1] }  ## primero ordeno por cantidad de productos
+			ordenes = ordenes.sort_by{ |i| i[3] }  ## despues ordeno por ganancia por producto
+			ordenes.reverse!  ## doy vuelta para que queden con mas ganancia al principio
+			# asi va a quedar mas importante la ganancia por producto y luego la cantidad de productos a despachar
+			#puts ordenes.to_yaml
 
 			ordenes.each do |orden_entry|
 				if !SftpOrder.acepto?  ## si ya cumpli mi cuota
@@ -137,27 +155,67 @@ module Scheduler::OrderHelper
 				orden = orden_entry[0]
 				variant = Spree::Variant.find_by(sku: orden.sku)
 
-				if ( (variant.can_produce? && orden.fechaEntrega - DateTime.now.utc >= 6.hours.seconds) || variant.can_ship? ) || (variant.primary? && variant.can_ship?)  ## sino no alcanzamos a fabricar
-					puts "Acepto oc " + orden.oc.to_s
-					if !variant.primary?  ## hay que fabricar
+				if (1)  ## sino no alcanzamos a fabricar
+					puts "Veo si acepto oc " + orden.oc.to_s
+					if !variant.primary?
 						puts "No es materia prima"
-						lotes_restante_fabricar = orden_entry[2]
-						while variant.can_produce? && lotes_restante_fabricar > 0  ## si hay que fabricar y si tengo que fabricar
-							puts "Fabrico"
-							orden.myEstado = "preaceptada"
+						if variant.can_ship?
+							puts "Tengo para despachar"
+							create_spree_from_sftp_order(orden)
+						else
+							lotes_restante_fabricar = orden_entry[2]
+							while lotes_restante_fabricar > 0  ## si hay que fabricar y si tengo que fabricar
+								cantidad_en_fabricacion = orden.fabricar_requests.por_fabricar.or(orden.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
+								cantidad_en_ocs = orden.oc_requests.por_recibir.map(&:cantidad).reduce(:+).to_i
+								cantidad_faltante = orden.cantidad - cantidad_en_fabricacion - cantidad_en_ocs
+								offset = cantidad_faltante % variant.lote_minimo  ## offset es lo que falta en el ultimo lote
+								relacion_lote_faltante = offset.to_f / variant.lote_minimo.to_f
+								# Si fabrico y el lote que me resulta es menos de 1/3 del ultimo lote, entonces compro por oc
+								# Sino fabrico
+								# Si no puedo fabricar compro por oc
+								if offset > 0 && relacion_lote_faltante > 0 && relacion_lote_faltante <= 1.0/3.0 && orden.puedo_pedir_por_oc(offset)
+									puts "Mandamos a generar oc a grupos"
+									generar_oc(orden, offset)
+									orden.myEstado = "preaceptada"
+								elsif variant.can_produce?
+									if orden.fechaEntrega - DateTime.now.utc >= 6.hours.seconds
+										puts "Voy a fabricar"
+										fabricar(orden)
+										orden.myEstado = "preaceptada"
+									else
+										if orden.puedo_pedir_por_oc(variant.lote_minimo)
+											puts "Pedire un lote entero ya que no alcanzo a fabricar."
+											generar_oc(orden, variant.lote_minimo)
+											orden.myEstado = "preaceptada"
+										end
+									end
+								else
+									puts "No puedo fabricar."
+									if orden.puedo_pedir_por_oc(variant.lote_minimo)
+										puts "Pedire un lote entero."
+										generar_oc(orden, variant.lote_minimo)
+										orden.myEstado = "preaceptada"
+									end
+								end
+								#fabricar(orden)
+								lotes_restante_fabricar -= 1
+							end
 							orden.save!
-							fabricar(orden)
-							lotes_restante_fabricar -= 1
 						end
-						if variant.can_ship?
-							puts "Tengo para despachar"
-							create_spree_from_sftp_order(orden)
-						end
-					else  ## acepto de inmediato
+					else
 						puts "Es materia prima"
-						if variant.can_ship?
+    				promedios = Recipe.promedios
+						if orden_entry[1] <= (variant.cantidad_disponible - promedios[variant.sku.to_s].to_i * 3) && variant.can_ship?
 							puts "Tengo para despachar"
 							create_spree_from_sftp_order(orden)
+						else
+							pedir = [variant.lote_minimo, orden.cantidad].min
+							puts "Genero oc por " + pedir.to_s + " unidades"
+							if orden.puedo_pedir_por_oc(pedir)
+								generar_oc(orden, pedir)
+								orden.myEstado = "preaceptada"
+								orden.save!
+							end
 						end
 					end
 				end
@@ -188,7 +246,13 @@ module Scheduler::OrderHelper
 
 				variant = Spree::Variant.find_by!(sku: sftp_order.sku)
 				cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
-				cantidad_despachar = [cantidad_restante, variant.cantidad_disponible].min
+				cantidad_disponible = variant.cantidad_disponible
+				if variant.primary?
+    			promedios = Recipe.promedios
+					cantidad_disponible = cantidad_disponible - promedios[variant.sku.to_s].to_i * 3
+					cantidad_disponible = [cantidad_disponible, 0].max
+				end
+				cantidad_despachar = [cantidad_restante, cantidad_disponible].min
 				puts "create sftp order con cantidad despachar " + cantidad_despachar.to_s
 				recien_creada = false
 
@@ -291,18 +355,44 @@ module Scheduler::OrderHelper
 			cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
 
 			if cantidad_restante > 0
-				if variant.cantidad_disponible > 0  ## si tengo stock creo shipments
+				cantidad_disponible = variant.cantidad_disponible
+				if variant.primary?
+    			promedios = Recipe.promedios
+					cantidad_disponible = cantidad_disponible - promedios[variant.sku.to_s].to_i * 3
+					cantidad_disponible = [cantidad_disponible, 0].max
+				end
+
+				if cantidad_disponible > 0  ## si tengo stock creo shipments
 					puts "Llego stock para una orden aun no finalizada"
 
 					create_spree_from_sftp_order(sftp_order)
 				end
 
-				cantidad_en_fabricacion = sftp_order.fabricar_requests.por_fabricar.or(sftp_order.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
-				if cantidad_restante - cantidad_en_fabricacion > 0
-					puts "Falta para fabricar"
-					if variant.can_produce?
-						puts "Voy a producir"
+				cantidad_en_fabricacion = (sftp_order.fabricar_requests.por_fabricar + sftp_order.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
+				cantidad_en_ocs = sftp_order.oc_requests.por_recibir.map(&:cantidad).reduce(:+).to_i
+				cantidad_faltante = cantidad_restante - cantidad_en_fabricacion - cantidad_en_ocs
+				offset = cantidad_faltante % variant.lote_minimo  ## offset es lo que falta en el ultimo lote
+				relacion_lote_faltante = variant.primary? ? 0.01 : offset.to_f / variant.lote_minimo.to_f
+				if cantidad_faltante > 0
+					puts "Faltan " + cantidad_faltante.to_s + " productos."
+					puts "Lotes minimo de producto faltante " + variant.lote_minimo.to_s
+					puts "Relacion faltante lote " + relacion_lote_faltante.to_s
+					# Si fabrico y el lote que me resulta es menos de 1/3 del ultimo lote, entonces compro por oc
+					# Sino fabrico
+					# Si no puedo fabricar compro por oc
+					if offset > 0 && relacion_lote_faltante > 0 && relacion_lote_faltante <= 1.0/3.0 && sftp_order.puedo_pedir_por_oc(offset)
+						puts "Mandamos a generar oc a grupos"
+						generar_oc(sftp_order, offset)
+					elsif variant.can_produce?
+						puts "Voy a fabricar"
 						fabricar(sftp_order)
+					else
+						puts "No puedo fabricar."
+						pedir = [variant.lote_minimo, cantidad_faltante].min
+						if sftp_order.puedo_pedir_por_oc(pedir)
+							puts "Pedire lo que falta o un lote minimo (" + pedir.to_s + " unidades)."
+							generar_oc(sftp_order, pedir)
+						end
 					end
 				end
 			end
@@ -319,15 +409,13 @@ module Scheduler::OrderHelper
 		#fabricar_api
 	end
 
-
 	def fabricar_api
+		pago_activado = true
 		FabricarRequest.por_fabricar.each do |request|
 			request.with_lock do
 				variant = Spree::Variant.find_by(sku: request.sku)
 
 				puts "Mandamos a fabricar " + variant.sku
-
-				#Scheduler::ProductosHelper.cargar_nuevos
 
 				if variant.primary?  ## por si llega una materia prima aca
 					puts "Se destruye orden de fabricacion ya que no se pueden fabricar materias primas"
@@ -348,10 +436,13 @@ module Scheduler::OrderHelper
 					next
 				end
 				
+				#Scheduler::ProductosHelper.cargar_nuevos
+
 				a_cambiar = []
 				variant.recipe.each do |ingredient|
-					disponible_en_despacho = ingredient.variant_ingredient.stock_items.where(stock_location: Spree::StockLocation.where(proposito: "Despacho")).map(&:count_on_hand).reduce(:+).to_i
+					disponible_en_despacho = ingredient.variant_ingredient.stock_items.where(stock_location: Spree::StockLocation.despachos).map(&:count_on_hand).reduce(:+).to_i
 					puts "Disponible de sku " + ingredient.variant_ingredient.sku + " en despacho: " + disponible_en_despacho.to_s
+					#ingredient.variant_ingredient.stock_items.each { |si| Scheduler::ProductosHelper.cargar_detalles(si) }
 					if ingredient.amount.to_i > disponible_en_despacho.to_i
 						puts "Hay que mover stock antes de fabricar"
 						a_cambiar << [ingredient.variant_ingredient, ingredient.amount.to_i - disponible_en_despacho.to_i]
@@ -376,13 +467,47 @@ module Scheduler::OrderHelper
 
 				#next
 
-				url = ENV['api_url'] + "bodega/fabrica/fabricarSinPago"
-				base = 'PUT' + variant.sku + variant.lote_minimo.to_s
-				key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-				r = HTTParty.put(url,
-												 body: {sku: variant.sku.to_s,
-																cantidad: variant.lote_minimo.to_s}.to_json,
-												 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+				if pago_activado
+					# Transferencia antes de fabricar
+					transferencia = Transferencium.where(originator_type: request.class.name.to_s, originator_id: request.id.to_i).first_or_create! do |t|
+						t.origen = $info_grupos[4][:id_banco]
+						t.destino = Spree::Store.first.cuenta_banco
+						t.monto = request.cantidad.to_i * variant.cost_price.to_i
+
+						transferencia_request = HTTParty.put(ENV['api_banco_url'] + "trx",
+																								 body: {origen: t.origen,
+																								 				destino: t.destino,
+																								 				monto: t.monto}.to_json,
+																								 headers: { 'Content-type': 'application/json'})
+		
+						puts transferencia_request
+
+						if transferencia_request.code == 200
+							body = JSON.parse(transferencia_request.body)
+							t.idtransferencia = body["_id"]
+						else
+							puts "Error en transferencia"
+							puts transferencia_request
+						end
+					end
+
+					# Ahora mandamos a fabricar
+					base = 'PUT' + variant.sku + request.cantidad.to_s + transferencia.idtransferencia.to_s
+					key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+					r = HTTParty.put(ENV['api_url'] + "bodega/fabrica/fabricar",
+													 body: {trxId: transferencia.idtransferencia.to_s,
+													 				sku: variant.sku.to_s,
+																	cantidad: request.cantidad.to_s}.to_json,
+													 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+				else
+					base = 'PUT' + variant.sku + request.cantidad.to_s
+					key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+					r = HTTParty.put(ENV['api_url'] + "bodega/fabrica/fabricarSinPago",
+													 body: {sku: variant.sku.to_s,
+																	cantidad: request.cantidad.to_s}.to_json,
+													 headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+				end
+
 				puts r
 				if r.code != 200
 					"Error en fabricar"

@@ -1,0 +1,67 @@
+<%= form_with(model: transferencium, local: true) do |form| %>
+  <% if transferencium.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(transferencium.errors.count, "error") %> prohibited this transferencium from being saved:</h2>
+
+      <ul>
+      <% transferencium.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :origen %>
+    <%= form.text_field :origen, id: :transferencium_origen %>
+  </div>
+
+  <div class="field">
+    <%= form.label :string %>
+    <%= form.text_field :string, id: :transferencium_string %>
+  </div>
+
+  <div class="field">
+    <%= form.label :destino %>
+    <%= form.text_field :destino, id: :transferencium_destino %>
+  </div>
+
+  <div class="field">
+    <%= form.label :monto %>
+    <%= form.number_field :monto, id: :transferencium_monto %>
+  </div>
+
+  <div class="field">
+    <%= form.label :idtransferencia %>
+    <%= form.text_field :idtransferencia, id: :transferencium_idtransferencia %>
+  </div>
+
+  <div class="field">
+    <%= form.label :string %>
+    <%= form.text_field :string, id: :transferencium_string %>
+  </div>
+
+  <div class="field">
+    <%= form.label :originator_type %>
+    <%= form.text_field :originator_type, id: :transferencium_originator_type %>
+  </div>
+
+  <div class="field">
+    <%= form.label :string %>
+    <%= form.text_field :string, id: :transferencium_string %>
+  </div>
+
+  <div class="field">
+    <%= form.label :originator_id %>
+    <%= form.text_field :originator_id, id: :transferencium_originator_id %>
+  </div>
+
+  <div class="field">
+    <%= form.label :integer %>
+    <%= form.text_field :integer, id: :transferencium_integer %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

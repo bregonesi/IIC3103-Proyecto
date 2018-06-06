@@ -1,13 +1,13 @@
 module Scheduler::ShipmentHelper
 
 	def despachar
-    url = ENV['api_url'] + "bodega/stock"
     stop_scheduler = false
-    
+
     Spree::Shipment.where(state: "ready", stock_location: Spree::StockLocation.where(proposito: "Despacho")).each do |shipment|  ## seleccionamos solo los que estan listos y en despacho
       shipment.with_lock do
-        shipment.order.with_lock do
-          if shipment.order.payment_state == "paid"  ## hay que pagar primero
+        orden = shipment.order
+        orden.with_lock do
+          if orden.payment_state == "paid"  ## hay que pagar primero
             shipment.inventory_units.each do |iu|
               iu.with_lock do
                 cantidad_despachar = iu.quantity.to_i - iu.shipped_quantity.to_i
@@ -25,15 +25,38 @@ module Scheduler::ShipmentHelper
 
                 productos_shipped = []
                 productos_despachar.each do |prod|  ## hay que eliminar producto por producto (si, ineficiente)
-                  #base = 'DELETE' + prod['_id'].to_s + inventario_para_despachar.shipment.address.address1 + inventario_para_despachar.line_item.price.to_i.to_s + inventario_para_despachar.order.number.to_s
-                  base = 'DELETE' + prod.id_api + shipment.address.address1 + iu.line_item.price.to_i.to_s + shipment.order.sftp_order.oc
-                  key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
-                  r = HTTParty.delete(url,
+                  
+                  if orden.sftp_order.nil? || orden.sftp_order.canal == "ftp"  ## hay que utilizar despachar productos
+                    oc = "000000000000000000000000"  ## compras por spree
+                    if !orden.sftp_order.nil?
+                      oc = orden.sftp_order.oc.to_s
+                    end
+
+                    base = 'DELETE' + prod.id_api + shipment.address.address1 + iu.line_item.price.to_i.to_s + oc.to_s
+                    key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+                    r = HTTParty.delete(ENV['api_url'] + "bodega/stock",
+                                        body: {productoId: prod.id_api,
+                                               direccion: shipment.address.address1,
+                                               precio: iu.line_item.price.to_i,
+                                               oc: oc.to_s}.to_json,
+                                        headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+
+                  elsif orden.sftp_order.canal == "b2b"  ## compras entre grupos, hay que mover stock
+                    oc = orden.sftp_order.oc.to_s
+                    info_grupo_despacho = $info_grupos.select{|key, hash| hash[:id] == orden.sftp_order.cliente }[1]
+                    almacen_despacho = info_grupo_despacho[:almacen]
+                    base = 'POST' + prod.id_api + almacen_despacho
+                    key = Base64.encode64(OpenSSL::HMAC.digest('sha1', ENV['api_psswd'], base))
+                    r = HTTParty.post(ENV['api_url'] + "bodega/moveStockBodega",
                                       body: {productoId: prod.id_api,
-                                             direccion: shipment.address.address1,
-                                             precio: iu.line_item.price.to_i,
-                                             oc: shipment.order.sftp_order.oc.to_s}.to_json,
+                                             almacenId: almacen_despacho,
+                                             oc: oc.to_s,
+                                             precio: iu.line_item.price.to_i}.to_json,
                                       headers: { 'Content-type': 'application/json', 'Authorization': 'INTEGRACION grupo4:' + key})
+                  else
+                    raise "No tenemos como despachar orden"
+                  end
+
                   puts r
 
                   if r.code == 200
@@ -56,7 +79,7 @@ module Scheduler::ShipmentHelper
                   Scheduler::ProductosHelper.cargar_detalles(Spree::StockItem.find_by(variant: iu.variant, stock_location: shipment.stock_location))
                 rescue NoMethodError => e
                   puts e
-                end 
+                end
 
                 if iu.shipped_quantity >= iu.quantity
                   iu.shipment.ship!

@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  sftp_order: one
+  sku: MyString
+  cantidad: 1
+  por_responder: false
+  aceptado: false
+  despachado: false
+
+two:
+  sftp_order: two
+  sku: MyString
+  cantidad: 1
+  por_responder: false
+  aceptado: false
+  despachado: false

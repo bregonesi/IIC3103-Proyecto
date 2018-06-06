@@ -1,0 +1,29 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  oc_request: one
+  oc_id: MyString
+  grupo: 1
+  cliente: MyString
+  proveedor: MyString
+  sku: MyString
+  fechaEntrega: 2018-06-04 00:40:29
+  cantidad: 1
+  precioUnitario: 1
+  canal: MyString
+  notas: MyString
+  urlNotificacion: MyString
+
+two:
+  oc_request: two
+  oc_id: MyString
+  grupo: 1
+  cliente: MyString
+  proveedor: MyString
+  sku: MyString
+  fechaEntrega: 2018-06-04 00:40:29
+  cantidad: 1
+  precioUnitario: 1
+  canal: MyString
+  notas: MyString
+  urlNotificacion: MyString

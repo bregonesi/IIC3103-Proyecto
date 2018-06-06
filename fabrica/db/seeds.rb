@@ -103,8 +103,7 @@ default_shipping_category = Spree::ShippingCategory.find_by!(name: "Default")
 productos_csv.each do |product_attrs|
   Spree::Config[:currency] = "CLP"
 
-  new_product = Spree::Product.where(name: product_attrs['Producto'],
-    tax_category: product_attrs[:tax_category]).first_or_create! do |product|
+  new_product = Spree::Product.where(name: product_attrs['Producto'], tax_category: product_attrs[:tax_category]).first_or_create! do |product|
 
     product.price = 100
     product.sku = product_attrs['SKU'.to_i]
@@ -115,7 +114,7 @@ productos_csv.each do |product_attrs|
   sku = product_attrs['SKU'.to_i].to_s
   variante = Spree::Variant.find_by(sku: sku)
   costo_unitario = product_attrs['Costo']
-  puts "costo: " + costo_unitario
+  puts "Costo: " + costo_unitario
   variante.cost_price = costo_unitario.to_i
   variante.save!
 
