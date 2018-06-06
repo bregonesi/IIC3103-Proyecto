@@ -105,7 +105,7 @@ class EndpointController < ApplicationController
 			errores_notificacion_oc = ""
 			notification = ""
 			begin
-				notification = HTTParty.post(orden_nueva.urlNotificacion, body: { status: "accept" }.to_json, headers: { 'Content-type': 'application/json' })
+				notification = HTTParty.post(orden_nueva.urlNotificacion, timeout: 10, body: { status: "accept" }.to_json, headers: { 'Content-type': 'application/json' })
 			rescue Exception => e # Never do this!
 				errores_notificacion_oc = e
 			end
@@ -152,7 +152,7 @@ class EndpointController < ApplicationController
 			errores_notificacion_oc = ""
 			notification = ""
 			begin
-				notification = HTTParty.post(orden_nueva.urlNotificacion, body: { status: "reject" }.to_json, headers: { 'Content-type': 'application/json' })
+				notification = HTTParty.post(orden_nueva.urlNotificacion, timeout: 10, body: { status: "reject" }.to_json, headers: { 'Content-type': 'application/json' })
 			rescue Exception => e # Never do this!
 				errores_notificacion_oc = e
 			end
