@@ -38,7 +38,7 @@
         <td><%= ocs_generada.cantidadDespachada %></td>
         <td><%= ocs_generada.precioUnitario %></td>
         <td><%= ocs_generada.canal %></td>
-        <td><%= ocs_generada.notas %></td>
+        <td><%= ocs_generada.notas.truncate(100) %></td>
         <td><%= ocs_generada.urlNotificacion %></td>
         <td><%= ocs_generada.estado %></td>
         <td><%= ocs_generada.created_at %></td>
