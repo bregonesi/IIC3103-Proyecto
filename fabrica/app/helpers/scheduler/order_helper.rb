@@ -61,7 +61,7 @@ module Scheduler::OrderHelper
 
 				if sftp_order.myCantidadDespachada - cantidad_no_despachada != sftp_order.serverCantidadDespachada
 					puts "Hay un error en cantidades despachadas"
-					sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada + cantidad_no_despachada
+					#sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada + cantidad_no_despachada
 					#sftp_order.myEstado = "creada"
 					sftp_order.myEstado = sftp_order.serverEstado  ## la linea de arriba funciona, pero esta es mejor
 				end
