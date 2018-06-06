@@ -132,7 +132,7 @@ class EndpointController < ApplicationController
 			elsif !((OrdenCompra.aceptadas_de_cliente(orden_nueva.cliente).count.to_f / OrdenCompra.aceptadas.count.to_f) <= 0.7)
 				orden_nueva.rechazo = "Mas del 70% de mis ordenes aceptadas son tuyas. Tengo que rechazar."
 			elsif !(OrdenCompra.cantidad_maxima_aceptar_de_cliente(orden_nueva.cliente) > OrdenCompra.aceptadas_de_cliente(orden_nueva.cliente).count)
-				orden_nueva.rechazo = "Necesito trato justo. Tu tambien me tienes que aceptar."
+				orden_nueva.rechazo = "Necesito trato justo; Tu tambien me tienes que aceptar."
 			else
 				orden_nueva.rechazo = "Se rechazo por error"
 			end
