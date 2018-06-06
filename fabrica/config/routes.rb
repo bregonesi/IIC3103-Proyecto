@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :orden_compras
   resources :transferencia
   get '/transferencias', to: 'transferencia#index'
   resources :ocs_generadas
