@@ -125,7 +125,7 @@ class EndpointController < ApplicationController
 			#rechazo
 			puts "Marcando " + orden_nueva._id.to_s + " como rechazada"
 
-			if orden_nueva.fechaEntrega <= DateTime.now.utc - 10.minutes
+			if orden_nueva.fechaEntrega >= DateTime.now.utc - 10.minutes
 				orden_nueva.rechazo = "Orden vencida o vence pronto"
 			elsif !(producto.cantidad_api >= orden_nueva.cantidad)
 				orden_nueva.rechazo = "No tengo stock"
