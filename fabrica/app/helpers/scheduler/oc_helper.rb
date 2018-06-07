@@ -39,7 +39,7 @@ module Scheduler::OcHelper
 					o.proveedor = datos_grupo[:id]
 					o.sku = oc.sku
 
-					delta = (oc.sftp_order.fechaEntrega - DateTime.now.utc) / 2.0
+					delta = (oc.sftp_order.fechaEntrega - DateTime.now.utc) / 3.0
 					o.fechaEntrega = DateTime.now.utc + delta
 
 					o.cantidad = oc.cantidad
