@@ -1,8 +1,6 @@
 module Scheduler::SftpHelper
 
 	def agregar_nuevas_ordenes
-		url = ENV['api_oc_url'] + "obtener/"
-
 		sftp = Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd'])  ## necesitamos dos conexiones
 	  Net::SFTP.start(ENV['sftp_ordenes_url'], ENV['sftp_ordenes_login'], password: ENV['sftp_ordenes_psswd']) do |entries|
     	entries.dir.foreach('/pedidos/') do |entry|
@@ -33,7 +31,7 @@ module Scheduler::SftpHelper
             orden_nueva = SftpOrder.where(oc: content_id).first_or_create! do |o|
               puts "Cargando " + content_id
 
-              r = HTTParty.get(url + content_id, headers: { 'Content-type': 'application/json' })
+              r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + content_id, headers: { 'Content-type': 'application/json' })
               if r.code != 200
                 raise "Error en get oc."
               end
@@ -56,6 +54,7 @@ module Scheduler::SftpHelper
               o.myEstado = body['estado']
               o.serverEstado = body['estado']
               o.created_at = body['created_at']
+              o.server_updated_at = body['updated_at']
 
               if o.serverCantidadDespachada >= o.cantidad
                 o.myEstado = "finalizada"

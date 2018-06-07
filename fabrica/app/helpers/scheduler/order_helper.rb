@@ -17,6 +17,8 @@ module Scheduler::OrderHelper
 				body = JSON.parse(r.body)[0]
 				sftp_order.myEstado = "rechazada"
 				sftp_order.serverEstado = body['estado']
+				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
+				sftp_order.server_updated_at = body['updated_at']
 				sftp_order.save!
 			else
 				puts r
@@ -28,20 +30,6 @@ module Scheduler::OrderHelper
 		puts "Viendo si hay que sincronizar ocs"
 
 		SftpOrder.where('"sftp_orders"."myCantidadDespachada" != "sftp_orders"."serverCantidadDespachada"').each do |sftp_order|
-			ordenes = sftp_order.orders
-			if !ordenes.empty?
-				shipments = ordenes.map(&:shipments).flatten
-				if !shipments.empty?
-					# si despache hace menos de 15 minutos no actualizo aun ya que puede no estar sincronizado
-					last_shipment = shipments.select { |s| !s.shipped_at.nil? }.map(&:shipped_at).max
-					if !last_shipment.nil? && DateTime.now < last_shipment + 15.minutes
-						puts "Hice un shipment hace muy poco, no actualizo aun"
-						next  # me lo salto
-					end
-				end
-			end
-
-
 			puts "Viendo si hay que actualizar las unidades despachadas de " + sftp_order.oc.to_s
 
 			r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + sftp_order.oc.to_s,
@@ -50,8 +38,14 @@ module Scheduler::OrderHelper
 
 			if r.code == 200
 				body = JSON.parse(r.body)[0]
+				if sftp_order.server_updated_at == body['updated_at']
+					puts "No han habido cambios en la api. Nos saltamos hasta que hayan cambios"
+					next
+				end
+
 				sftp_order.serverEstado = body['estado']
 				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
+				sftp_order.server_updated_at = body['updated_at']
 
 				cantidad_no_despachada = 0
 				cantidades = sftp_order.orders.where.not(shipment_state: "shipped").map(&:quantity)
@@ -61,7 +55,7 @@ module Scheduler::OrderHelper
 
 				if sftp_order.myCantidadDespachada - cantidad_no_despachada != sftp_order.serverCantidadDespachada
 					puts "Hay un error en cantidades despachadas"
-					#sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada + cantidad_no_despachada
+					sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada + cantidad_no_despachada
 					#sftp_order.myEstado = "creada"
 					sftp_order.myEstado = sftp_order.serverEstado  ## la linea de arriba funciona, pero esta es mejor
 				end
@@ -92,6 +86,7 @@ module Scheduler::OrderHelper
 				serverEstado = body['estado']
 
 				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
+				sftp_order.server_updated_at = body['updated_at']
 				if serverEstado == "finalizada"
 					sftp_order.serverEstado = serverEstado
 				else
