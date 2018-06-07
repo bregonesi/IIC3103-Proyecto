@@ -51,8 +51,10 @@ class EndpointController < ApplicationController
 		end
 
 		if orden_nueva.urlNotificacion.empty?
-			orden_nueva.notas += "No se acepta ya que no hay url notificacion"
+			orden_nueva.rechazo = "No se acepta ya que no hay url notificacion"
+			orden_nueva.estado = "rechazada"
 			orden_nueva.save!
+			HTTParty.post(ENV['api_oc_url'] + "rechazar/" + oc.to_s, body: { rechazo: orden_nueva.rechazo }.to_json, headers: { 'Content-type': 'application/json' })
 			render json: { error: "Orden " + orden_nueva._id + " no tiene url notificacion" }, :status => 400
 			return
 		end
