@@ -161,9 +161,10 @@ module Scheduler::OcHelper
 					end
 				end
 
+				anulacion = "Se anula ya que no se recibio respuesta en 7 minutos"
 				if !oc.oc_id.nil?
 					r = HTTParty.delete(ENV['api_oc_url'] + "anular/" + oc.oc_id.to_s,
-															body: { anulacion: "Se anula ya que pasaron mas de 7 minutos desde que se creo." }.to_json,
+															body: { anulacion: anulacion }.to_json,
 															headers: { 'Content-type': 'application/json' })
 					puts r
 				end
@@ -173,8 +174,8 @@ module Scheduler::OcHelper
 						body = JSON.parse(r.body)[0]
 						oc.cantidadDespachada = body['cantidadDespachada'].to_i
 					end
-					oc.estado = "anulada"
-					oc.notas += "Se anula ya que pasaron mas de 7 minutos desde que se creo. "
+					oc.estado = body['estado']
+					oc.notas += anulacion + " "
 					oc.save!
 				else
 					puts r
