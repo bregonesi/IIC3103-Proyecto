@@ -242,21 +242,21 @@ module Scheduler::OcHelper
 				end
 				oc.save!
 			end
-		end
 
-		if oc.fechaEntrega < DateTime.now.utc
-			oc.estado = "finalizada"
-			if oc.cantidadDespachada >= oc.cantidad
-				oc.oc_request.por_responder = false
-				oc.oc_request.aceptado = true
-				oc.oc_request.despachado = true
-			else
-				oc.oc_request.por_responder = true
-				oc.oc_request.aceptado = false
-				oc.oc_request.despachado = false
+			if oc.fechaEntrega < DateTime.now.utc
+				oc.estado = "finalizada"
+				if oc.cantidadDespachada >= oc.cantidad
+					oc.oc_request.por_responder = false
+					oc.oc_request.aceptado = true
+					oc.oc_request.despachado = true
+				else
+					oc.oc_request.por_responder = true
+					oc.oc_request.aceptado = false
+					oc.oc_request.despachado = false
+				end
+				oc.oc_request.save!
+				oc.save!
 			end
-			oc.oc_request.save!
-			oc.save!
 		end
 	end
 
