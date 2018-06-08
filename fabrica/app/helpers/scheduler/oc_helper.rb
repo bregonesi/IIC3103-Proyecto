@@ -226,15 +226,6 @@ module Scheduler::OcHelper
 
 	def actualizar_aceptadas
 		OcsGenerada.where(estado: "aceptada").each do |oc|
-			if oc.fechaEntrega < DateTime.now.utc
-				oc.estado = "finalizada"
-				oc.oc_request.por_responder = false
-				oc.oc_request.aceptado = true
-				oc.oc_request.despachado = true
-				oc.oc_request.save!
-				oc.save!
-			end
-
 			r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + oc.oc_id.to_s, headers: { 'Content-type': 'application/json' })
 			if r.code == 200
 				body = JSON.parse(r.body)[0]
@@ -251,6 +242,21 @@ module Scheduler::OcHelper
 				end
 				oc.save!
 			end
+		end
+
+		if oc.fechaEntrega < DateTime.now.utc
+			oc.estado = "finalizada"
+			if oc.cantidadDespachada >= oc.cantidad
+				oc.oc_request.por_responder = false
+				oc.oc_request.aceptado = true
+				oc.oc_request.despachado = true
+			else
+				oc.oc_request.por_responder = true
+				oc.oc_request.aceptado = false
+				oc.oc_request.despachado = false
+			end
+			oc.oc_request.save!
+			oc.save!
 		end
 	end
 
