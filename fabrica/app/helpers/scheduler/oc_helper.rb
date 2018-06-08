@@ -240,6 +240,7 @@ module Scheduler::OcHelper
 				body = JSON.parse(r.body)[0]
 
 				oc.cantidadDespachada = body['cantidadDespachada']
+				oc.estado = body['estado']
 
 				if oc.cantidadDespachada >= oc.cantidad
 					oc.estado = "finalizada"
