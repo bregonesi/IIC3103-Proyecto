@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180604072805) do
+ActiveRecord::Schema.define(version: 20180607212647) do
 
   create_table "fabricar_requests", force: :cascade do |t|
     t.string "id_prod"
@@ -147,6 +147,7 @@ ActiveRecord::Schema.define(version: 20180604072805) do
     t.string "serverEstado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "server_updated_at"
   end
 
   create_table "spree_addresses", force: :cascade do |t|

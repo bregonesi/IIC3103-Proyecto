@@ -38,10 +38,6 @@ module Scheduler::OrderHelper
 
 			if r.code == 200
 				body = JSON.parse(r.body)[0]
-				if sftp_order.server_updated_at == body['updated_at']
-					puts "No han habido cambios en la api. Nos saltamos hasta que hayan cambios"
-					next
-				end
 
 				sftp_order.serverEstado = body['estado']
 				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
@@ -55,7 +51,11 @@ module Scheduler::OrderHelper
 
 				if sftp_order.myCantidadDespachada - cantidad_no_despachada != sftp_order.serverCantidadDespachada
 					puts "Hay un error en cantidades despachadas"
-					sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada + cantidad_no_despachada
+
+					if sftp_order.server_updated_at != body['updated_at']  # solo si han habido cambios y no calza actualizo
+						sftp_order.myCantidadDespachada = sftp_order.serverCantidadDespachada + cantidad_no_despachada
+					end
+					
 					#sftp_order.myEstado = "creada"
 					sftp_order.myEstado = sftp_order.serverEstado  ## la linea de arriba funciona, pero esta es mejor
 				end
@@ -151,13 +151,15 @@ module Scheduler::OrderHelper
 				lotes = [lotes, 0].max  ## por si tengo mas de lo que me pide
 
 				if SftpOrder.tasa_aceptadas < 0.5 || ganancia_por_producto >= 0
-					ordenes << [sftp_order, sftp_order.cantidad, lotes, ganancia_por_producto]
+					#ordenes << [sftp_order, sftp_order.cantidad, lotes, ganancia_por_producto]
+					ordenes << [sftp_order, sftp_order.cantidad, lotes, cantidad_efectiva]  # dejo cantidad efectiva ya que aun no cobro
 				end
 			end
 
 			ordenes = ordenes.sort_by{ |i| i[1] }  ## primero ordeno por cantidad de productos
 			ordenes = ordenes.sort_by{ |i| i[3] }  ## despues ordeno por ganancia por producto
-			ordenes.reverse!  ## doy vuelta para que queden con mas ganancia al principio
+			# hay que descomentar el reverse cuando se cambie a ganancia
+			#ordenes.reverse!  ## doy vuelta para que queden con mas ganancia al principio
 			# asi va a quedar mas importante la ganancia por producto y luego la cantidad de productos a despachar
 			#puts ordenes.to_yaml
 
