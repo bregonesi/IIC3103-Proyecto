@@ -127,6 +127,7 @@ module Scheduler::OrderHelper
 				ingreso = sftp_order.cantidad * sftp_order.precioUnitario
 
 				cantidad_efectiva = sftp_order.cantidad - variant.cantidad_disponible
+				cantidad_fab = 0
 
 				if !variant.primary?
 					costo_lote = variant.lote_minimo * variant.cost_price.to_i
@@ -134,6 +135,7 @@ module Scheduler::OrderHelper
 
 					variant.recipe.each do |ingredient|
 						costo += ingredient.variant_ingredient.cost_price.to_i * ingredient.amount
+						cantidad_fab = ingredient.amount - ingredient.variant_ingredient.cantidad_disponible  # eliminar esto, es para ordenar por el q ocupa menos cantidad para fabricar
 					end
 
 					lotes_solicitados = sftp_order.cantidad.to_f / variant.lote_minimo.to_f
@@ -150,9 +152,9 @@ module Scheduler::OrderHelper
 
 				lotes = [lotes, 0].max  ## por si tengo mas de lo que me pide
 
-				if SftpOrder.tasa_aceptadas < 0.5 || ganancia_por_producto >= 0
+				if SftpOrder.tasa_aceptadas < 0.75 || ganancia_por_producto >= 0
 					#ordenes << [sftp_order, sftp_order.cantidad, lotes, ganancia_por_producto]
-					ordenes << [sftp_order, sftp_order.cantidad, lotes, cantidad_efectiva]  # dejo cantidad efectiva ya que aun no cobro
+					ordenes << [sftp_order, sftp_order.cantidad, lotes, cantidad_efectiva + cantidad_fab]  # dejo cantidad efectiva ya que aun no cobro
 				end
 			end
 

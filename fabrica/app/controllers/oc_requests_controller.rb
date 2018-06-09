@@ -4,7 +4,7 @@ class OcRequestsController < ApplicationController
   # GET /oc_requests
   # GET /oc_requests.json
   def index
-    @oc_requests = OcRequest.all
+    @oc_requests = OcRequest.all.order(id: :desc)
   end
 
   # GET /oc_requests/1

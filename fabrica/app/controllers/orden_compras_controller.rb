@@ -4,7 +4,7 @@ class OrdenComprasController < ApplicationController
   # GET /orden_compras
   # GET /orden_compras.json
   def index
-    @orden_compras = OrdenCompra.all
+    @orden_compras = OrdenCompra.all.order(id: :desc)
   end
 
   # GET /orden_compras/1
