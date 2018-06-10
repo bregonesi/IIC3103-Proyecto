@@ -7,9 +7,9 @@ class EndpointController < ApplicationController
 		id_order = params[:id]
 		puts "Recibo nueva oc " + id_order.to_s
 
-		if Time.now.day == 10 && Time.now.hour < 20
-			puts "Cancelo oc por que estoy esperando las 20:00"
-			render json: {error: "Estoy rechazando todo hasta las 20:00"}, :status => 400
+		if Time.now.day == 10 && Time.now.hour <= 20 && Time.now.min < 15
+			puts "Cancelo oc por que estoy esperando las 20:15"
+			render json: {error: "Estoy rechazando todo hasta las 20:15"}, :status => 400
 			return
 		end
 
