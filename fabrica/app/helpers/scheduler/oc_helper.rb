@@ -173,8 +173,8 @@ module Scheduler::OcHelper
 					if !oc.oc_id.nil?
 						body = JSON.parse(r.body)[0]
 						oc.cantidadDespachada = body['cantidadDespachada'].to_i
+						oc.estado = body['estado']
 					end
-					oc.estado = body['estado']
 					oc.notas += anulacion + " "
 					oc.save!
 				else

@@ -7,9 +7,15 @@ class EndpointController < ApplicationController
 		id_order = params[:id]
 		puts "Recibo nueva oc " + id_order.to_s
 
+		if Time.now.day == 10 && Time.now.hour < 20
+			puts "Cancelo oc por que estoy esperando las 20:00"
+			render json: {error: "Estoy rechazando todo hasta las 20:00"}, :status => 400
+			return
+		end
+
 		r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + id_order.to_s, headers: { 'Content-type': 'application/json' })
 		if r.code != 200
-			render json: r.body, :status => 400
+			render json: r.body, :status => r.code
 			return
 		end
 
@@ -187,7 +193,7 @@ class EndpointController < ApplicationController
 		status = params[:status]
 		oc_generada = OcsGenerada.find_by(oc_id: oc)
 		if oc_generada.nil?
-			render json: { error: "Oc " + oc.to_s + " no encontrada" }, :status => 400
+			render json: { error: "Oc " + oc.to_s + " no encontrada" }, :status => 404
 			return
 		end
 
