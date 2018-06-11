@@ -175,6 +175,9 @@ module Scheduler::OcHelper
 						oc.cantidadDespachada = body['cantidadDespachada'].to_i
 						oc.estado = body['estado']
 					end
+					if oc.estado == "creada"
+						oc.estado = "anulada"
+					end
 					oc.notas += anulacion + " "
 					oc.save!
 				else
