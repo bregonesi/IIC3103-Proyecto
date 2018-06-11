@@ -6,13 +6,13 @@ class EndpointController < ApplicationController
 	def recibir_oc
 		id_order = params[:id]
 		puts "Recibo nueva oc " + id_order.to_s
-
-		if Time.now.day == 10 && (Time.now.hour <= 19 || (Time.now.hour <= 20 && Time.now.min < 15))
-			puts "Cancelo oc por que estoy esperando las 20:15"
-			render json: {error: "Estoy rechazando todo hasta las 20:15"}, :status => 400
+=begin
+		if Time.now.day == 10 #&& (Time.now.hour <= 20 || (Time.now.hour == 21 && Time.now.min < 30))
+			puts "Cancelo oc por que estoy esperando las 23:59"
+			render json: {error: "Estoy rechazando todo hasta las 23:59"}, :status => 400
 			return
 		end
-
+=end
 		r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + id_order.to_s, headers: { 'Content-type': 'application/json' })
 		if r.code != 200
 			render json: r.body, :status => r.code
@@ -203,11 +203,13 @@ class EndpointController < ApplicationController
 				oc_generada.oc_request.por_responder = false
 				oc_generada.oc_request.aceptado = true
 				oc_generada.oc_request.save!
+				oc_generada.save!
 
 				# se supone que esto lo hace el otro grupo, pero forzamos a que si no lo hizo lo hagamos nosotros
 				HTTParty.post(ENV['api_oc_url'] + "recepcionar/" + oc.to_s, body: { }.to_json, headers: { 'Content-type': 'application/json' })
 			elsif status == "reject" && oc_generada.estado == "creada"
 				oc_generada.estado = "rechazada"
+				oc_generada.save!
 
 				# se supone que esto lo hace el otro grupo, pero forzamos a que si no lo hizo lo hagamos nosotros
 				HTTParty.post(ENV['api_oc_url'] + "rechazar/" + oc.to_s, body: { rechazo: "Me llego notificacion de rechazo desde ip " + ip2long(request.remote_ip).to_s }.to_json, headers: { 'Content-type': 'application/json' })

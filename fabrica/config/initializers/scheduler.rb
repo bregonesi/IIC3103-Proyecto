@@ -10,15 +10,6 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	unless job.down?
 		job.every '35s' do
 			puts "Ejecutando update."
-			if Time.now.day == 10 && (Time.now.hour <= 19 || (Time.now.hour <= 20 && Time.now.min < 15))
-				Scheduler::AlmacenesHelper.nuevos_almacenes
-				Scheduler::AlmacenesHelper.eliminar_extras
-				Scheduler::ProductosHelper.hacer_movimientos
-				Scheduler::ProductosHelper.cargar_nuevos
-				Scheduler::AlmacenesHelper.mantener_consistencia
-				puts "Cortamos scheduler ya que estamos esperando las 20.15"
-				raise "stop"
-			end
 
 			# Marcamos ordenes vencidas y las finalizadas
 			Scheduler::OrderHelper.marcar_vencidas
@@ -94,10 +85,13 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
   job_sftp = Rufus::Scheduler.new(:max_work_threads => 1)
   job_sftp.every '10m' do
 		puts "Ejecutando chequeo de ordenes nuevas ftp"
-		if Time.now.day == 10 && (Time.now.hour <= 19 || (Time.now.hour <= 20 && Time.now.min < 15))
-			puts "Cortamos scheduler ya que estamos esperando las 20.15"
+=begin
+		if Time.now.day == 10 #&& (Time.now.hour <= 20 || (Time.now.hour == 21 && Time.now.min < 30))
+			puts "Cortamos scheduler ya que estamos esperando las 23:59"
 			raise "stop"
 		end
+		raise "stop"
+=end
 
 		# Descargamos nuevas ordenes #
 		Scheduler::SftpHelper.agregar_nuevas_ordenes
