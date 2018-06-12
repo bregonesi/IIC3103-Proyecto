@@ -184,7 +184,7 @@ module Scheduler::OcHelper
 							oc.oc_request.por_responder = false
 							oc.oc_request.aceptado = true
 							oc.oc_request.despachado = true
-							oc.oc_requests.save!
+							oc.oc_request.save!
 						end
 					end
 					oc.save!
