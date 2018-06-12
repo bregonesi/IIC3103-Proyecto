@@ -152,7 +152,7 @@ module Scheduler::OrderHelper
 
 				lotes = [lotes, 0].max  ## por si tengo mas de lo que me pide
 
-				if SftpOrder.tasa_aceptadas < 0.75 || ganancia_por_producto >= 0
+				if SftpOrder.acepto? || ganancia_por_producto >= 0
 					#ordenes << [sftp_order, sftp_order.cantidad, lotes, ganancia_por_producto]
 					ordenes << [sftp_order, sftp_order.cantidad, lotes, cantidad_efectiva + cantidad_fab]  # dejo cantidad efectiva ya que aun no cobro
 				end

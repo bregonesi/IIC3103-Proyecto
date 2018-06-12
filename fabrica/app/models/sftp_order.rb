@@ -23,7 +23,7 @@ class SftpOrder < ApplicationRecord
 		((SftpOrder.aceptadas.where(canal: "ftp").count + SftpOrder.preaceptadas.where(canal: "ftp").count + SftpOrder.finalizadas.where(canal: "ftp").count).to_f / SftpOrder.where(canal: "ftp").count.to_f).to_f
 	end
 
-	def self.acepto?(tasa_min=0.65)
+	def self.acepto?(tasa_min=0.71)
 		SftpOrder.count == 0 || SftpOrder.tasa_aceptadas < tasa_min
 	end
 
