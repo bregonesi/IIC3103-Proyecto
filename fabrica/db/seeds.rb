@@ -237,4 +237,4 @@ end
 
 # Descargamos nuevas ordenes
 print "Descargando y agregando ordenes al por mayor.\n"
-Scheduler::SftpHelper.agregar_nuevas_ordenes
+#Scheduler::SftpHelper.agregar_nuevas_ordenes
