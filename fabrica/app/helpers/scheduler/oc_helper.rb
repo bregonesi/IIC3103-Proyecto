@@ -177,8 +177,16 @@ module Scheduler::OcHelper
 					end
 					if oc.estado == "creada"
 						oc.estado = "anulada"
+						oc.notas += anulacion + " "
 					end
-					oc.notas += anulacion + " "
+					if oc.estado == "finalizada"
+						if oc.cantidadDespachada >= oc.cantidad
+							oc.oc_request.por_responder = false
+							oc.oc_request.aceptado = true
+							oc.oc_request.despachado = true
+							oc.oc_requests.save!
+						end
+					end
 					oc.save!
 				else
 					puts r
