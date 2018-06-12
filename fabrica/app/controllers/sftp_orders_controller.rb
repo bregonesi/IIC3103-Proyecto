@@ -4,7 +4,7 @@ class SftpOrdersController < ApplicationController
   # GET /sftp_orders
   # GET /sftp_orders.json
   def index
-    @sftp_orders = SftpOrder.order(fechaEntrega: :desc)
+    @sftp_orders = SftpOrder.order(id: :desc)
   end
 
   # GET /sftp_orders/1

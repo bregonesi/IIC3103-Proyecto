@@ -41,7 +41,6 @@ module Scheduler::OrderHelper
 
 				sftp_order.serverEstado = body['estado']
 				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
-				sftp_order.server_updated_at = body['updated_at']
 
 				cantidad_no_despachada = 0
 				cantidades = sftp_order.orders.where.not(shipment_state: "shipped").map(&:quantity)
@@ -64,6 +63,7 @@ module Scheduler::OrderHelper
 					sftp_order.myEstado = "finalizada"
 				end
 
+				sftp_order.server_updated_at = body['updated_at']
 				sftp_order.save!
 			else
 				puts r
