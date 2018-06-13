@@ -195,7 +195,7 @@ class EndpointController < ApplicationController
 
 		if !(request.content_type =~ /json/)
 			puts "Tu content-type no es application/json"
-			render json: { error: "Content-type no es application/json ni similar" }, :status => 404
+			render json: { error: "Content-type no es application/json ni similar" }, :status => 400
 			return
 		end
 
