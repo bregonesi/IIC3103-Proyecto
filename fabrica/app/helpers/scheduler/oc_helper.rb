@@ -1,7 +1,7 @@
 module Scheduler::OcHelper
 	def generar_oc(sftp_order, cantidad, sku=sftp_order.sku)
 		puts "Generando oc para sftp order " + sftp_order.oc + " sku " + sku.to_s + " cantidad " + cantidad.to_s
-		sftp_order.oc_requests.where(sku: sku, cantidad: cantidad, despachado: false).first_or_create!
+		ocr = sftp_order.oc_requests.where(sku: sku, cantidad: cantidad, despachado: false, created_at: 2.hours.ago..Float::INFINITY).first_or_create!
 	end
 
 	def generar_oc_sistema
