@@ -191,6 +191,7 @@ class EndpointController < ApplicationController
 
 		oc = params[:id]
 		status = params[:status]
+		puts "Recibo notificacion status " + status.to_s + " para oc " + oc.to_s
 		oc_generada = OcsGenerada.find_by(oc_id: oc)
 		if oc_generada.nil?
 			render json: { error: "Oc " + oc.to_s + " no encontrada" }, :status => 404
@@ -199,6 +200,7 @@ class EndpointController < ApplicationController
 
 		if !oc_generada.nil?
 			if status == "accept" && oc_generada.estado == "creada"
+				puts "Entro a accept"
 				oc_generada.estado = "aceptada"
 				oc_generada.oc_request.por_responder = false
 				oc_generada.oc_request.aceptado = true
@@ -208,13 +210,16 @@ class EndpointController < ApplicationController
 				# se supone que esto lo hace el otro grupo, pero forzamos a que si no lo hizo lo hagamos nosotros
 				HTTParty.post(ENV['api_oc_url'] + "recepcionar/" + oc.to_s, body: { }.to_json, headers: { 'Content-type': 'application/json' })
 			elsif status == "reject" && oc_generada.estado == "creada"
+				puts "Entro a reject"
 				oc_generada.estado = "rechazada"
 				oc_generada.save!
 
 				# se supone que esto lo hace el otro grupo, pero forzamos a que si no lo hizo lo hagamos nosotros
 				HTTParty.post(ENV['api_oc_url'] + "rechazar/" + oc.to_s, body: { rechazo: "Me llego notificacion de rechazo desde ip " + ip2long(request.remote_ip).to_s }.to_json, headers: { 'Content-type': 'application/json' })
+			else
+				render json: { error: "Status no reconocido o orden ya fue aceptada/rechazada" }, :status => 400
+				return
 			end
-			oc_generada.save!
 		end
 		render json: {}, status: 204
 	end
