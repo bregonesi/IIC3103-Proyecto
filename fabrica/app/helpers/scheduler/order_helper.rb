@@ -268,6 +268,16 @@ module Scheduler::OrderHelper
 				if sftp_order.myEstado != "aceptada"
 					sftp_order.myEstado = "aceptada"
 					sftp_order.serverEstado = "aceptada"
+
+					r2 = HTTParty.get(ENV['api_oc_url'] + "obtener/" + sftp_order.oc.to_s,
+														body: { }.to_json,
+														headers: { 'Content-type': 'application/json' })
+
+					if r2.code == 200
+						body = JSON.parse(r2.body)[0]
+						sftp_order.server_updated_at = body['updated_at']
+					end
+					
 					sftp_order.save!
 				end
 

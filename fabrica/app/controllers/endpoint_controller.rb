@@ -98,6 +98,7 @@ class EndpointController < ApplicationController
           o.myEstado = "aceptada"
           o.serverEstado = "aceptada"
           o.created_at = body['created_at']
+          o.server_updated_at = body['updated_at']
 
           if o.serverCantidadDespachada >= o.cantidad
             o.myEstado = "finalizada"
