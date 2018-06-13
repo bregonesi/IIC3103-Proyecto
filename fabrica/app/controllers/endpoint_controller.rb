@@ -192,6 +192,13 @@ class EndpointController < ApplicationController
 		oc = params[:id]
 		status = params[:status]
 		puts "Recibo notificacion status " + status.to_s + " para oc " + oc.to_s
+
+		if !(request.content_type =~ /json/)
+			puts "Tu content-type no es application/json"
+			render json: { error: "Content-type no es application/json ni similar" }, :status => 404
+			return
+		end
+
 		oc_generada = OcsGenerada.find_by(oc_id: oc)
 		if oc_generada.nil?
 			render json: { error: "Oc " + oc.to_s + " no encontrada" }, :status => 404
