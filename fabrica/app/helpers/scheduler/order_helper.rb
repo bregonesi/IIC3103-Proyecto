@@ -118,7 +118,7 @@ module Scheduler::OrderHelper
 		## cubro toda su demanda
 		##
 
-		if SftpOrder.acepto?  ## ie, si tengo una tasa de aceptadas menor a 0.6
+		if SftpOrder.acepto?  ## ie, si tengo una tasa de aceptadas menor a 0.75
 			ordenes = []  # [orden, costo_un_lote, lotes, costo_total]
 			#fechaEntrega: 16.hours.ago..Float::INFINITY
 			ordenes_creadas = SftpOrder.creadas.each do |sftp_order|
