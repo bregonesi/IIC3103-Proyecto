@@ -141,7 +141,8 @@ module Scheduler::ProductosHelper
 	  #puts r
 			
 		if r.code != 200
-			raise "Error en get stock (detalle productos)"
+			puts "Error en get stock (detalle productos)"
+			return
 		end
 
 	  JSON.parse(r.body).each do |prod_api|

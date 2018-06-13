@@ -213,6 +213,15 @@ module Scheduler::OrderHelper
 										puts "Pedire un lote entero."
 										generar_oc(orden, variant.lote_minimo)
 										orden.myEstado = "preaceptada"
+									else
+										puts "Voy a pedir las materias primas para fabricar"
+										variant.materias_faltantes_producir.each do |sku, cantidad|
+											if orden.puedo_pedir_por_oc(cantidad.to_i, sku)
+												puts "Pediremos " + sku.to_s + " en cantidad de " + cantidad.to_s
+												generar_oc(orden, cantidad.to_i, sku)
+												orden.myEstado = "preaceptada"
+											end
+										end
 									end
 								end
 								#fabricar(orden)
@@ -410,6 +419,14 @@ module Scheduler::OrderHelper
 						if sftp_order.puedo_pedir_por_oc(pedir)
 							puts "Pedire lo que falta o un lote minimo (" + pedir.to_s + " unidades)."
 							generar_oc(sftp_order, pedir)
+						else
+							puts "Voy a pedir materias primas para fabricar"
+							variant.materias_faltantes_producir.each do |sku, cantidad|
+								if sftp_order.puedo_pedir_por_oc(cantidad.to_i, sku)
+									puts "Pediremos " + sku.to_s + " en cantidad de " + cantidad.to_s
+									generar_oc(sftp_order, cantidad.to_i, sku)
+								end
+							end
 						end
 					end
 				end
@@ -605,12 +622,13 @@ module Scheduler::OrderHelper
 			prod = prods.first
 
 			if a_mover_prods_count == 0
+				puts "Tengo 0 en mano, eliminamos los detalles del producto"
 				prods.destroy_all
 				Scheduler::ProductosHelper.cargar_nuevos
 				if candidatos.sum(:count_on_hand) == 0
 					break
 				end
-				return cambiar_items_a_despacho(variant, q, reference)
+				next
 			end
 
       variants = Hash.new(0)

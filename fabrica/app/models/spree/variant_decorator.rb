@@ -26,6 +26,21 @@ Spree::Variant.class_eval do
   	return true
   end
 
+  def materias_faltantes_producir(lotes = 1)
+    if self.primary?
+      return []
+    end
+    
+    faltante = {}
+    self.recipe.each do |ingredient|
+      if !ingredient.variant_ingredient.can_ship?(ingredient.amount * lotes)
+        faltante[ingredient.variant_ingredient.sku] = ingredient.amount * lotes - ingredient.variant_ingredient.cantidad_disponible
+      end
+    end
+
+    return faltante
+  end
+
   def can_ship?(cantidad_minima = 1)
     return cantidad_disponible >= cantidad_minima
   end
@@ -56,6 +71,11 @@ Spree::Variant.class_eval do
       if !ingrediente.nil?
         a_necesitar += ingrediente.amount * lotes_restantes
       end
+    end
+
+    ## ahora veo si me llegaron productos y aun no despacho
+    (SftpOrder.aceptadas.where(sku: self.sku) + SftpOrder.preaceptadas.where(sku: self.sku)).each do |sftp_order|
+      a_necesitar += sftp_order.faltante
     end
     a_necesitar
   end

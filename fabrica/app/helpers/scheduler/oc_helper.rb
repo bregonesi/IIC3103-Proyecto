@@ -1,7 +1,7 @@
 module Scheduler::OcHelper
-	def generar_oc(sftp_order, cantidad)
-		puts "Generando oc para sftp order " + sftp_order.oc + " cantidad " + cantidad.to_s
-		sftp_order.oc_requests.where(sku: sftp_order.sku, cantidad: cantidad, despachado: false).first_or_create!
+	def generar_oc(sftp_order, cantidad, sku=sftp_order.sku)
+		puts "Generando oc para sftp order " + sftp_order.oc + " sku " + sku.to_s + " cantidad " + cantidad.to_s
+		sftp_order.oc_requests.where(sku: sku, cantidad: cantidad, despachado: false).first_or_create!
 	end
 
 	def generar_oc_sistema
@@ -198,7 +198,7 @@ module Scheduler::OcHelper
 
 	def actualizar_respuesta_oc_requests
 		OcRequest.por_responder.each do |ocr|
-			rechazadas = ocr.ocs_generadas.where('"ocs_generadas"."estado" = ? OR "ocs_generadas"."estado" = ?', "anulada", "rechazada").count
+			rechazadas = ocr.ocs_generadas.where('"ocs_generadas"."estado" = ? OR "ocs_generadas"."estado" = ? OR "ocs_generadas"."estado" = ?', "anulada", "rechazada", "finalizada").count
 			if rechazadas >= 8
 				puts "Cambiando por responder de orden " + ocr.sftp_order.to_s
 				ocr.por_responder = false
