@@ -255,6 +255,11 @@ module Scheduler::OcHelper
 			if r.code == 200
 				body = JSON.parse(r.body)[0]
 
+				if body.nil?
+					puts "ERROR: Obtener oc retorno vacio"
+					next
+				end
+				
 				oc.cantidadDespachada = body['cantidadDespachada']
 				oc.estado = body['estado']
 

@@ -85,7 +85,7 @@ module Scheduler::OrderHelper
 				body = JSON.parse(r.body)[0]
 
 				if body.nil?
-					puts "ERROR. Obtener oc retorno vacio"
+					puts "ERROR: Obtener oc retorno vacio"
 					next
 				end
 
