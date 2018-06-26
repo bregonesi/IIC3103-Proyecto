@@ -249,7 +249,7 @@ module Scheduler::OcHelper
 
 	def actualizar_aceptadas
 		OcsGenerada.where(estado: "aceptada").each do |oc|
-			puts "Actualizando aceptada de oc " + oc.oc_id.to_s
+			puts "Actualizando aceptada de oc b2b " + oc.oc_id.to_s
 
 			r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + oc.oc_id.to_s, headers: { 'Content-type': 'application/json' })
 			if r.code == 200
