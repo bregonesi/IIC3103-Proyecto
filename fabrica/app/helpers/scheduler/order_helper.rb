@@ -83,6 +83,12 @@ module Scheduler::OrderHelper
 
 			if r.code == 200
 				body = JSON.parse(r.body)[0]
+
+				if body.nil?
+					puts "ERROR. Obtener oc retorno vacio"
+					next
+				end
+
 				serverEstado = body['estado']
 
 				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
