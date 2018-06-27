@@ -190,7 +190,7 @@ module Scheduler::OrderHelper
 							lotes_restante_fabricar = orden_entry[2]
 							while lotes_restante_fabricar > 0  ## si hay que fabricar y si tengo que fabricar
 								cantidad_en_fabricacion = orden.fabricar_requests.por_fabricar.or(orden.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
-								cantidad_en_ocs = orden.oc_requests.por_recibir.map(&:cantidad).reduce(:+).to_i
+								cantidad_en_ocs = orden.oc_requests.por_recibir.where(sku: orden.sku).map(&:cantidad).reduce(:+).to_i
 								cantidad_faltante = orden.cantidad - cantidad_en_fabricacion - cantidad_en_ocs
 								offset = cantidad_faltante % variant.lote_minimo  ## offset es lo que falta en el ultimo lote
 								relacion_lote_faltante = offset.to_f / variant.lote_minimo.to_f
@@ -412,7 +412,7 @@ module Scheduler::OrderHelper
 				end
 
 				cantidad_en_fabricacion = (sftp_order.fabricar_requests.por_fabricar + sftp_order.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
-				cantidad_en_ocs = sftp_order.oc_requests.por_recibir.map(&:cantidad).reduce(:+).to_i
+				cantidad_en_ocs = sftp_order.oc_requests.por_recibir.where(sku: sftp_order.sku).map(&:cantidad).reduce(:+).to_i
 				cantidad_faltante = cantidad_restante - cantidad_en_fabricacion - cantidad_en_ocs
 				offset = cantidad_faltante % variant.lote_minimo  ## offset es lo que falta en el ultimo lote
 				relacion_lote_faltante = variant.primary? ? 0.01 : offset.to_f / variant.lote_minimo.to_f
