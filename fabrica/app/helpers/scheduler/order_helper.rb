@@ -426,7 +426,7 @@ module Scheduler::OrderHelper
 					if offset > 0 && relacion_lote_faltante > 0 && relacion_lote_faltante <= 1.0/3.0 && sftp_order.puedo_pedir_por_oc(offset)
 						puts "Mandamos a generar oc a grupos"
 						generar_oc(sftp_order, offset)
-					elsif variant.can_produce?
+					elsif variant.can_produce? && sftp_order.fechaEntrega - DateTime.now.utc >= 6.hours.seconds
 						puts "Voy a fabricar"
 						fabricar(sftp_order)
 					else
@@ -436,12 +436,16 @@ module Scheduler::OrderHelper
 							puts "Pedire lo que falta o un lote minimo (" + pedir.to_s + " unidades)."
 							generar_oc(sftp_order, pedir)
 						else
-							puts "Voy a pedir materias primas para fabricar"
-							variant.materias_faltantes_producir.each do |sku, cantidad|
-								if sftp_order.puedo_pedir_por_oc(cantidad.to_i, sku)
-									puts "Pediremos " + sku.to_s + " en cantidad de " + cantidad.to_s
-									generar_oc(sftp_order, cantidad.to_i, sku)
+							if sftp_order.fechaEntrega - DateTime.now.utc >= 6.hours.seconds
+								puts "Voy a pedir materias primas para fabricar"
+								variant.materias_faltantes_producir.each do |sku, cantidad|
+									if sftp_order.puedo_pedir_por_oc(cantidad.to_i, sku)
+										puts "Pediremos " + sku.to_s + " en cantidad de " + cantidad.to_s
+										generar_oc(sftp_order, cantidad.to_i, sku)
+									end
 								end
+							else
+								puts "Tampoco pido materias primas por que vence pronto"
 							end
 						end
 					end
