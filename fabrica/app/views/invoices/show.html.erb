@@ -1,0 +1,64 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Id:</strong>
+  <%= @invoice._id %>
+</p>
+
+<p>
+  <strong>Bruto:</strong>
+  <%= @invoice.bruto %>
+</p>
+
+<p>
+  <strong>Iva:</strong>
+  <%= @invoice.iva %>
+</p>
+
+<p>
+  <strong>Total:</strong>
+  <%= @invoice.total %>
+</p>
+
+<p>
+  <strong>Proveedor:</strong>
+  <%= @invoice.proveedor %>
+</p>
+
+<p>
+  <strong>Cliente:</strong>
+  <%= @invoice.cliente %>
+</p>
+
+<p>
+  <strong>Oc:</strong>
+  <%= @invoice.oc %>
+</p>
+
+<p>
+  <strong>Estado:</strong>
+  <%= @invoice.estado %>
+</p>
+
+<p>
+  <strong>Rechazo:</strong>
+  <%= @invoice.rechazo %>
+</p>
+
+<p>
+  <strong>Anulacion:</strong>
+  <%= @invoice.anulacion %>
+</p>
+
+<p>
+  <strong>Originator type:</strong>
+  <%= @invoice.originator_type %>
+</p>
+
+<p>
+  <strong>Originator:</strong>
+  <%= @invoice.originator %>
+</p>
+
+<%= link_to 'Edit', edit_invoice_path(@invoice) %> |
+<%= link_to 'Back', invoices_path %>

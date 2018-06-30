@@ -10,72 +10,72 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	unless job.down?
 		job.every '35s' do
 			puts "Ejecutando update."
-
-			# Marcamos ordenes vencidas y las finalizadas
-			Scheduler::OrderHelper.marcar_vencidas
-			Scheduler::OrderHelper.sincronizar_informacion
-			Scheduler::OrderHelper.marcar_finalizadas
-
-			# Aca movemos los items de almacen #
-			Scheduler::ProductosHelper.hacer_movimientos
-			
-			# Cargamos nuevos stocks y stock de almacenes nuevos #
-			Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
-			
-			# Actualizo las oc aceptadas #
-			Scheduler::OcHelper.actualizar_aceptadas
-
-			# Vemos que ordenes aceptar #
-			Scheduler::OrderHelper.aceptar_ordenes
-
-			# Chequeo de si alguna de las aceptadas tiene stock #
-			Scheduler::OrderHelper.chequear_si_hay_stock
-
-			# Anulamos ocs que se demoren mas de 5 minutos #
-			Scheduler::OcHelper.rechazar_despues_de_5_mins
-
-			# Si todos nos rechazan se cambia a respondida #
-			Scheduler::OcHelper.actualizar_respuesta_oc_requests
-
-			# Volvemos a creadas las que no se respondieron en oc #
-			Scheduler::OcHelper.volver_a_estado_creada
-
-			# Generamos oc #
-			Scheduler::OcHelper.generar_oc_sistema
-
-			# Aca pagamos las ordenes #
-			Scheduler::PaymentHelper.pagar_ordenes
-
-			# Aca despachamos lo pagado #
-			Scheduler::ShipmentHelper.despachar_ordenes
-
-			# Cambiamos las ordenes de almacen #
-			Scheduler::OrderHelper.cambiar_almacen
-
-			# Aca despachamos lo pagado #
-			Scheduler::ShipmentHelper.despachar_ordenes
-
-			# Volvemos a sincronizar ya que pudimos haber despachado #
-			Scheduler::OrderHelper.sincronizar_informacion
-			
-			# Fabricamos las pedidas #
-			Scheduler::OrderHelper.fabricar_api
-			
-			# Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
-			Scheduler::AlmacenesHelper.nuevos_almacenes
-			Scheduler::AlmacenesHelper.eliminar_extras
-
-			# Aca movemos los items de almacen #
-			Scheduler::ProductosHelper.hacer_movimientos
-
-			# Cargamos nuevos stocks y stock de almacenes nuevos #
-			Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
-
-			# Actualizo las oc aceptadas #
-			Scheduler::OcHelper.actualizar_aceptadas
-			
-			# Tratamos de que se mantenga los optimos de cada almacen #
-			Scheduler::AlmacenesHelper.mantener_consistencia
+#
+			# # Marcamos ordenes vencidas y las finalizadas
+			# Scheduler::OrderHelper.marcar_vencidas
+			# Scheduler::OrderHelper.sincronizar_informacion
+			# Scheduler::OrderHelper.marcar_finalizadas
+			#
+			# # Aca movemos los items de almacen #
+			# Scheduler::ProductosHelper.hacer_movimientos
+			#
+			# # Cargamos nuevos stocks y stock de almacenes nuevos #
+			# Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
+			#
+			# # Actualizo las oc aceptadas #
+			# Scheduler::OcHelper.actualizar_aceptadas
+			#
+			# # Vemos que ordenes aceptar #
+			# Scheduler::OrderHelper.aceptar_ordenes
+			#
+			# # Chequeo de si alguna de las aceptadas tiene stock #
+			# Scheduler::OrderHelper.chequear_si_hay_stock
+			#
+			# # Anulamos ocs que se demoren mas de 5 minutos #
+			# Scheduler::OcHelper.rechazar_despues_de_5_mins
+			#
+			# # Si todos nos rechazan se cambia a respondida #
+			# Scheduler::OcHelper.actualizar_respuesta_oc_requests
+			#
+			# # Volvemos a creadas las que no se respondieron en oc #
+			# Scheduler::OcHelper.volver_a_estado_creada
+			#
+			# # Generamos oc #
+			# Scheduler::OcHelper.generar_oc_sistema
+			#
+			# # Aca pagamos las ordenes #
+			# Scheduler::PaymentHelper.pagar_ordenes
+			#
+			# # Aca despachamos lo pagado #
+			# Scheduler::ShipmentHelper.despachar_ordenes
+			#
+			# # Cambiamos las ordenes de almacen #
+			# Scheduler::OrderHelper.cambiar_almacen
+			#
+			# # Aca despachamos lo pagado #
+			# Scheduler::ShipmentHelper.despachar_ordenes
+			#
+			# # Volvemos a sincronizar ya que pudimos haber despachado #
+			# Scheduler::OrderHelper.sincronizar_informacion
+			#
+			# # Fabricamos las pedidas #
+			# Scheduler::OrderHelper.fabricar_api
+			#
+			# # Chequeamos si tenemos nuevos almacenes o nos han eliminado alguno #
+			# Scheduler::AlmacenesHelper.nuevos_almacenes
+			# Scheduler::AlmacenesHelper.eliminar_extras
+			#
+			# # Aca movemos los items de almacen #
+			# Scheduler::ProductosHelper.hacer_movimientos
+			#
+			# # Cargamos nuevos stocks y stock de almacenes nuevos #
+			# Scheduler::ProductosHelper.cargar_nuevos  ## y elimina los vencidos
+			#
+			# # Actualizo las oc aceptadas #
+			# Scheduler::OcHelper.actualizar_aceptadas
+			#
+			# # Tratamos de que se mantenga los optimos de cada almacen #
+			# Scheduler::AlmacenesHelper.mantener_consistencia
 
 			puts "Termina update."
 		end # end del scheduler
