@@ -1,0 +1,77 @@
+<%= form_with(model: invoice, local: true) do |form| %>
+  <% if invoice.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(invoice.errors.count, "error") %> prohibited this invoice from being saved:</h2>
+
+      <ul>
+      <% invoice.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :_id %>
+    <%= form.text_field :_id, id: :invoice__id %>
+  </div>
+
+  <div class="field">
+    <%= form.label :bruto %>
+    <%= form.number_field :bruto, id: :invoice_bruto %>
+  </div>
+
+  <div class="field">
+    <%= form.label :iva %>
+    <%= form.number_field :iva, id: :invoice_iva %>
+  </div>
+
+  <div class="field">
+    <%= form.label :total %>
+    <%= form.number_field :total, id: :invoice_total %>
+  </div>
+
+  <div class="field">
+    <%= form.label :proveedor %>
+    <%= form.text_field :proveedor, id: :invoice_proveedor %>
+  </div>
+
+  <div class="field">
+    <%= form.label :cliente %>
+    <%= form.text_field :cliente, id: :invoice_cliente %>
+  </div>
+
+  <div class="field">
+    <%= form.label :oc %>
+    <%= form.text_field :oc, id: :invoice_oc %>
+  </div>
+
+  <div class="field">
+    <%= form.label :estado %>
+    <%= form.text_field :estado, id: :invoice_estado %>
+  </div>
+
+  <div class="field">
+    <%= form.label :rechazo %>
+    <%= form.text_field :rechazo, id: :invoice_rechazo %>
+  </div>
+
+  <div class="field">
+    <%= form.label :anulacion %>
+    <%= form.text_field :anulacion, id: :invoice_anulacion %>
+  </div>
+
+  <div class="field">
+    <%= form.label :originator_type %>
+    <%= form.text_field :originator_type, id: :invoice_originator_type %>
+  </div>
+
+  <div class="field">
+    <%= form.label :originator %>
+    <%= form.number_field :originator, id: :invoice_originator %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

@@ -10,6 +10,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	unless job.down?
 		job.every '35s' do
 			puts "Ejecutando update."
+<<<<<<< HEAD
 =begin
 			# Marcamos ordenes vencidas y las finalizadas
 			Scheduler::OrderHelper.marcar_vencidas
