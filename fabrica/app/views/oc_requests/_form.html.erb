@@ -25,6 +25,11 @@
     <%= form.label :cantidad %>
     <%= form.number_field :cantidad, id: :oc_request_cantidad %>
   </div>
+  
+  <div class="field">
+    <%= form.label :precio_maximo %>
+    <%= form.number_field :precio_maximo, id: :oc_request_precio_maximo %>
+  </div>
 
   <div class="field">
     <%= form.label :por_responder %>
@@ -39,6 +44,11 @@
   <div class="field">
     <%= form.label :despachado %>
     <%= form.check_box :despachado, id: :oc_request_despachado %>
+  </div>
+  
+  <div class="field">
+    <%= form.label :cantidad_pedida %>
+    <%= form.number_field :cantidad_pedida, id: :oc_request_cantidad_pedida %>
   </div>
 
   <div class="actions">
