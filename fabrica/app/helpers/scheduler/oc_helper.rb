@@ -298,7 +298,7 @@ module Scheduler::OcHelper
 				oc.rechazo = body['rechazo'] || ""
 				oc.anulacion = body['anulacion'] || ""
 
-				#Pago factura
+				# Pago factura #
 				factura = Invoice.find_by(originator_type: oc.class.name.to_s, originator: oc.id.to_i, estado: "pendiente")
 				if !factura.nil?
 					proveedor = factura.proveedor
@@ -367,7 +367,7 @@ module Scheduler::OcHelper
 						oc.oc_request.cantidad_pedida -= (oc.cantidad - oc.cantidadDespachada)
 						oc.oc_request.save!
 
-						#rechazo factura
+						# Rechazo factura #
 						factura = Invoice.find_by(originator_type: oc.class.name.to_s, originator: oc.id.to_i)
 						if !factura.nil?
 							factura_request = HTTParty.post(ENV['api_sii_url'] + "reject", body: {id: factura._id, motivo: "Se vencio la oc" }.to_json, headers: { 'Content-type': 'application/json'})
