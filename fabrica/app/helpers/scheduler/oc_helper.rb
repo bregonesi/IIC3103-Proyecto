@@ -205,7 +205,8 @@ module Scheduler::OcHelper
 						body = JSON.parse(r.body)[0]
 						oc.cantidadDespachada = body['cantidadDespachada'].to_i
 						oc.estado = body['estado']
-						oc.anulacion = body['anulacion']
+						oc.rechazo = body['rechazo'] || ""
+						oc.anulacion = body['anulacion'] || ""
 					end
 
 					if oc.estado == "creada" || oc.estado == "anulada"
@@ -293,8 +294,8 @@ module Scheduler::OcHelper
 				
 				oc.cantidadDespachada = body['cantidadDespachada']
 				oc.estado = body['estado']
-				oc.rechazo = body['rechazo']
-				oc.anulacion = body['anulacion']
+				oc.rechazo = body['rechazo'] || ""
+				oc.anulacion = body['anulacion'] || ""
 
 				if oc.cantidadDespachada >= oc.cantidad
 					oc.estado = "finalizada"
