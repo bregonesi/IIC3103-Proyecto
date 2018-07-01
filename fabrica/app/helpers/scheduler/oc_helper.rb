@@ -11,7 +11,7 @@ module Scheduler::OcHelper
 				ing = variant.recipe.find_by(variant_ingredient: ingrediente)
 				precio_max = (ing.amount.to_f / total_ingredientes.to_f) * sftp_order.precioUnitario
 				precio_max = precio_max.to_i
-				precio_max = [precio_max, ingrediente.cost_price].max
+				precio_max = [precio_max, ingrediente.cost_price * 1.2].max
 			end
 		end
 

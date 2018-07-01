@@ -94,6 +94,10 @@ Spree::Variant.class_eval do
   end
 
   def price
-    (self.cost_price.to_i * (17**(1.0/2.0) / 3.14)).to_i
+    if self.primary?
+      return (self.cost_price.to_i * (17**(1.0/2.0) / 3.14)).to_i
+    else
+      return (self.cost_price.to_i * 1.2).to_i
+    end
   end
 end
