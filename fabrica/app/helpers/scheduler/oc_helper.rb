@@ -217,7 +217,7 @@ module Scheduler::OcHelper
 						oc.oc_request.save!
 					end
 
-					if oc.estado == "finalizada"
+					if oc.estado == "finalizada" || oc.estado == "rechazada"
 						if oc.cantidadDespachada >= oc.cantidad
 							if oc.oc_request.cantidad_restante <= 0
 								oc.oc_request.por_responder = false
