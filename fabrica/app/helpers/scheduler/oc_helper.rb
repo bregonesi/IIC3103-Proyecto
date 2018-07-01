@@ -298,6 +298,53 @@ module Scheduler::OcHelper
 				oc.rechazo = body['rechazo'] || ""
 				oc.anulacion = body['anulacion'] || ""
 
+				#Pago factura
+				factura = Invoice.find_by(originator_type: oc.class.name.to_s, originator: oc.id.to_i, estado: "pendiente")
+				if !factura.nil?
+					proveedor = factura.proveedor
+					info_grupo_despacho = $info_grupos.select{|key, hash| hash[:id] == proveedor }.first[1]
+					cuenta_transferir = info_grupo_despacho[:id_banco]
+
+					# Transfiero #
+					transferencia = Transferencium.where(originator_type: oc.class.name.to_s, originator_id: oc.id.to_i).first_or_create! do |t|
+						t.origen = $info_grupos[4][:id_banco]
+						t.destino = cuenta_transferir
+						t.monto = factura.total
+
+						transferencia_request = HTTParty.put(ENV['api_banco_url'] + "trx",
+																								 body: {origen: t.origen,
+																								 				destino: t.destino,
+																								 				monto: t.monto}.to_json,
+																								 headers: { 'Content-type': 'application/json'})
+		
+						puts transferencia_request
+
+						if transferencia_request.code == 200
+							body = JSON.parse(transferencia_request.body)[0]
+							t.idtransferencia = body["_id"]
+						else
+							puts "Error en transferencia"
+							puts transferencia_request
+						end
+					end
+
+					# Marco como pagada #
+					factura_request = HTTParty.post(ENV['api_sii_url'] + "pay",
+																					body: {id: factura._id}.to_json,
+																					headers: { 'Content-type': 'application/json'})
+	
+					puts factura_request
+
+					if factura_request.code == 200
+						body = JSON.parse(factura_request.body)[0]
+						factura.estado = body["estado"]
+						factura.save!
+					else
+						puts "Error en pay factura"
+						puts factura_request
+					end
+				end
+
 				if oc.cantidadDespachada >= oc.cantidad
 					oc.estado = "finalizada"
 
@@ -311,55 +358,6 @@ module Scheduler::OcHelper
 						oc.oc_request.despachado = false
 					end
 					oc.oc_request.save!
-
-					#pago factura
-					facturas = Invoice.where(originator_type: oc.oc_request.class.name.to_s, originator: oc.oc_request.id.to_i)
-					if !facturas.empty?
-						factura = facturas.first
-
-						proveedor = factura.proveedor
-						info_grupo_despacho = $info_grupos.select{|key, hash| hash[:id] == proveedor }.first[1]
-						cuenta_transferir = info_grupo_despacho[:id_banco]
-
-						# Transfiero #
-						transferencia = Transferencium.where(originator_type: oc.oc_request.class.name.to_s, originator_id: oc.oc_request.id.to_i).first_or_create! do |t|
-							t.origen = $info_grupos[4][:id_banco]
-							t.destino = cuenta_transferir
-							t.monto = factura.total
-
-							transferencia_request = HTTParty.put(ENV['api_banco_url'] + "trx",
-																									 body: {origen: t.origen,
-																									 				destino: t.destino,
-																									 				monto: t.monto}.to_json,
-																									 headers: { 'Content-type': 'application/json'})
-			
-							puts transferencia_request
-
-							if transferencia_request.code == 200
-								body = JSON.parse(transferencia_request.body)
-								t.idtransferencia = body["_id"]
-							else
-								puts "Error en transferencia"
-								puts transferencia_request
-							end
-						end
-
-						# Marco como pagada #
-						factura_request = HTTParty.post(ENV['api_sii_url'] + "pay",
-																						body: {id: factura._id}.to_json,
-																						headers: { 'Content-type': 'application/json'})
-		
-						puts factura_request
-
-						if factura_request.code == 200
-							body = JSON.parse(factura_request.body)
-							factura.estado = body["estado"]
-						else
-							puts "Error en pay factura"
-							puts factura_request
-						end
-					end
-
 				else
 					if oc.fechaEntrega < DateTime.now.utc  # si se vencio
 						oc.estado = "finalizada"
@@ -370,20 +368,16 @@ module Scheduler::OcHelper
 						oc.oc_request.save!
 
 						#rechazo factura
-						facturas = Invoice.where(originator_type: oc.oc_request.class.name.to_s, originator: oc.oc_request.id.to_i)
-						if !facturas.empty?
-							factura = facturas.first
-
-							factura_request = HTTParty.post(ENV['api_sii_url'] + "reject",
-																						 body: {id: factura._id,
-																						 				motivo: "Se vencio la oc" }.to_json,
-																						 headers: { 'Content-type': 'application/json'})
+						factura = Invoice.find_by(originator_type: oc.class.name.to_s, originator: oc.id.to_i)
+						if !factura.nil?
+							factura_request = HTTParty.post(ENV['api_sii_url'] + "reject", body: {id: factura._id, motivo: "Se vencio la oc" }.to_json, headers: { 'Content-type': 'application/json'})
 			
 							puts factura_request
 
 							if factura_request.code == 200
-								body = JSON.parse(factura_request.body)
+								body = JSON.parse(factura_request.body)[0]
 								factura.estado = body["estado"]
+								factura.save!
 							else
 								puts "Error en pay factura"
 								puts factura_request
