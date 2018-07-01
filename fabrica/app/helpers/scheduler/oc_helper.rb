@@ -1,7 +1,25 @@
 module Scheduler::OcHelper
 	def generar_oc(sftp_order, cantidad, sku=sftp_order.sku)
 		puts "Generando oc para sftp order " + sftp_order.oc + " sku " + sku.to_s + " cantidad " + cantidad.to_s
-		ocr = sftp_order.oc_requests.where(sku: sku, cantidad: cantidad, despachado: false, created_at: 2.hours.ago..Float::INFINITY).first_or_create!
+
+		precio_max = sftp_order.precioUnitario  ## estoy dispuesto a pagar a lo q me compran
+		if sku != sftp_order.sku
+			variant = Spree::Variant.find_by(sku: sftp_order.sku)
+			ingrediente = Spree::Variant.find_by(sku: sku)
+			total_ingredientes = variant.recipe.sum(:amount)
+			if ingrediente.primary? # siempre deberia ser verdad esto
+				ing = variant.recipe.find_by(variant_ingredient: ingrediente)
+				precio_max = (ing.amount.to_f / total_ingredientes.to_f) * sftp_order.precioUnitario
+				precio_max = precio_max.to_i
+				precio_max = [precio_max, ingrediente.cost_price].max
+			end
+		end
+
+		puts "Precio maximo a pagar " + precio_max.to_s
+
+		ocr = sftp_order.oc_requests.where(sku: sku, cantidad: cantidad, despachado: false, created_at: 2.hours.ago..Float::INFINITY).first_or_create! do |o|
+			o.precio_maximo = precio_max
+		end
 	end
 
 	def generar_oc_sistema
@@ -42,13 +60,12 @@ module Scheduler::OcHelper
 					delta = ([oc.sftp_order.fechaEntrega, oc.created_at + 2.hour].min - DateTime.now.utc) / 3.0
 					o.fechaEntrega = DateTime.now.utc + delta
 
-					o.cantidad = oc.cantidad
-
-					# Este es el precio maximo a pagar #
-					o.precioUnitario = 0
-					
+					o.cantidad = oc.cantidad_restante
+					o.precioUnitario = oc.precio_maximo.to_i
 					o.canal = "b2b"
 					o.notas = ""
+					o.rechazo = ""
+					o.anulacion = ""
 					o.urlNotificacion = ENV['url_notificacion_oc']
 					o.estado = "creada"
 				end
@@ -60,38 +77,49 @@ module Scheduler::OcHelper
 							hay_stock = false
 							body.each do |prod|
 								if prod["sku"] == oc.sku
-									if prod["available"].to_i >= oc.cantidad.to_i
-										puts "Grupo si tiene stock. Intento crear orden"
+									if prod["price"].to_i <= oc_generada.precioUnitario
+										if prod["available"].to_i > 0
+											oc_generada.cantidad = [oc_generada.cantidad, prod["available"].to_i].min
+											oc_generada.precioUnitario = prod["price"].to_i
+											oc_generada.save!
 
-										hay_stock = true
+											puts "Grupo tiene " + oc_generada.cantidad.to_s + " uds. Intento crear orden con precio " + oc_generada.precioUnitario.to_s
 
-										## Mandamos oc
-										oc_request = HTTParty.put(ENV['api_oc_url'] + "crear",
-																							body: { cliente: oc_generada.cliente,
-																											proveedor: oc_generada.proveedor,
-																											sku: oc_generada.sku,
-																											fechaEntrega: oc_generada.fechaEntrega.to_i * 1000,
-																											cantidad: oc_generada.cantidad,
-																											precioUnitario: oc_generada.precioUnitario,
-																											canal: oc_generada.canal,
-																											urlNotificacion: oc_generada.urlNotificacion }.to_json,
-																							headers: { 'Content-type': 'application/json' })
+											hay_stock = true
 
-										puts oc_request
-										if oc_request.code == 200
-											puts "Orden creada"
+											## Mandamos oc
+											oc_request = HTTParty.put(ENV['api_oc_url'] + "crear",
+																								body: { cliente: oc_generada.cliente,
+																												proveedor: oc_generada.proveedor,
+																												sku: oc_generada.sku,
+																												fechaEntrega: oc_generada.fechaEntrega.to_i * 1000,
+																												cantidad: oc_generada.cantidad,
+																												precioUnitario: oc_generada.precioUnitario,
+																												canal: oc_generada.canal,
+																												urlNotificacion: oc_generada.urlNotificacion }.to_json,
+																								headers: { 'Content-type': 'application/json' })
 
-											body = JSON.parse(oc_request.body)
-											oc_generada.oc_id = body['_id']
-											oc_generada.cantidadDespachada = body['cantidadDespachada'].to_i
-											oc_generada.urlNotificacion = body['urlNotificacion']
-											oc_generada.created_at = body['created_at']
-											oc_generada.notas = "Se crea ya que se cuenta con stock"
+											puts oc_request
+											if oc_request.code == 200
+												puts "Orden creada"
 
-										else
-											oc_generada.estado = "anulada"
-											oc_generada.notas = "Se anula ya que no se retorno 200 al crear la oc. Codigo devuelto " + oc_request.code.to_s + " y error " + oc_request.body.to_s
+												oc.cantidad_pedida += oc_generada.cantidad
+												oc.save!
+
+												body = JSON.parse(oc_request.body)
+												oc_generada.oc_id = body['_id']
+												oc_generada.cantidadDespachada = body['cantidadDespachada'].to_i
+												oc_generada.urlNotificacion = body['urlNotificacion']
+												oc_generada.created_at = body['created_at']
+												oc_generada.notas = "Se crea ya que se cuenta con stock"
+
+											else
+												oc_generada.estado = "anulada"
+												oc_generada.anulacion = "Se anula ya que no se retorno 200 al crear la oc. Codigo devuelto " + oc_request.code.to_s + " y error " + oc_request.body.to_s
+											end
 										end
+									else
+										puts "No hacemos oc por que vende muy alto"
 									end
 
 									break
@@ -99,41 +127,41 @@ module Scheduler::OcHelper
 							end
 							oc_generada.save!
 
-							# Le decimos que creamos una oc
-							errores_notificar_oc = ""
-							begin
-								HTTParty.put(datos_grupo[:oc_url] + oc_generada.oc_id, timeout: 10, body: { }.to_json, headers: { 'Content-type': 'application/json' })
-							rescue Exception => e # Never do this!
-								errores_notificar_oc = e
-								oc_generada.notas += e.to_s
-								oc_generada.save!
-							end
-
-							if !hay_stock
+							if hay_stock
+								# Le decimos que creamos una oc
+								errores_notificar_oc = ""
+								begin
+									HTTParty.put(datos_grupo[:oc_url] + oc_generada.oc_id, timeout: 10, body: { }.to_json, headers: { 'Content-type': 'application/json' })
+								rescue Exception => e # Never do this!
+									errores_notificar_oc = e
+									oc_generada.notas += e.to_s
+									oc_generada.save!
+								end
+							else
 								puts "Grupo no tiene stock"
 								oc_generada.estado = "anulada"
-								oc_generada.notas = "Se anula ya que grupo no tiene stock para satisfacer nuesta oc"
+								oc_generada.anulacion = "Se anula ya que grupo no tiene stock para satisfacer nuesta oc"
 								oc_generada.save!
 								return generar_oc_sistema
 							end
 						else
 							puts "Return code no es 200"
 							oc_generada.estado = "anulada"
-							oc_generada.notas = "Se anula ya que grupo no responde 200 en su request de stock"
+							oc_generada.anulacion = "Se anula ya que grupo no responde 200 en su request de stock"
 							oc_generada.save!
 							return generar_oc_sistema
 						end
 					else
 						puts "No tenemos la url para mandar oc"
 						oc_generada.estado = "anulada"
-						oc_generada.notas = "Se anula ya que no se tiene la url para mandar oc"
+						oc_generada.anulacion = "Se anula ya que no se tiene la url para mandar oc"
 						oc_generada.save!
 						return generar_oc_sistema
 					end
 				else
 					puts "Error en get stock (de conexion)"
 					oc_generada.estado = "anulada"
-					oc_generada.notas = "Se anula ya que grupo no se pudo conectar con get stock. Error " + errores_stock_request.to_s
+					oc_generada.anulacion = "Se anula ya que grupo no se pudo conectar con get stock. Error " + errores_stock_request.to_s
 					oc_generada.save!
 					return generar_oc_sistema
 				end
@@ -177,16 +205,28 @@ module Scheduler::OcHelper
 						body = JSON.parse(r.body)[0]
 						oc.cantidadDespachada = body['cantidadDespachada'].to_i
 						oc.estado = body['estado']
+						oc.anulacion = body['anulacion']
 					end
-					if oc.estado == "creada"
+
+					if oc.estado == "creada" || oc.estado == "anulada"
 						oc.estado = "anulada"
-						oc.notas += anulacion + " "
+
+						puts "Quitamos " + oc.cantidad.to_s + " de cantidad pedida"
+						oc.oc_request.cantidad_pedida -= oc.cantidad
+						oc.oc_request.save!
 					end
+
 					if oc.estado == "finalizada"
 						if oc.cantidadDespachada >= oc.cantidad
-							oc.oc_request.por_responder = false
-							oc.oc_request.aceptado = true
-							oc.oc_request.despachado = true
+							if oc.oc_request.cantidad_restante <= 0
+								oc.oc_request.por_responder = false
+								oc.oc_request.aceptado = true
+								oc.oc_request.despachado = true
+							else
+								oc.oc_request.por_responder = true
+								oc.oc_request.aceptado = false
+								oc.oc_request.despachado = false
+							end
 							oc.oc_request.save!
 						end
 					end
@@ -253,12 +293,21 @@ module Scheduler::OcHelper
 				
 				oc.cantidadDespachada = body['cantidadDespachada']
 				oc.estado = body['estado']
+				oc.rechazo = body['rechazo']
+				oc.anulacion = body['anulacion']
 
 				if oc.cantidadDespachada >= oc.cantidad
 					oc.estado = "finalizada"
-					oc.oc_request.por_responder = false
-					oc.oc_request.aceptado = true
-					oc.oc_request.despachado = true
+
+					if oc.oc_request.cantidad_restante <= 0
+						oc.oc_request.por_responder = false
+						oc.oc_request.aceptado = true
+						oc.oc_request.despachado = true
+					else
+						oc.oc_request.por_responder = true
+						oc.oc_request.aceptado = false
+						oc.oc_request.despachado = false
+					end
 					oc.oc_request.save!
 
 					#pago factura
@@ -315,6 +364,7 @@ module Scheduler::OcHelper
 						oc.oc_request.por_responder = true
 						oc.oc_request.aceptado = false
 						oc.oc_request.despachado = false
+						oc.oc_request.cantidad_pedida -= (oc.cantidad - oc.cantidadDespachada)
 						oc.oc_request.save!
 
 						#rechazo factura
@@ -342,22 +392,6 @@ module Scheduler::OcHelper
 
 				oc.save!
 			end
-=begin
-			if oc.fechaEntrega < DateTime.now.utc
-				oc.estado = "finalizada"
-				if oc.cantidadDespachada >= oc.cantidad
-					oc.oc_request.por_responder = false
-					oc.oc_request.aceptado = true
-					oc.oc_request.despachado = true
-				else
-					oc.oc_request.por_responder = true
-					oc.oc_request.aceptado = false
-					oc.oc_request.despachado = false
-				end
-				oc.oc_request.save!
-				oc.save!
-			end
-=end
 		end
 	end
 

@@ -8,10 +8,12 @@
       <th>Sftp order</th>
       <th>Sku</th>
       <th>Cantidad</th>
+      <th>Precio maximo</th>
       <th>Por responder</th>
       <th>Aceptado</th>
       <th>Despachado</th>
       <th>#oc generadas</th>
+      <th>Cantidad pedida</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -22,10 +24,12 @@
         <td><%= oc_request.sftp_order.oc %></td>
         <td><%= oc_request.sku %></td>
         <td><%= oc_request.cantidad %></td>
+        <td><%= oc_request.precio_maximo %></td>
         <td><%= oc_request.por_responder %></td>
         <td><%= oc_request.aceptado %></td>
         <td><%= oc_request.despachado %></td>
         <td><%= oc_request.ocs_generadas.count %></td>
+        <td><%= oc_request.cantidad_pedida %></td>
         <td><%= link_to 'Show', oc_request %></td>
         <td><%= link_to 'Edit', edit_oc_request_path(oc_request) %></td>
         <td><%= link_to 'Destroy', oc_request, method: :delete, data: { confirm: 'Are you sure?' } %></td>

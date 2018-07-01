@@ -48,6 +48,9 @@ gem 'rufus-scheduler'
 # Sftp conection
 gem 'net-sftp'
 
+# Will paginate
+gem 'will_paginate'
+
 group :production, :development_test do  ## Heroku trabaja con production, por lo tanto usara postgres
   # Use postgres as the database for Active Record for production
   gem 'pg'

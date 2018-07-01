@@ -15,4 +15,8 @@ class OcRequest < ApplicationRecord
 		no_completado_requests = OcRequest.por_responder.left_outer_joins(:ocs_generadas).includes(:ocs_generadas).group(:id).having('count("oc_requests"."id") < 8')
 		self.por_responder.where.not(id: esperando_respuesta).where(id: no_completado_requests)
 	end
+
+	def cantidad_restante
+		cantidad - cantidad_pedida
+	end
 end

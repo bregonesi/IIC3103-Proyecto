@@ -282,10 +282,16 @@ class EndpointController < ApplicationController
 			elsif status == "reject" && oc_generada.estado == "creada"
 				puts "Entro a reject"
 				oc_generada.estado = "rechazada"
+				oc_generada.oc_request.cantidad_pedida -= oc_generada.cantidad
+				oc_generada.oc_request.save!
 				oc_generada.save!
 
 				# se supone que esto lo hace el otro grupo, pero forzamos a que si no lo hizo lo hagamos nosotros
-				HTTParty.post(ENV['api_oc_url'] + "rechazar/" + oc.to_s, body: { rechazo: "Me llego notificacion de rechazo desde ip " + ip2long(request.remote_ip).to_s }.to_json, headers: { 'Content-type': 'application/json' })
+				r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + oc.to_s, body: { rechazo: "Me llego notificacion de rechazo desde ip " + ip2long(request.remote_ip).to_s }.to_json, headers: { 'Content-type': 'application/json' })
+				if r.code == 200
+					body = JSON.parse(r.body)[0]
+					oc_generada.rechazo = body['rechazo']
+				end
 			else
 				render json: { error: "Status no reconocido o orden ya fue aceptada/rechazada" }, :status => 400
 				return

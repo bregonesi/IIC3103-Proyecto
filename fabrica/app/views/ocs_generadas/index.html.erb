@@ -2,6 +2,8 @@
 
 <h1>Ocs Generadas</h1>
 
+<%= will_paginate @ocs_generadas %>
+
 <table>
   <thead>
     <tr>
@@ -17,6 +19,8 @@
       <th>Preciounitario</th>
       <th>Canal</th>
       <th>Notas</th>
+      <th>Rechazo</th>
+      <th>Anulacion</th>
       <th>Urlnotificacion</th>
       <th>Estado</th>
       <th>Createdat</th>
@@ -39,6 +43,8 @@
         <td><%= ocs_generada.precioUnitario %></td>
         <td><%= ocs_generada.canal %></td>
         <td><%= ocs_generada.notas.truncate(100) %></td>
+        <td><%= ocs_generada.rechazo.truncate(100) %></td>
+        <td><%= ocs_generada.anulacion.truncate(100) %></td>
         <td><%= ocs_generada.urlNotificacion %></td>
         <td><%= ocs_generada.estado %></td>
         <td><%= ocs_generada.created_at %></td>
@@ -49,6 +55,8 @@
     <% end %>
   </tbody>
 </table>
+
+<%= will_paginate @ocs_generadas %>
 
 <br>
 

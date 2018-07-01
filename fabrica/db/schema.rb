@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180630221104) do
+ActiveRecord::Schema.define(version: 20180701055210) do
 
   create_table "fabricar_requests", force: :cascade do |t|
     t.string "id_prod"
@@ -77,6 +77,8 @@ ActiveRecord::Schema.define(version: 20180630221104) do
     t.boolean "despachado", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "precio_maximo", default: 0
+    t.integer "cantidad_pedida", default: 0
     t.index ["sftp_order_id"], name: "index_oc_requests_on_sftp_order_id"
   end
 
@@ -97,6 +99,8 @@ ActiveRecord::Schema.define(version: 20180630221104) do
     t.datetime "updated_at", null: false
     t.string "estado"
     t.integer "cantidadDespachada"
+    t.string "rechazo"
+    t.string "anulacion"
     t.index ["oc_request_id"], name: "index_ocs_generadas_on_oc_request_id"
   end
 
