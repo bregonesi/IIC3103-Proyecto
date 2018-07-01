@@ -69,6 +69,6 @@ class OcRequestsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def oc_request_params
-      params.require(:oc_request).permit(:sftp_order_id, :sku, :cantidad, :por_responder, :aceptado, :despachado)
+      params.require(:oc_request).permit(:sftp_order_id, :sku, :cantidad, :precio_maximo, :por_responder, :aceptado, :despachado, :cantidad_pedida)
     end
 end
