@@ -83,15 +83,15 @@ Rails.application.configure do
   # Compras b2b
   ENV['url_notificacion_oc'] = "http://integra4.ing.puc.cl/public/oc/{_id}/notification"
   $info_grupos = {  ## development
-                   1 => { id: "5ad36945d6ed1f00049beca4", id_banco: "5ad36945d6ed1f00049becad", almacen: "5ad36a25d6ed1f00049becbf", stock_url: "http://dev.integra1.ing.puc.cl/public/stock", oc_url: "http://dev.integra1.ing.puc.cl/public/oc/" },
-                   2 => { id: "5ad36945d6ed1f00049beca5", id_banco: "5ad36945d6ed1f00049becae", almacen: "5ad36a26d6ed1f00049bf412", stock_url: "http://dev.integra2.ing.puc.cl/public/stock", oc_url: "http://dev.integra2.ing.puc.cl/public/oc/" },
-                   3 => { id: "5ad36945d6ed1f00049beca6", id_banco: "5ad36945d6ed1f00049becaf", almacen: "5ad36a27d6ed1f00049bfc04", stock_url: "http://dev.integra3.ing.puc.cl/public/stock", oc_url: "http://dev.integra3.ing.puc.cl/public/oc/" },
-                   4 => { id: "5ad36945d6ed1f00049beca7", id_banco: "5ad36945d6ed1f00049becb4", almacen: "5ad36a28d6ed1f00049c0138", stock_url: "http://dev.integra4.ing.puc.cl/public/stock", oc_url: "http://dev.integra4.ing.puc.cl/public/oc/" },
-                   5 => { id: "5ad36945d6ed1f00049beca8", id_banco: "5ad36945d6ed1f00049becb7", almacen: "5ad36a29d6ed1f00049c0948", stock_url: "http://dev.integra5.ing.puc.cl/public/stock", oc_url: "http://dev.integra5.ing.puc.cl/public/oc/" },
-                   6 => { id: "5ad36945d6ed1f00049beca9", id_banco: "5ad36945d6ed1f00049becb1", almacen: "5ad36a29d6ed1f00049c1105", stock_url: "http://dev.integra6.ing.puc.cl/api/v1/public/stock", oc_url: "http://dev.integra6.ing.puc.cl/public/oc/" },
-                   7 => { id: "5ad36945d6ed1f00049becaa", id_banco: "5ad36945d6ed1f00049becb8", almacen: "5ad36a2ad6ed1f00049c17f3", stock_url: "http://dev.integra7.ing.puc.cl/public/stock", oc_url: "http://dev.integra7.ing.puc.cl/public/oc/" },
-                   8 => { id: "5ad36945d6ed1f00049becab", id_banco: "5ad36945d6ed1f00049becb5", almacen: "5ad36a2bd6ed1f00049c2018", stock_url: "http://dev.integra8.ing.puc.cl/public/stock", oc_url: "http://dev.integra8.ing.puc.cl/public/oc/" },
-                   9 => { id: "5ad36945d6ed1f00049becac", id_banco: "5ad36945d6ed1f00049becb0", almacen: "5ad36a2cd6ed1f00049c2723", stock_url: "http://dev.integra9.ing.puc.cl/public/stock", oc_url: "http://dev.integra9.ing.puc.cl/public/oc/" }
+                   1 => { id: "5ad36945d6ed1f00049beca4", id_banco: "5ad36945d6ed1f00049becad", almacen: "5ad36a25d6ed1f00049becbf", stock_url: "http://integra1.ing.puc.cl/public/stock", oc_url: "http://dev.integra1.ing.puc.cl/public/oc/" },
+                   2 => { id: "5ad36945d6ed1f00049beca5", id_banco: "5ad36945d6ed1f00049becae", almacen: "5ad36a26d6ed1f00049bf412", stock_url: "http://integra2.ing.puc.cl/public/stock", oc_url: "http://dev.integra2.ing.puc.cl/public/oc/" },
+                   3 => { id: "5ad36945d6ed1f00049beca6", id_banco: "5ad36945d6ed1f00049becaf", almacen: "5ad36a27d6ed1f00049bfc04", stock_url: "http://integra3.ing.puc.cl/public/stock", oc_url: "http://dev.integra3.ing.puc.cl/public/oc/" },
+                   4 => { id: "5ad36945d6ed1f00049beca7", id_banco: "5ad36945d6ed1f00049becb4", almacen: "5ad36a28d6ed1f00049c0138", stock_url: "http://integra4.ing.puc.cl/public/stock", oc_url: "http://dev.integra4.ing.puc.cl/public/oc/" },
+                   5 => { id: "5ad36945d6ed1f00049beca8", id_banco: "5ad36945d6ed1f00049becb7", almacen: "5ad36a29d6ed1f00049c0948", stock_url: "http://integra5.ing.puc.cl/public/stock", oc_url: "http://dev.integra5.ing.puc.cl/public/oc/" },
+                   6 => { id: "5ad36945d6ed1f00049beca9", id_banco: "5ad36945d6ed1f00049becb1", almacen: "5ad36a29d6ed1f00049c1105", stock_url: "http://integra6.ing.puc.cl/api/v1/public/stock", oc_url: "http://dev.integra6.ing.puc.cl/public/oc/" },
+                   7 => { id: "5ad36945d6ed1f00049becaa", id_banco: "5ad36945d6ed1f00049becb8", almacen: "5ad36a2ad6ed1f00049c17f3", stock_url: "http://integra7.ing.puc.cl/public/stock", oc_url: "http://dev.integra7.ing.puc.cl/public/oc/" },
+                   8 => { id: "5ad36945d6ed1f00049becab", id_banco: "5ad36945d6ed1f00049becb5", almacen: "5ad36a2bd6ed1f00049c2018", stock_url: "http://integra8.ing.puc.cl/public/stock", oc_url: "http://dev.integra8.ing.puc.cl/public/oc/" },
+                   9 => { id: "5ad36945d6ed1f00049becac", id_banco: "5ad36945d6ed1f00049becb0", almacen: "5ad36a2cd6ed1f00049c2723", stock_url: "http://integra9.ing.puc.cl/public/stock", oc_url: "http://dev.integra9.ing.puc.cl/public/oc/" }
                  }
 =begin
   $info_grupos = {  ## production

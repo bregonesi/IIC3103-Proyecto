@@ -287,29 +287,31 @@ module Scheduler::OrderHelper
 					sftp_order.save!
 
 					# Creo la factura para FTP #
-					factura = Invoice.where(originator_type: sftp_order.class.name.to_s, originator: sftp_order.id.to_i).first_or_create! do |f|
-						
-						factura_request = HTTParty.put(ENV['api_sii_url'],
-																					 body: {oc: sftp_order.oc}.to_json,
-																					 headers: { 'Content-type': 'application/json'})
-		
-						puts factura_request
-
-						if factura_request.code == 200
-							body = JSON.parse(factura_request.body)
-							f._id = body["_id"]
-							f.cliente = body["cliente"]
-							f.proveedor = body["proveedor"]
-							f.oc = body["oc"]["_id"]
-							f.bruto = body["bruto"]
-							f.iva = body["iva"]
-							f.total = body["total"]
-							f.estado = body["estado"]
-							f.created_at = body["created_at"]
-							f.updated_at = body["updated_at"]
-						else
-							puts "Error en crear factura"
+					if sftp_order.canal == "ftp"
+						factura = Invoice.where(originator_type: sftp_order.class.name.to_s, originator: sftp_order.id.to_i).first_or_create! do |f|
+							
+							factura_request = HTTParty.put(ENV['api_sii_url'],
+																						 body: {oc: sftp_order.oc}.to_json,
+																						 headers: { 'Content-type': 'application/json'})
+			
 							puts factura_request
+
+							if factura_request.code == 200
+								body = JSON.parse(factura_request.body)
+								f._id = body["_id"]
+								f.cliente = body["cliente"]
+								f.proveedor = body["proveedor"]
+								f.oc = body["oc"]["_id"]
+								f.bruto = body["bruto"]
+								f.iva = body["iva"]
+								f.total = body["total"]
+								f.estado = body["estado"]
+								f.created_at = body["created_at"]
+								f.updated_at = body["updated_at"]
+							else
+								puts "Error en crear factura"
+								puts factura_request
+							end
 						end
 					end
 

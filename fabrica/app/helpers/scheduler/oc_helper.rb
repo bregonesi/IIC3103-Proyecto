@@ -39,11 +39,14 @@ module Scheduler::OcHelper
 					o.proveedor = datos_grupo[:id]
 					o.sku = oc.sku
 
-					delta = (oc.sftp_order.fechaEntrega - DateTime.now.utc) / 3.0
+					delta = ([oc.sftp_order.fechaEntrega, oc.created_at + 2.hour].min - DateTime.now.utc) / 3.0
 					o.fechaEntrega = DateTime.now.utc + delta
 
 					o.cantidad = oc.cantidad
-					o.precioUnitario = variant.price.to_i
+
+					# Este es el precio maximo a pagar #
+					o.precioUnitario = 0
+					
 					o.canal = "b2b"
 					o.notas = ""
 					o.urlNotificacion = ENV['url_notificacion_oc']
@@ -61,7 +64,6 @@ module Scheduler::OcHelper
 										puts "Grupo si tiene stock. Intento crear orden"
 
 										hay_stock = true
-
 
 										## Mandamos oc
 										oc_request = HTTParty.put(ENV['api_oc_url'] + "crear",
@@ -291,9 +293,10 @@ module Scheduler::OcHelper
 							end
 						end
 
+						# Marco como pagada #
 						factura_request = HTTParty.post(ENV['api_sii_url'] + "pay",
-																					 body: {id: factura._id}.to_json,
-																					 headers: { 'Content-type': 'application/json'})
+																						body: {id: factura._id}.to_json,
+																						headers: { 'Content-type': 'application/json'})
 		
 						puts factura_request
 
@@ -305,7 +308,7 @@ module Scheduler::OcHelper
 							puts factura_request
 						end
 					end
-					
+
 				else
 					if oc.fechaEntrega < DateTime.now.utc  # si se vencio
 						oc.estado = "finalizada"
