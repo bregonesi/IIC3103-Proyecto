@@ -80,22 +80,11 @@ module Scheduler::OcHelper
 											puts "Orden creada"
 
 											body = JSON.parse(oc_request.body)
-
-=begin
-											# Le decimos que creamos una oc
-											errores_notificar_oc = ""
-											begin
-												HTTParty.put(datos_grupo[:oc_url] + body['_id'], timeout: 10, body: { }.to_json, headers: { 'Content-type': 'application/json' })
-											rescue Exception => e # Never do this!
-												errores_notificar_oc = e
-											end
-=end
-
 											oc_generada.oc_id = body['_id']
 											oc_generada.cantidadDespachada = body['cantidadDespachada'].to_i
 											oc_generada.urlNotificacion = body['urlNotificacion']
 											oc_generada.created_at = body['created_at']
-											oc_generada.notas = "Se crea ya que se cuenta con stock"# + errores_notificar_oc.to_s
+											oc_generada.notas = "Se crea ya que se cuenta con stock"
 
 										else
 											oc_generada.estado = "anulada"

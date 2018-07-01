@@ -14,7 +14,7 @@ class EndpointController < ApplicationController
 		end
 =end
 		r = HTTParty.get(ENV['api_oc_url'] + "obtener/" + id_order.to_s, headers: { 'Content-type': 'application/json' })
-		if r.code != 200
+		if r.code != 200 || JSON.parse(r.body)[0].nil?
 			render json: r.body, :status => r.code
 			return
 		end
@@ -60,12 +60,13 @@ class EndpointController < ApplicationController
 			orden_nueva.rechazo = "No se acepta ya que no hay url notificacion"
 			orden_nueva.estado = "rechazada"
 			orden_nueva.save!
-			HTTParty.post(ENV['api_oc_url'] + "rechazar/" + oc.to_s, body: { rechazo: orden_nueva.rechazo }.to_json, headers: { 'Content-type': 'application/json' })
+			HTTParty.post(ENV['api_oc_url'] + "rechazar/" + orden_nueva._id.to_s, body: { rechazo: orden_nueva.rechazo }.to_json, headers: { 'Content-type': 'application/json' })
 			render json: { error: "Orden " + orden_nueva._id + " no tiene url notificacion" }, :status => 400
 			return
 		end
 
 		producto = Spree::Variant.find_by(sku: orden_nueva.sku)
+		factura_id = ""
 
 		if orden_nueva.fechaEntrega > DateTime.now.utc - 10.minutes && producto.cantidad_api >= orden_nueva.cantidad && orden_nueva.acepto?
 			#acepto
@@ -104,6 +105,35 @@ class EndpointController < ApplicationController
             o.myEstado = "finalizada"
           end
 				end
+
+				# Creo la factura para B2B #
+				factura = Invoice.where(originator_type: orden_nueva.class.name.to_s, originator: orden_nueva.id.to_i).first_or_create! do |f|
+					
+					factura_request = HTTParty.put(ENV['api_sii_url'],
+																				 body: {oc: orden_nueva._id}.to_json,
+																				 headers: { 'Content-type': 'application/json'})
+	
+					puts factura_request
+
+					if factura_request.code == 200
+						body = JSON.parse(factura_request.body)
+						f._id = body["_id"]
+						factura_id = f._id
+						f.cliente = body["cliente"]
+						f.proveedor = body["proveedor"]
+						f.oc = body["oc"]["_id"]
+						f.bruto = body["bruto"]
+						f.iva = body["iva"]
+						f.total = body["total"]
+						f.estado = body["estado"]
+						f.created_at = body["created_at"]
+						f.updated_at = body["updated_at"]
+					else
+						puts "Error en crear factura"
+						puts factura_request
+					end
+				end
+
 			else
 				orden_nueva.notas += "No funciono aceptar al profe. "
 				orden_nueva.save!
@@ -114,7 +144,10 @@ class EndpointController < ApplicationController
 			errores_notificacion_oc = ""
 			notification = ""
 			begin
-				notification = HTTParty.post(orden_nueva.urlNotificacion, timeout: 10, body: { status: "accept" }.to_json, headers: { 'Content-type': 'application/json' })
+				notification = HTTParty.post(orden_nueva.urlNotificacion, timeout: 10,
+																		 body: { status: "accept",
+																		 				 id_factura: factura_id }.to_json,
+																		 headers: { 'Content-type': 'application/json' })
 			rescue Exception => e # Never do this!
 				errores_notificacion_oc = e
 			end
@@ -192,7 +225,8 @@ class EndpointController < ApplicationController
 
 		oc = params[:id]
 		status = params[:status]
-		puts "Recibo notificacion status " + status.to_s + " para oc " + oc.to_s
+		id_factura = params[:id_factura]
+		puts "Recibo notificacion status " + status.to_s + ", id factura " + id_factura.to_s + " para oc " + oc.to_s
 
 		if !(request.content_type =~ /json/)
 			puts "Tu content-type no es application/json"
@@ -217,6 +251,34 @@ class EndpointController < ApplicationController
 
 				# se supone que esto lo hace el otro grupo, pero forzamos a que si no lo hizo lo hagamos nosotros
 				HTTParty.post(ENV['api_oc_url'] + "recepcionar/" + oc.to_s, body: { }.to_json, headers: { 'Content-type': 'application/json' })
+
+				if !id_factura.empty?
+					# Recivo la factura #
+					factura = Invoice.where(originator_type: oc_generada.class.name.to_s, originator: oc_generada.id.to_i).first_or_create! do |f|
+						
+						factura_request = HTTParty.get(ENV['api_sii_url'] + id_factura.to_s, headers: { 'Content-type': 'application/json'})
+		
+						puts factura_request
+
+						if factura_request.code == 200
+							body = JSON.parse(factura_request.body)
+							f._id = body["_id"]
+							f.cliente = body["cliente"]
+							f.proveedor = body["proveedor"]
+							f.oc = body["oc"]
+							f.bruto = body["bruto"]
+							f.iva = body["iva"]
+							f.total = body["total"]
+							f.estado = body["estado"]
+							f.created_at = body["created_at"]
+							f.updated_at = body["updated_at"]
+						else
+							puts "Error en crear factura"
+							puts factura_request
+						end
+					end
+				end
+
 			elsif status == "reject" && oc_generada.estado == "creada"
 				puts "Entro a reject"
 				oc_generada.estado = "rechazada"
@@ -235,7 +297,7 @@ class EndpointController < ApplicationController
 
 	private
 		def endpoint_params
-			params.require(:endpoint).permit(:status)
+			params.require(:endpoint).permit(:status, :id_factura)
 		end
 
 end

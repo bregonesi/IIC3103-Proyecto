@@ -3,7 +3,7 @@ class ApiController < ApplicationController
 	def stock_publico
 		json_p = []
 		Spree::Variant.all.each do |product|
-			json_p << { :sku => product.sku.to_s, :available => product.cantidad_api.to_i, :price => (product.cost_price * (17**(1.0/2.0) / 3.14)).to_i }
+			json_p << { :sku => product.sku.to_s, :available => product.cantidad_api.to_i, :price => product.price }
 		end
 
 		render json: json_p, :status => 200
@@ -19,7 +19,7 @@ class ApiController < ApplicationController
     if(key == "hola")
 
 			Spree::Variant.all.each do |product|
-				json_p << { :sku => product.sku.to_s, :available => product.cantidad_api.to_i, :price => (product.cost_price * (17**(1.0/2.0) / 3.14)).to_i }
+				json_p << { :sku => product.sku.to_s, :available => product.cantidad_api.to_i, :price => product.price }
 			end
 
 			render json: json_p, :status => 200

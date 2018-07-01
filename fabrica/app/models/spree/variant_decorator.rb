@@ -92,4 +92,8 @@ Spree::Variant.class_eval do
     $cache_variant.write(['cantidad_api', self.id], cantidad)
     return cantidad
   end
+
+  def price
+    (self.cost_price.to_i * (17**(1.0/2.0) / 3.14)).to_i
+  end
 end
