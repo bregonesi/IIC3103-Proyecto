@@ -320,7 +320,7 @@ module Scheduler::OcHelper
 						puts transferencia_request
 
 						if transferencia_request.code == 200
-							body = JSON.parse(transferencia_request.body)[0]
+							body = JSON.parse(transferencia_request.body)
 							t.idtransferencia = body["_id"]
 						else
 							puts "Error en transferencia"
