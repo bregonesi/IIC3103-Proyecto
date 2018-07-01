@@ -4,7 +4,7 @@ class OcsGeneradasController < ApplicationController
   # GET /ocs_generadas
   # GET /ocs_generadas.json
   def index
-    @ocs_generadas = OcsGenerada.paginate(:page => params[:page]).order(id: :desc)
+    @ocs_generadas = OcsGenerada.order(id: :desc).page params[:page]
   end
 
   # GET /ocs_generadas/1
