@@ -261,7 +261,7 @@ class EndpointController < ApplicationController
 						puts factura_request
 
 						if factura_request.code == 200
-							body = JSON.parse(factura_request.body)
+							body = JSON.parse(factura_request.body)[0]
 							f._id = body["_id"]
 							f.cliente = body["cliente"]
 							f.proveedor = body["proveedor"]

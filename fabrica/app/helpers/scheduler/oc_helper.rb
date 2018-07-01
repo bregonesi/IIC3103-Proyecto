@@ -227,6 +227,7 @@ module Scheduler::OcHelper
 								oc.oc_request.por_responder = true
 								oc.oc_request.aceptado = false
 								oc.oc_request.despachado = false
+								oc.oc_request.cantidad_pedida -= (oc.cantidad - oc.cantidadDespachada)
 							end
 							oc.oc_request.save!
 						end
