@@ -38,11 +38,11 @@ module Scheduler::AlmacenesHelper
 					a_mover_fecha = a_mover_datos[0][1]
 					a_mover_prods_count = a_mover_datos[1]
 
-					cantidad_en_origen = a_mover_stock_item.count_on_hand
-
 					prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
 					prod = prods.first
 
+					cantidad_en_origen = prod.stock_item.count_on_hand
+					
 	        variants = Hash.new(0)
 	        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis, cantidad_en_origen].min
 
