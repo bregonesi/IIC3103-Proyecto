@@ -69,7 +69,7 @@ class EndpointController < ApplicationController
 		factura_id = ""
 
 		if orden_nueva.fechaEntrega > DateTime.now.utc - 10.minutes &&
-			producto.cantidad_api >= orden_nueva.cantidad && orden_nueva.cantidad <= producto.lote_minimo
+			producto.cantidad_api >= orden_nueva.cantidad && orden_nueva.cantidad <= producto.lote_minimo &&
 			orden_nueva.precioUnitario >= producto.price && orden_nueva.acepto?
 			#acepto
 			puts "Marcando " + orden_nueva._id.to_s + " como aceptada"
@@ -151,7 +151,7 @@ class EndpointController < ApplicationController
 																		 				 id_factura: factura_id }.to_json,
 																		 headers: { 'Content-type': 'application/json' })
 			rescue Exception => e # Never do this!
-				errores_notificacion_oc = e
+				errores_notificacion_oc = e.to_s
 			end
 
 			if errores_notificacion_oc.empty? && notification.code == 204

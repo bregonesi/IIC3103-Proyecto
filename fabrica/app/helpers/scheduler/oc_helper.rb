@@ -372,7 +372,7 @@ module Scheduler::OcHelper
 					end
 					oc.oc_request.save!
 				else
-					if oc.fechaEntrega < DateTime.now.utc  # si se vencio
+					if oc.fechaEntrega + 10.minutes < DateTime.now.utc  # si se vencio (le doy 10 mins mas)
 						oc.estado = "finalizada"
 						oc.oc_request.por_responder = true
 						oc.oc_request.aceptado = false
