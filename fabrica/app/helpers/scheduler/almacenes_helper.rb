@@ -38,6 +38,9 @@ module Scheduler::AlmacenesHelper
 					a_mover_fecha = a_mover_datos[0][1]
 					a_mover_prods_count = a_mover_datos[1]
 
+					prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
+					prod = prods.first
+
 					por_despachar = 0
 					prod.stock_item.stock_location.shipments.where.not(state: "canceled").each do |prod_ship|  ## muestra todas las ordenes por despachar del stock location
 						if prod_ship.order.completed?  ## solo si esta completado (no se dejo la compra a medio camino)
@@ -48,10 +51,7 @@ module Scheduler::AlmacenesHelper
 					end
 					puts "Por despachar " + por_despachar.to_s
 					a_mover_prods_count -= por_despachar
-
-					prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
-					prod = prods.first
-
+					
 					cantidad_en_almacen = prod.stock_item.count_on_hand  ## por si estamos recibiendo
 
 	        variants = Hash.new(0)
