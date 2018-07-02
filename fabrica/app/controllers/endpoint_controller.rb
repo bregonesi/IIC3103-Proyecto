@@ -68,7 +68,9 @@ class EndpointController < ApplicationController
 		producto = Spree::Variant.find_by(sku: orden_nueva.sku)
 		factura_id = ""
 
-		if orden_nueva.fechaEntrega > DateTime.now.utc - 10.minutes && producto.cantidad_api >= orden_nueva.cantidad && orden_nueva.acepto?
+		if orden_nueva.fechaEntrega > DateTime.now.utc - 10.minutes &&
+			producto.cantidad_api >= orden_nueva.cantidad && orden_nueva.cantidad <= producto.lote_minimo
+			orden_nueva.precioUnitario >= producto.price && orden_nueva.acepto?
 			#acepto
 			puts "Marcando " + orden_nueva._id.to_s + " como aceptada"
 
@@ -168,22 +170,24 @@ class EndpointController < ApplicationController
 			puts "Marcando " + orden_nueva._id.to_s + " como rechazada"
 
 			if !(orden_nueva.fechaEntrega > DateTime.now.utc - 10.minutes)
-				orden_nueva.rechazo = "Orden vencida o vence pronto"
+				orden_nueva.rechazo = "Orden vencida o vence pronto."
 			elsif !(producto.cantidad_api >= orden_nueva.cantidad)
-				orden_nueva.rechazo = "No tengo stock"
-			elsif !((OrdenCompra.aceptadas_de_cliente(orden_nueva.cliente).count.to_f / OrdenCompra.aceptadas.count.to_f) <= 0.7)
-				orden_nueva.rechazo = "Mas del 70% de mis ordenes aceptadas son tuyas. Tengo que rechazar."
+				orden_nueva.rechazo = "No tengo stock."
+			elsif !(orden_nueva.cantidad <= producto.lote_minimo)
+				orden_nueva.rechazo = "Tranquilo, eres minorista. Puedes pedirme maximo un lote."
+			elsif !(orden_nueva.precioUnitario >= producto.price)
+				orden_nueva.rechazo = "Yo vendo a " + producto.price.to_s + ", no a " + orden_nueva.precioUnitario.to_s + "."
 			elsif !(OrdenCompra.cantidad_maxima_aceptar_de_cliente(orden_nueva.cliente) > OrdenCompra.aceptadas_de_cliente(orden_nueva.cliente).count)
 				orden_nueva.rechazo = "Necesito trato justo; Tu tambien me tienes que aceptar."
 			else
-				orden_nueva.rechazo = "Se rechazo por error"
+				orden_nueva.rechazo = "Se rechazo por error."
 			end
 			orden_nueva.save!
 
 			puts "Razon del rechazo " + orden_nueva.rechazo
 
 			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + orden_nueva._id.to_s,
-												body: { rechazo: orden_nueva.rechazo }.to_json,
+												body: { rechazo: orden_nueva.rechazo, id_factura: "" }.to_json,
 												headers: { 'Content-type': 'application/json' })
 
 			if r.code == 200

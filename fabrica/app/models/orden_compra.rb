@@ -16,8 +16,7 @@ class OrdenCompra < ApplicationRecord
 		(OcsGenerada.where(estado: "aceptada", proveedor: cliente).count + OcsGenerada.where(estado: "finalizada", proveedor: cliente).count + 1) * 2
 	end
 
-	def acepto?(critico=0.7)
-		(OrdenCompra.aceptadas.count == 0 || (OrdenCompra.aceptadas_de_cliente(self.cliente).count.to_f / OrdenCompra.aceptadas.count.to_f) <= critico) &&
+	def acepto?
 		OrdenCompra.cantidad_maxima_aceptar_de_cliente(self.cliente) > OrdenCompra.aceptadas_de_cliente(self.cliente).count
 	end
 end
