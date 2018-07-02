@@ -35,7 +35,7 @@ module Scheduler::OrderHelper
 
 			if r.code == 200
 				body = JSON.parse(r.body)[0]
-				#sftp_order.myEstado = "rechazada"
+				sftp_order.myEstado = "rechazada"
 				sftp_order.serverEstado = body['estado']
 				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
 				sftp_order.server_updated_at = body['updated_at']
@@ -54,12 +54,13 @@ module Scheduler::OrderHelper
 			factura = Invoice.find_by(originator_type: sftp_order.class.name.to_s, originator: sftp_order.id.to_i)
 			if !factura.nil?
 				puts "Anulamos factura " + factura._id.to_s
-				
+
 				factura_request = HTTParty.post(ENV['api_sii_url'] + "cancel", body: {id: factura._id, motivo: sftp_order.rechazo }.to_json, headers: { 'Content-type': 'application/json'})
 
 				if factura_request.code == 200
 					body = JSON.parse(factura_request.body)[0]
 					factura.estado = body["estado"]
+					factura.anulacion = body["anulacion"] || ""
 					factura.save!
 				else
 					puts "Error en anular factura"
