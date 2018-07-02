@@ -44,7 +44,7 @@ module Scheduler::AlmacenesHelper
 					por_despachar = 0
 					prod.stock_item.stock_location.shipments.where.not(state: "canceled").each do |prod_ship|  ## muestra todas las ordenes por despachar del stock location
 						if prod_ship.order.completed?  ## solo si esta completado (no se dejo la compra a medio camino)
-							prod_ship.inventory_units.where(variant: variant, state: "on_hand").each do |iu|
+							prod_ship.inventory_units.where(variant: prod.stock_item.variant, state: "on_hand").each do |iu|
 								por_despachar += iu.quantity - iu.shipped_quantity
 							end
 						end
