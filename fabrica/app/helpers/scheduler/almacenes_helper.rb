@@ -38,11 +38,13 @@ module Scheduler::AlmacenesHelper
 					a_mover_fecha = a_mover_datos[0][1]
 					a_mover_prods_count = a_mover_datos[1]
 
+					cantidad_en_origen = a_mover_stock_item.count_on_hand
+
 					prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
 					prod = prods.first
 
 	        variants = Hash.new(0)
-	        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
+	        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis, cantidad_en_origen].min
 
 					begin
 						puts "Moveremos " + variants.to_s + " desde almacen " + prod.stock_item.stock_location.name + " a " + almacen.name
@@ -63,7 +65,7 @@ module Scheduler::AlmacenesHelper
 
 	        Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 
-	        j -= [a_mover_prods_count, j - cap_dis].min
+	        j -= [a_mover_prods_count, j - cap_dis, cantidad_en_origen].min
 				end
 			end
 		end
