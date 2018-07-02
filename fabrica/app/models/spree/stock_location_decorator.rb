@@ -5,7 +5,7 @@ Spree::StockLocation.class_eval do
 
   def shipment_capacity
     items_por_despachar = 0
-    self.shipments.each do |shipment|
+    self.shipments.where.not(state: "canceled").each do |shipment|
       if shipment.order.completed?
         shipment.inventory_units.each do |iu|
           items_por_despachar = iu.quantity - iu.shipped_quantity

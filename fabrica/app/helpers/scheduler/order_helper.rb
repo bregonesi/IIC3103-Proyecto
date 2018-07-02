@@ -44,9 +44,27 @@ module Scheduler::OrderHelper
 				puts r
 			end
 
+			# Cancelo spree orders #
 			sftp_order.orders.where(state: "complete").where.not(shipment_state: "shipped").each do |spree_order|
 				puts "Cancelamos spree order " + spree_order.number.to_s
 				spree_order.canceled_by(Spree::User.first)
+			end
+
+			# Anulo factura #
+			factura = Invoice.find_by(originator_type: sftp_order.class.name.to_s, originator: sftp_order.id.to_i)
+			if !factura.nil?
+				puts "Anulamos factura " + factura._id.to_s
+				
+				factura_request = HTTParty.post(ENV['api_sii_url'] + "cancel", body: {id: factura._id, motivo: sftp_order.rechazo }.to_json, headers: { 'Content-type': 'application/json'})
+
+				if factura_request.code == 200
+					body = JSON.parse(factura_request.body)[0]
+					factura.estado = body["estado"]
+					factura.save!
+				else
+					puts "Error en anular factura"
+					puts factura_request
+				end
 			end
 		end
 	end
