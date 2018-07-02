@@ -16,6 +16,11 @@
 </p>
 
 <p>
+  <strong>Precio maximo:</strong>
+  <%= @oc_request.precio_maximo %>
+</p>
+
+<p>
   <strong>Por responder:</strong>
   <%= @oc_request.por_responder %>
 </p>
@@ -28,6 +33,11 @@
 <p>
   <strong>Despachado:</strong>
   <%= @oc_request.despachado %>
+</p>
+
+<p>
+  <strong>Cantidad pedida:</strong>
+  <%= @oc_request.cantidad_pedida %>
 </p>
 
 <%= link_to 'Edit', edit_oc_request_path(@oc_request) %> |

@@ -2,6 +2,8 @@
 
 <h1>Oc Requests</h1>
 
+<%= paginate @oc_requests, remote: true %>
+
 <table>
   <thead>
     <tr>
@@ -37,6 +39,8 @@
     <% end %>
   </tbody>
 </table>
+
+<%= paginate @oc_requests, remote: true %>
 
 <br>
 
