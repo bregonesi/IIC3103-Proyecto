@@ -25,7 +25,7 @@ module Scheduler::OrderHelper
 			end
 		end
 
-		SftpOrder.vencidas.where(serverEstado: "aceptada").where('"sftp_orders"."myCantidadDespachada" != "sftp_orders"."serverCantidadDespachada"') do |sftp_order|
+		SftpOrder.vencidas.where(canal: "b2b", serverEstado: "aceptada").where('"sftp_orders"."myCantidadDespachada" != "sftp_orders"."serverCantidadDespachada"').each do |sftp_order|
 			puts "Orden B2B " + sftp_order.oc.to_s + " se vencio y no se pago. Se intenta rechazar y se anula invoice."
 			sftp_order.rechazo = "Orden se vence y no se pago invoice a tiempo."
 
