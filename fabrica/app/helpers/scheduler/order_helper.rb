@@ -24,6 +24,30 @@ module Scheduler::OrderHelper
 				puts r
 			end
 		end
+
+		SftpOrder.vencidas.where(serverEstado: "aceptada").where('"sftp_orders"."myCantidadDespachada" != "sftp_orders"."serverCantidadDespachada"') do |sftp_order|
+			puts "Orden B2B " + sftp_order.oc.to_s + " se vencio y no se pago. Se intenta rechazar y se anula invoice."
+			sftp_order.rechazo = "Orden se vence y no se pago invoice a tiempo."
+
+			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + sftp_order.oc.to_s,
+												body: { rechazo: sftp_order.rechazo }.to_json,
+												headers: { 'Content-type': 'application/json' })
+
+			if r.code == 200
+				body = JSON.parse(r.body)[0]
+				#sftp_order.myEstado = "rechazada"
+				sftp_order.serverEstado = body['estado']
+				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
+				sftp_order.server_updated_at = body['updated_at']
+				sftp_order.save!
+			else
+				puts r
+			end
+
+			sftp_order.orders do |spree_order|
+				puts "Cancelamos spree order " + spree_order.number.to_s
+			end
+		end
 	end
 
 	def sincronizar_informacion
