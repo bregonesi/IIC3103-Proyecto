@@ -38,11 +38,28 @@ module Scheduler::AlmacenesHelper
 					a_mover_fecha = a_mover_datos[0][1]
 					a_mover_prods_count = a_mover_datos[1]
 
+					por_despachar = 0
+					prod.stock_item.stock_location.shipments.where.not(state: "canceled").each do |prod_ship|  ## muestra todas las ordenes por despachar del stock location
+						if prod_ship.order.completed?  ## solo si esta completado (no se dejo la compra a medio camino)
+							prod_ship.inventory_units.where(variant: variant, state: "on_hand").each do |iu|
+								por_despachar += iu.quantity - iu.shipped_quantity
+							end
+						end
+					end
+					puts "Por despachar " + por_despachar.to_s
+					a_mover_prods_count -= por_despachar
+
 					prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
 					prod = prods.first
 
+					cantidad_en_almacen = prod.stock_item.count_on_hand  ## por si estamos recibiendo
+
 	        variants = Hash.new(0)
-	        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis].min
+	        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis, cantidad_en_almacen].min
+
+	        if variants[prod.stock_item.variant] == 0  ## no hay nada que mover
+	        	break
+	        end
 
 					begin
 						puts "Moveremos " + variants.to_s + " desde almacen " + prod.stock_item.stock_location.name + " a " + almacen.name
@@ -63,7 +80,7 @@ module Scheduler::AlmacenesHelper
 
 	        Scheduler::ProductosHelper.hacer_movimientos  ## hacemos los movs
 
-	        j -= [a_mover_prods_count, j - cap_dis].min
+	        j -= [a_mover_prods_count, j - cap_dis, cantidad_en_almacen].min
 				end
 			end
 		end
