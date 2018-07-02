@@ -84,7 +84,7 @@ class EndpointController < ApplicationController
 				orden_nueva.estado = "aceptada"
 				orden_nueva.save!
 
-				SftpOrder.where(oc: orden_nueva._id).first_or_create! do |o|
+				new_sftp_order = SftpOrder.where(oc: orden_nueva._id).first_or_create! do |o|
           o.cliente = body['cliente']
           o.proveedor = body['proveedor']
           o.sku = body['sku']
@@ -109,10 +109,10 @@ class EndpointController < ApplicationController
 				end
 
 				# Creo la factura para B2B #
-				factura = Invoice.where(originator_type: orden_nueva.class.name.to_s, originator: orden_nueva.id.to_i).first_or_create! do |f|
+				factura = Invoice.where(originator_type: new_sftp_order.class.name.to_s, originator: new_sftp_order.id.to_i).first_or_create! do |f|
 					
 					factura_request = HTTParty.put(ENV['api_sii_url'],
-																				 body: {oc: orden_nueva._id}.to_json,
+																				 body: {oc: new_sftp_order.oc}.to_json,
 																				 headers: { 'Content-type': 'application/json'})
 	
 					puts factura_request
