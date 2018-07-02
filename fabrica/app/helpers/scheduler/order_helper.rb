@@ -44,7 +44,7 @@ module Scheduler::OrderHelper
 				puts r
 			end
 
-			sftp_order.orders.where.not(shipment_state: "shipped").each do |spree_order|
+			sftp_order.orders.where.not(state: "complete", shipment_state: "shipped").each do |spree_order|
 				puts "Cancelamos spree order " + spree_order.number.to_s
 				spree_order.canceled_by(Spree::User.first)
 			end
