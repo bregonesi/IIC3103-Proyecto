@@ -204,7 +204,7 @@ class EndpointController < ApplicationController
 			begin
 				notification = HTTParty.post(orden_nueva.urlNotificacion, timeout: 10, body: { status: "reject" }.to_json, headers: { 'Content-type': 'application/json' })
 			rescue Exception => e # Never do this!
-				errores_notificacion_oc = e
+				errores_notificacion_oc = e.to_s
 			end
 
 			if errores_notificacion_oc.empty? && notification.code == 204
