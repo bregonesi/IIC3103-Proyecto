@@ -12,7 +12,7 @@ module Scheduler::PaymentHelper
 						puts "No tenemos factura para la sftp order b2b " + orden_inpaga.sftp_order.id.to_s
 						next
 					else
-						if !factura.estado == "pagada"
+						if !(factura.estado == "pagada")
 							puts "Factura para sftp order " + orden_inpaga.sftp_order.id.to_s + " no se encuentra pagada."
 							next
 						end
