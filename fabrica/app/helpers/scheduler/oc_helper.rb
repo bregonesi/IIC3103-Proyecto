@@ -74,10 +74,12 @@ module Scheduler::OcHelper
 					if !datos_grupo[:oc_url].empty?
 						if stock_request.code == 200
 							body = JSON.parse(stock_request.body)
+							acepto_precio = false
 							hay_stock = false
 							body.each do |prod|
 								if prod["sku"] == oc.sku
 									if prod["price"].to_i <= oc_generada.precioUnitario
+										acepto_precio = true
 										if prod["available"].to_i > 0
 											oc_generada.cantidad = [oc_generada.cantidad, prod["available"].to_i].min
 											oc_generada.precioUnitario = prod["price"].to_i
@@ -127,7 +129,7 @@ module Scheduler::OcHelper
 							end
 							oc_generada.save!
 
-							if hay_stock
+							if acepto_precio && hay_stock
 								# Le decimos que creamos una oc
 								errores_notificar_oc = ""
 								begin
@@ -138,9 +140,15 @@ module Scheduler::OcHelper
 									oc_generada.save!
 								end
 							else
-								puts "Grupo no tiene stock"
+								puts "Grupo no tiene stock o vende muy alto"
 								oc_generada.estado = "anulada"
-								oc_generada.anulacion = "Se anula ya que grupo no tiene stock para satisfacer nuesta oc"
+
+								if !acepto_precio
+									oc_generada.anulacion = "Se anula ya que grupo vende muy alto"
+								else
+									oc_generada.anulacion = "Se anula ya que grupo no tiene stock para satisfacer nuesta oc"
+								end
+
 								oc_generada.save!
 								return generar_oc_sistema
 							end
