@@ -37,6 +37,7 @@ module Scheduler::OrderHelper
 				body = JSON.parse(r.body)[0]
 				sftp_order.myEstado = "rechazada"
 				sftp_order.serverEstado = body['estado']
+				sftp_order.myCantidadDespachada = body['cantidadDespachada']
 				sftp_order.serverCantidadDespachada = body['cantidadDespachada']
 				sftp_order.server_updated_at = body['updated_at']
 				sftp_order.save!
