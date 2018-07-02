@@ -27,7 +27,7 @@ module Scheduler::OrderHelper
 
 		SftpOrder.vencidas.where(canal: "b2b", serverEstado: "aceptada").where('"sftp_orders"."myCantidadDespachada" != "sftp_orders"."serverCantidadDespachada"').each do |sftp_order|
 			puts "Orden B2B " + sftp_order.oc.to_s + " se vencio y no se pago. Se intenta rechazar y se anula invoice."
-			sftp_order.rechazo = "Orden se vence y no se pago invoice a tiempo."
+			sftp_order.rechazo = "Orden se vence e invoice no se pago a tiempo."
 
 			r = HTTParty.post(ENV['api_oc_url'] + "rechazar/" + sftp_order.oc.to_s,
 												body: { rechazo: sftp_order.rechazo }.to_json,
@@ -44,8 +44,9 @@ module Scheduler::OrderHelper
 				puts r
 			end
 
-			sftp_order.orders do |spree_order|
+			sftp_order.orders.where.not(shipment_state: "shipped").each do |spree_order|
 				puts "Cancelamos spree order " + spree_order.number.to_s
+				spree_order.canceled_by(Spree::User.first)
 			end
 		end
 	end
