@@ -43,6 +43,8 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 			# Generamos oc #
 			Scheduler::OcHelper.generar_oc_sistema
 
+			# Actualizamos invoices pendientes #
+
 			# Aca pagamos las ordenes #
 			Scheduler::PaymentHelper.pagar_ordenes
 

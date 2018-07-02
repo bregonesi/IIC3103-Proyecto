@@ -32,4 +32,22 @@ module Scheduler::PaymentHelper
 		marcar_pagadas
 	end
 
+	def actualizar_invoices
+		puts "Actualizando invoices"
+
+		Invoice.where(estado: "pendiente").each do |inv|
+			puts "Actualizando invoice " + inv._id.to_s
+			
+			factura_request = HTTParty.get(ENV['api_sii_url'] + inv._id.to_s, headers: { 'Content-type': 'application/json'})
+			if factura_request.code == 200
+				body = JSON.parse(factura_request.body)[0]
+				inv.estado = body["estado"]
+				inv.save!
+			else
+				puts "Error en get factura"
+				puts factura_request
+			end
+		end
+	end
+
 end
