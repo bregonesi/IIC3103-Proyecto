@@ -83,7 +83,7 @@ Rails.application.configure do
 
   # Url boleta
   ENV['boleta_url'] = "https://integracion-2018-dev.herokuapp.com/web/"  ## development
-  #ENV['boleta_url'] = "https://integracion-2018-dev.herokuapp.com/web/"  ## production
+  #ENV['boleta_url'] = "https://integracion-2018-prod.herokuapp.com/web/"  ## production
 
   # Mi url
   ENV['mi_url'] = "http://localhost:3000"  ## development

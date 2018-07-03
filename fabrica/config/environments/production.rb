@@ -115,6 +115,14 @@ Rails.application.configure do
   #ENV['api_sii_url'] = "https://integracion-2018-dev.herokuapp.com/sii/"  ## development
   ENV['api_sii_url'] = "https://integracion-2018-prod.herokuapp.com/sii/"  ## production
 
+  # Url boleta
+  #ENV['boleta_url'] = "https://integracion-2018-dev.herokuapp.com/web/"  ## development
+  ENV['boleta_url'] = "https://integracion-2018-prod.herokuapp.com/web/"  ## production
+
+  # Mi url
+  #ENV['mi_url'] = "http://localhost:3000"  ## development
+  ENV['mi_url'] = "http://integra4.ing.puc.cl"  ## production
+
   # Compras b2b
   ENV['url_notificacion_oc'] = "http://integra4.ing.puc.cl/public/oc/{_id}/notification"
 =begin
