@@ -26,4 +26,15 @@ Rails.application.routes.draw do
   
   put '/public/oc/:id', to: 'endpoint#recibir_oc'
   post '/public/oc/:id/notification', to: 'endpoint#respuesta_oc'
+
+  resources :orders do
+    resource :checkout, :controller => 'spree/checkout' do
+      member do
+        get :api_gateway_url
+        get :api_gateway_success
+        get :api_gateway_fail
+      end
+    end
+  end
+
 end

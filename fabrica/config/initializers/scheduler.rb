@@ -8,7 +8,7 @@ if defined?(::Rails::Server) || defined?(PhusionPassenger)
 	job = Rufus::Scheduler.new(:max_work_threads => 1, :lockfile => ".rufus-scheduler.lock")
 
 	unless job.down?
-		job.every '35s' do
+		job.every '99999935s' do
 			puts "Ejecutando update."
 
 			# Marcamos ordenes vencidas y las finalizadas

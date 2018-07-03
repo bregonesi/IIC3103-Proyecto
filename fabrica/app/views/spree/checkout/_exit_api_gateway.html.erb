@@ -1,0 +1,10 @@
+<h2><center>Esta ventana se debería cerrar dentro de 3 segundos</center></h2>
+<script type="text/javascript">
+	function myLoop () {
+	  setTimeout(window.close(), 3000);
+	}
+
+	$(window).load(function() {
+		myLoop();
+	});
+</script>

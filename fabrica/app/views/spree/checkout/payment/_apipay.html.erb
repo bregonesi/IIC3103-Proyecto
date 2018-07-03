@@ -1,0 +1,43 @@
+<h4><center>Al hacer click en continuar seras redireccionado para rellenar tus datos</center></h4>
+<br/>
+<%# param_prefix = "payment_source[#{payment_method.id}]" %>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+
+<script type="text/javascript">
+	$( window ).load(function() {
+		if($.cookie('api_gateway_offsite_payment') == "true") {
+  		$("#checkout_form_payment input:submit").addClass('disabled');
+  		$("#order_payments_attributes__payment_method_id_1").prop('disabled', true);
+  		$("#order_payments_attributes__payment_method_id_2").trigger('click');
+  		$("#payment_method_2").show();
+  	}
+  });
+
+	function myLoop () {
+	   setTimeout(function () {
+	      //console.log($.cookie('api_gateway_offsite_payment'));
+	      if($.cookie('api_gateway_offsite_payment') == "true") {
+	      	var respuesta = $.cookie('api_gateway_respuesta');
+	      	if(respuesta == "0") {
+	      		//$.removeCookie('api_gateway_offsite_payment', { path: '/' });
+	      		//$.removeCookie('api_gateway_respuesta', { path: '/' });
+	      		location.reload();
+	      	} else if(respuesta == "1") {
+	      		//$.removeCookie('api_gateway_offsite_payment', { path: '/' });
+	      		//$.removeCookie('api_gateway_respuesta', { path: '/' });
+	      		location.reload();
+	      	}
+	      }
+	      myLoop();
+	   }, 3000)
+	}
+
+	$(document).ready(function() {
+		myLoop();
+	});
+
+	$("#checkout_form_payment").submit( function() {
+  	window.open('<%= url_for(main_app.api_gateway_url_order_checkout_path(@order)) %>', 'GoogleWindow', 'width=800, height=600');
+	});
+</script>
