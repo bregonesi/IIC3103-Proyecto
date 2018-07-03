@@ -84,11 +84,17 @@ end
 # Payment methods #
 print "Cargando payment methods.\n"
 
-
 Spree::PaymentMethod::Check.where(
   name: "Gratis",
-  description: "Pago por api.",
+  description: "Pago por defecto.",
   active: true
+).first_or_create!
+
+Spree::Gateway::Apipay.where(
+  name: "Api Gateway",
+  description: "Pago utilizando el gateway de la api.",
+  active: true,
+  display_on: "front_end"
 ).first_or_create!
 
 # Products #
