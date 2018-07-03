@@ -1,6 +1,5 @@
 <h4><center>Al hacer click en continuar seras redireccionado para rellenar tus datos</center></h4>
 <br/>
-<%# param_prefix = "payment_source[#{payment_method.id}]" %>
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 
@@ -38,6 +37,8 @@
 	});
 
 	$("#checkout_form_payment").submit( function() {
-  	window.open('<%= url_for(main_app.api_gateway_url_order_checkout_path(@order)) %>', 'GoogleWindow', 'width=800, height=600');
+		if($('#order_payments_attributes__payment_method_id_2').is(':checked')) {
+  		window.open('<%= url_for(main_app.api_gateway_url_order_checkout_path(@order)) %>', 'Api Gateway', 'width=800, height=600');
+		}
 	});
 </script>

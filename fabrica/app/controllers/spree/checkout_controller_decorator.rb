@@ -4,15 +4,13 @@ module Spree
     before_action :api_gateway_supper, :only => [:edit]
     before_action :api_gateway_hook, :only => [:update]
 
-    helper_method :payment_method
-
-    def two_checkout_payment
-      load_order_with_lock
-    end
-
     def api_gateway_supper
       if params[:state] == "payment"
         if cookies[:api_gateway_respuesta] == "1"
+          cookies.delete :api_gateway_offsite_payment
+          cookies.delete :api_gateway_respuesta
+          @order.next
+          @current_order = nil
           flash.notice = Spree.t(:order_processed_successfully)
           flash['order_completed'] = true
           redirect_to completion_route
@@ -33,7 +31,7 @@ module Spree
       payment_method_id = PaymentMethod.find(params[:order][:payments_attributes].first[:payment_method_id])
       cookies.delete(:api_gateway_offsite_payment) unless payment_method_id.kind_of?(Gateway::Apipay)
 
-      if payment_method_id.kind_of?(Gateway::Apipay)
+      if payment_method_id.id == 2
         load_order_with_lock
         @order.payments.where(amount: @order.total, payment_method_id: payment_method_id.id).first_or_create!
         cookies[:api_gateway_offsite_payment] = { value: true, expires: 1.hour.from_now }
@@ -91,7 +89,7 @@ module Spree
         end
       end
       @order.payments.last.update_columns(state: 'checkout')
-      @order.confirmation_delivered = true  ## forzamos para que no se envie mail
+      @order.confirmation_delivered = true
 
       cookies[:api_gateway_offsite_payment] = { value: true, expires: 1.hour.from_now }
       cookies[:api_gateway_respuesta] = { value: 1, expires: 1.hour.from_now }
