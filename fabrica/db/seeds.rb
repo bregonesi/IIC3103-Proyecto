@@ -91,8 +91,8 @@ Spree::PaymentMethod::Check.where(
 ).first_or_create!
 
 Spree::Gateway::Apipay.where(
-  name: "Api Gateway",
-  description: "Pago utilizando el gateway de la api.",
+  name: "Portal de pagos API",
+  description: "Pago utilizando el portal de pagos de la api.",
   active: true,
   display_on: "front_end"
 ).first_or_create!
