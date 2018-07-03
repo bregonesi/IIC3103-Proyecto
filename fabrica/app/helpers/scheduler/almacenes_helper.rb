@@ -34,6 +34,9 @@ module Scheduler::AlmacenesHelper
 					puts "Cambiando a " + almacen.proposito + " (" + almacen.name + "), cap dis " + cap_dis.to_s
 
 					todos_ignorados = true
+					a_mover_stock_item = nil
+					a_mover_fecha = nil
+					a_mover_prods_count = nil
 					a_mover_groupped.each do |a_mover_datos|
 						if !ignorar.include?([a_mover_datos[0][0], a_mover_datos[0][1]])
 							a_mover_stock_item = a_mover_datos[0][0]
