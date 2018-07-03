@@ -82,6 +82,12 @@ module Scheduler::OcHelper
 										acepto_precio = true
 										if prod["available"].to_i > 0
 											oc_generada.cantidad = [oc_generada.cantidad, prod["available"].to_i].min
+											lote_min = Spree::Variant.find_by(sku: oc_generada.sku)
+											if !lote_min.nil?
+												lote_min = (lote_min/1.5).to_i
+												oc_generada.cantidad = [oc_generada.cantidad, lote_min].min
+											end
+
 											oc_generada.precioUnitario = prod["price"].to_i
 											oc_generada.save!
 
