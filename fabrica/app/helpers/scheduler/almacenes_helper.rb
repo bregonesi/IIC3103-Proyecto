@@ -54,7 +54,7 @@ module Scheduler::AlmacenesHelper
 					prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
 					prod = prods.first
 
-					Scheduler::ProductosHelper::cargar_detalles(a_mover_stock_item)
+					Scheduler::ProductosHelper::cargar_detalles(prod.stock_item)
 
 					por_despachar = 0
 					prod.stock_item.stock_location.shipments.where.not(state: "canceled").each do |prod_ship|  ## muestra todas las ordenes por despachar del stock location
