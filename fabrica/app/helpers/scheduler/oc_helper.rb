@@ -84,7 +84,7 @@ module Scheduler::OcHelper
 											oc_generada.cantidad = [oc_generada.cantidad, prod["available"].to_i].min
 											lote_min = Spree::Variant.find_by(sku: oc_generada.sku)
 											if !lote_min.nil?
-												lote_min = (lote_min/1.5).to_i
+												lote_min = (lote_min.lote_min/1.5).to_i
 												oc_generada.cantidad = [oc_generada.cantidad, lote_min].min
 											end
 
