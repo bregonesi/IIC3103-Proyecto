@@ -62,7 +62,7 @@ module Scheduler::AlmacenesHelper
 							end
 						end
 					end
-					puts "Por despachar " + por_despachar.to_s
+					puts "Detectados " + a_mover_prods_count.to_s + " despachar " + por_despachar.to_s
 					a_mover_prods_count -= por_despachar
 
 					cantidad_en_almacen = prod.stock_item.count_on_hand  ## por si estamos recibiendo
