@@ -21,6 +21,7 @@ module Scheduler::AlmacenesHelper
 
 			entry[0].each do |almacen|
 				j = almacen.available_capacity
+				ignorar = []
 				while j > cap_dis
 					productos_ordenados = ProductosApi.no_vencidos.order(:vencimiento)
 					a_mover = productos_ordenados.where.not(stock_item: (entry[0] + entry[2].flatten).map(&:stock_items).flatten)
@@ -32,11 +33,20 @@ module Scheduler::AlmacenesHelper
 
 					puts "Cambiando a " + almacen.proposito + " (" + almacen.name + "), cap dis " + cap_dis.to_s
 
-					a_mover_datos = a_mover_groupped.each.next
+					todos_ignorados = true
+					a_mover_groupped.each do |a_mover_datos|
+						if !ignorar.include?([a_mover_datos[0][0], a_mover_datos[0][1]])
+							a_mover_stock_item = a_mover_datos[0][0]
+							a_mover_fecha = a_mover_datos[0][1]
+							a_mover_prods_count = a_mover_datos[1]
+							todos_ignorados = false
+							break
+						end
+					end
 
-					a_mover_stock_item = a_mover_datos[0][0]
-					a_mover_fecha = a_mover_datos[0][1]
-					a_mover_prods_count = a_mover_datos[1]
+					if todos_ignorados
+						break
+					end
 
 					prods = productos_ordenados.where(stock_item: a_mover_stock_item, vencimiento: a_mover_fecha)
 					prod = prods.first
@@ -51,14 +61,15 @@ module Scheduler::AlmacenesHelper
 					end
 					puts "Por despachar " + por_despachar.to_s
 					a_mover_prods_count -= por_despachar
-					
+
 					cantidad_en_almacen = prod.stock_item.count_on_hand  ## por si estamos recibiendo
 
 	        variants = Hash.new(0)
 	        variants[prod.stock_item.variant] = [a_mover_prods_count, j - cap_dis, cantidad_en_almacen].min
 
 	        if variants[prod.stock_item.variant] == 0  ## no hay nada que mover
-	        	break
+	        	ignorar << [a_mover_stock_item, a_mover_fecha]
+	        	next
 	        end
 
 					begin
