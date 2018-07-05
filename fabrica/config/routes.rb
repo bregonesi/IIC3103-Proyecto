@@ -23,6 +23,7 @@ Rails.application.routes.draw do
 
   post '/hook', to: 'hook#materias_primas'
   get '/hook_list', to: 'hook#list_requests'
+  get '/fabricar_list', to: 'hook#list_fabricar_requests'
   
   put '/public/oc/:id', to: 'endpoint#recibir_oc'
   post '/public/oc/:id/notification', to: 'endpoint#respuesta_oc'

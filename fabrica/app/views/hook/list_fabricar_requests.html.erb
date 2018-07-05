@@ -1,0 +1,33 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Fabricar Request</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Oc</th>
+      <th>Sku</th>
+      <th>Disponible</th>
+      <th>Cantidad</th>
+      <th>Aceptado</th>
+      <th>Razon</th>
+      <th>Created at</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @requests.each do |request| %>
+      <tr>
+        <td><%= request.id %></td>
+        <td><%= request.sftp_order.oc %></td>
+        <td><%= request.sku %></td>
+        <td><%= request.disponible %></td>
+        <td><%= request.cantidad %></td>
+        <td><%= request.aceptado %></td>
+        <td><%= request.razon %></td>
+        <td><%= request.created_at %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
