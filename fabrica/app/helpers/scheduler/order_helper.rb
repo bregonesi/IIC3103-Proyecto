@@ -468,7 +468,7 @@ module Scheduler::OrderHelper
 		##
 		puts "Chequeando si hay stock"
 
-		SftpOrder.where(id: (SftpOrder.aceptadas + SftpOrder.preaceptadas)).vigentes.each do |sftp_order|
+		SftpOrder.where(id: (SftpOrder.aceptadas + SftpOrder.preaceptadas)).vigentes.order(fechaEntrega: :asc).each do |sftp_order|
 			variant = Spree::Variant.find_by(sku: sftp_order.sku)
 			cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
 

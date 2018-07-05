@@ -240,6 +240,14 @@ class EndpointController < ApplicationController
 
 		oc_generada = OcsGenerada.find_by(oc_id: oc)
 		if oc_generada.nil?
+			# Rechazo factura
+			if !id_factura.empty?
+				invoice_sistema = Invoice.find_by(_id: id_factura)
+				if invoice_sistema.nil?
+					HTTParty.post(ENV['api_sii_url'] + "reject", body: {id: id_factura, motivo: "No se encontro el id de la oc" }.to_json, headers: { 'Content-type': 'application/json'})
+				end
+			end
+			
 			render json: { error: "Oc " + oc.to_s + " no encontrada" }, :status => 404
 			return
 		end
@@ -298,6 +306,14 @@ class EndpointController < ApplicationController
 				end
 				oc_generada.save!
 			else
+				# Rechazo factura
+				if !id_factura.empty?
+					invoice_sistema = Invoice.find_by(_id: id_factura)
+					if invoice_sistema.nil?
+						HTTParty.post(ENV['api_sii_url'] + "reject", body: {id: id_factura, motivo: "Status no reconocido o orden ya fue aceptada/rechazada" }.to_json, headers: { 'Content-type': 'application/json'})
+					end
+				end
+
 				render json: { error: "Status no reconocido o orden ya fue aceptada/rechazada" }, :status => 400
 				return
 			end
