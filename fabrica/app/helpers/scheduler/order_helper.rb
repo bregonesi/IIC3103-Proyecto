@@ -236,7 +236,7 @@ module Scheduler::OrderHelper
 							while lotes_restante_fabricar > 0  ## si hay que fabricar y si tengo que fabricar
 								cantidad_en_fabricacion = orden.fabricar_requests.por_fabricar.or(orden.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
 								cantidad_en_ocs = orden.oc_requests.por_recibir.where(sku: orden.sku).map(&:cantidad).reduce(:+).to_i
-								cantidad_faltante = orden.cantidad - cantidad_en_fabricacion - cantidad_en_ocs
+								cantidad_faltante = orden.cantidad - SftpOrder.find(orden).myCantidadDespachada - cantidad_en_fabricacion - cantidad_en_ocs
 								offset = cantidad_faltante % variant.lote_minimo  ## offset es lo que falta en el ultimo lote
 								relacion_lote_faltante = offset.to_f / variant.lote_minimo.to_f
 								# Si fabrico y el lote que me resulta es menos de 1/3 del ultimo lote, entonces compro por oc
@@ -484,6 +484,7 @@ module Scheduler::OrderHelper
 					puts "Llego stock para una orden aun no finalizada"
 
 					create_spree_from_sftp_order(sftp_order)
+					cantidad_restante = sftp_order.cantidad - SftpOrder.find(sftp_order).myCantidadDespachada
 				end
 
 				cantidad_en_fabricacion = (sftp_order.fabricar_requests.por_fabricar + sftp_order.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
