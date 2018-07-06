@@ -169,7 +169,7 @@ module Scheduler::OrderHelper
 		## cubro toda su demanda
 		##
 
-		if SftpOrder.acepto?  ## ie, si tengo una tasa de aceptadas menor a 0.75
+		if (1)  ## ie, si tengo una tasa de aceptadas menor a 0.75
 			ordenes = []  # [orden, costo_un_lote, lotes, costo_total]
 			#fechaEntrega: 16.hours.ago..Float::INFINITY
 			ordenes_creadas = SftpOrder.creadas.each do |sftp_order|
@@ -205,7 +205,7 @@ module Scheduler::OrderHelper
 
 				if SftpOrder.acepto? || ganancia_por_producto >= 0
 					#ordenes << [sftp_order, sftp_order.cantidad, lotes, ganancia_por_producto]
-					ordenes << [sftp_order, sftp_order.cantidad, lotes, cantidad_efectiva + cantidad_fab]  # dejo cantidad efectiva ya que aun no cobro
+					ordenes << [sftp_order, sftp_order.cantidad, lotes, cantidad_efectiva + cantidad_fab, ganancia_por_producto]  # dejo cantidad efectiva ya que aun no cobro
 				end
 			end
 
@@ -217,8 +217,12 @@ module Scheduler::OrderHelper
 			#puts ordenes.to_yaml
 
 			ordenes.each do |orden_entry|
-				if !SftpOrder.acepto?  ## si ya cumpli mi cuota
-					break
+				puts "Ganancia orden " + orden_entry[0].oc.to_s + ": " + orden_entry[4].to_s + " por producto"
+
+				if orden_entry[4] <= 0  ## no es rentable
+					if !SftpOrder.acepto?  ## si he cumplido mi cuota salto
+						next
+					end
 				end
 
 				orden = orden_entry[0]
@@ -236,7 +240,7 @@ module Scheduler::OrderHelper
 							while lotes_restante_fabricar > 0  ## si hay que fabricar y si tengo que fabricar
 								cantidad_en_fabricacion = orden.fabricar_requests.por_fabricar.or(orden.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i
 								cantidad_en_ocs = orden.oc_requests.por_recibir.where(sku: orden.sku).map(&:cantidad).reduce(:+).to_i
-								cantidad_faltante = orden.cantidad - cantidad_en_fabricacion - cantidad_en_ocs
+								cantidad_faltante = orden.cantidad - SftpOrder.find(orden.id).myCantidadDespachada - cantidad_en_fabricacion - cantidad_en_ocs
 								offset = cantidad_faltante % variant.lote_minimo  ## offset es lo que falta en el ultimo lote
 								relacion_lote_faltante = offset.to_f / variant.lote_minimo.to_f
 								# Si fabrico y el lote que me resulta es menos de 1/3 del ultimo lote, entonces compro por oc
@@ -247,7 +251,7 @@ module Scheduler::OrderHelper
 									generar_oc(orden, offset)
 									orden.myEstado = "preaceptada"
 								elsif variant.can_produce?
-									if orden.fechaEntrega - DateTime.now.utc >= 6.hours.seconds
+									if orden.fechaEntrega - DateTime.now.utc >= 8.hours.seconds
 										puts "Voy a fabricar"
 										fabricar(orden)
 										orden.myEstado = "preaceptada"
@@ -468,7 +472,7 @@ module Scheduler::OrderHelper
 		##
 		puts "Chequeando si hay stock"
 
-		SftpOrder.where(id: (SftpOrder.aceptadas + SftpOrder.preaceptadas)).vigentes.each do |sftp_order|
+		SftpOrder.where(id: (SftpOrder.aceptadas + SftpOrder.preaceptadas)).vigentes.order(fechaEntrega: :asc).each do |sftp_order|
 			variant = Spree::Variant.find_by(sku: sftp_order.sku)
 			cantidad_restante = sftp_order.cantidad - sftp_order.myCantidadDespachada
 
@@ -484,6 +488,7 @@ module Scheduler::OrderHelper
 					puts "Llego stock para una orden aun no finalizada"
 
 					create_spree_from_sftp_order(sftp_order)
+					cantidad_restante = sftp_order.cantidad - SftpOrder.find(sftp_order.id).myCantidadDespachada
 				end
 
 				cantidad_en_fabricacion = (sftp_order.fabricar_requests.por_fabricar + sftp_order.fabricar_requests.por_recibir).map(&:cantidad).reduce(:+).to_i

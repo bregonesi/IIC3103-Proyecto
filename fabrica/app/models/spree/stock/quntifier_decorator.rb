@@ -1,11 +1,14 @@
 Spree::Stock::Quantifier.class_eval do
-=begin
-  def total_on_hand
-    if variant.should_track_inventory?
-      stock_items.where(backorderable: false).sum(:count_on_hand)
-    else
-      Float::INFINITY
-    end
+  def can_supply?(required = 1)
+  	caller_locations.each do |c|
+  		strr = c.to_s
+  		if strr.include?("html.erb") || strr.include?("spree_frontend")
+  			puts "Front end"
+  			return variant.available? && (variant.cantidad_api >= required || backorderable?)
+  		end
+  	end
+
+    variant.available? && (total_on_hand >= required || backorderable?)
   end
-=end
+
 end

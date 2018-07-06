@@ -33,6 +33,10 @@ class HookController < ApplicationController
     render json: HookRequest.all
   end
 
+  def list_fabricar_requests
+    @requests = FabricarRequest.order(id: :desc)
+  end
+
   private
 	  def hook_params
 	    params.require(:hook).permit(:sku, :cantidad, :disponible)

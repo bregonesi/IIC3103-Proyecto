@@ -135,12 +135,18 @@ module Scheduler::OcHelper
 							end
 							oc_generada.save!
 
+							notificado = false
 							if acepto_precio && hay_stock
 								# Le decimos que creamos una oc
 								errores_notificar_oc = ""
 								begin
-									HTTParty.put(datos_grupo[:oc_url] + oc_generada.oc_id, timeout: 10, body: { }.to_json, headers: { 'Content-type': 'application/json' })
+									puts "Notifico al grupo"
+									if !notificado
+										notificado = true
+										HTTParty.put(datos_grupo[:oc_url] + oc_generada.oc_id, timeout: 10, body: { }.to_json, headers: { 'Content-type': 'application/json' })
+									end
 								rescue Exception => e # Never do this!
+									notificado = true
 									errores_notificar_oc = e
 									oc_generada.notas += e.to_s
 									oc_generada.save!

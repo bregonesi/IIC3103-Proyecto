@@ -9,7 +9,7 @@
           <br>
           <%= content_tag(:span, truncate("Sku: " + product.sku, length: 50), class: 'info', itemprop: "sku", title: product.sku) %>
           <br>
-          <%= content_tag(:span, truncate("Stock: " + (product.total_on_hand > 0 ? product.total_on_hand.to_s : 0.to_s), length: 50), class: 'info', itemprop: "stock", title: product.total_on_hand > 0 ? product.total_on_hand.to_s : 0.to_s) %>
+          <%= content_tag(:span, truncate("Stock: " + product.master.cantidad_api.to_s, length: 50), class: 'info', itemprop: "stock", title: product.master.cantidad_api.to_s) %>
         <% end %>
         <br/>
       </div>
