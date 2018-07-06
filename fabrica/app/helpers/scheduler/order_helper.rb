@@ -169,7 +169,7 @@ module Scheduler::OrderHelper
 		## cubro toda su demanda
 		##
 
-		if SftpOrder.acepto?  ## ie, si tengo una tasa de aceptadas menor a 0.75
+		if (1)  ## ie, si tengo una tasa de aceptadas menor a 0.75
 			ordenes = []  # [orden, costo_un_lote, lotes, costo_total]
 			#fechaEntrega: 16.hours.ago..Float::INFINITY
 			ordenes_creadas = SftpOrder.creadas.each do |sftp_order|
@@ -205,7 +205,7 @@ module Scheduler::OrderHelper
 
 				if SftpOrder.acepto? || ganancia_por_producto >= 0
 					#ordenes << [sftp_order, sftp_order.cantidad, lotes, ganancia_por_producto]
-					ordenes << [sftp_order, sftp_order.cantidad, lotes, cantidad_efectiva + cantidad_fab]  # dejo cantidad efectiva ya que aun no cobro
+					ordenes << [sftp_order, sftp_order.cantidad, lotes, cantidad_efectiva + cantidad_fab, ganancia_por_producto]  # dejo cantidad efectiva ya que aun no cobro
 				end
 			end
 
@@ -217,8 +217,10 @@ module Scheduler::OrderHelper
 			#puts ordenes.to_yaml
 
 			ordenes.each do |orden_entry|
-				if !SftpOrder.acepto?  ## si ya cumpli mi cuota
-					break
+				if orden_entry[4] <= 0  ## no es rentable
+					if !SftpOrder.acepto?  ## si he cumplido mi cuota salto
+						next
+					end
 				end
 
 				orden = orden_entry[0]
