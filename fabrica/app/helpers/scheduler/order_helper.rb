@@ -217,6 +217,8 @@ module Scheduler::OrderHelper
 			#puts ordenes.to_yaml
 
 			ordenes.each do |orden_entry|
+				puts "Ganancia orden " + orden_entry[0].oc.to_s +": " + orden_entry[4].to_s + " por producto"
+				
 				if orden_entry[4] <= 0  ## no es rentable
 					if !SftpOrder.acepto?  ## si he cumplido mi cuota salto
 						next
