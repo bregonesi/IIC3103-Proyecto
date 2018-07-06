@@ -249,7 +249,7 @@ module Scheduler::OrderHelper
 									generar_oc(orden, offset)
 									orden.myEstado = "preaceptada"
 								elsif variant.can_produce?
-									if orden.fechaEntrega - DateTime.now.utc >= 6.hours.seconds
+									if orden.fechaEntrega - DateTime.now.utc >= 8.hours.seconds
 										puts "Voy a fabricar"
 										fabricar(orden)
 										orden.myEstado = "preaceptada"
